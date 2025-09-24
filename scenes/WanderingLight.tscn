@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://bsjirhhbyko65"]
 
-[ext_resource type="Texture2D" uid="uid://1ugg66bw4erc" path="res://gradient.png" id="1_12wcx"]
+[ext_resource type="Texture2D" uid="uid://1ugg66bw4erc" path="res://assets/gradient.png" id="1_12wcx"]
 [ext_resource type="Script" uid="uid://gslly7obfhlm" path="res://src/WanderingLight.gd" id="1_xoc5w"]
 
 [node name="WanderingLight" type="Node2D"]
