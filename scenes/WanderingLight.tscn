@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://bsjirhhbyko65"]
+
+[ext_resource type="Texture2D" uid="uid://1ugg66bw4erc" path="res://gradient.png" id="1_12wcx"]
+[ext_resource type="Script" uid="uid://gslly7obfhlm" path="res://src/WanderingLight.gd" id="1_xoc5w"]
+
+[node name="WanderingLight" type="Node2D"]
+script = ExtResource("1_xoc5w")
+
+[node name="PointLight2D" type="PointLight2D" parent="."]
+color = Color(1, 0.75, 0.3, 1)
+energy = 1.5
+shadow_enabled = true
+shadow_filter_smooth = 64.0
+texture = ExtResource("1_12wcx")
+texture_scale = 1.15
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.05, 0.05)
+texture = ExtResource("1_12wcx")

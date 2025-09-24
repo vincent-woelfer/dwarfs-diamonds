@@ -1,11 +1,35 @@
-# Godot 4+ specific ignores
-.godot/
-.nomedia
+# IDEA settings
+.idea/
+
+# VS Code / VS Studio
+.vscode
+.vs
+*.code-workspace
+
+# SCONS
+.sconsign.dblite
+.scons_node_count
+config.log
+.sconf_temp
+*.os
+
+# Build library binary
+*.so
+
+# The default cache directory
+cache/
+.cache/
 
 # Godot-specific ignores
+.godot/
 .import/
+.tmp
 export.cfg
-export_credentials.cfg
+export_presets.cfg
+.editorconfig
+
+# Blender
+*.blend?
 
 # Imported translations (automatically generated from CSV files)
 *.translation
