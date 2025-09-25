@@ -34,12 +34,14 @@ func _ready() -> void:
 	background_poly = Polygon2D.new()
 	background_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
 	background_poly.color = Colors.get_cell_color(type, is_solid)
-
+	background_poly.vertex_colors = _get_cell_colors(background_poly.color)
+	
 	background_poly.material = shader_material.duplicate(true)
 	
+	# Change light mask if solid (no light passes through)
 	if is_solid:
 		background_poly.light_mask = 0
-	# background_poly.vertex_colors = _get_cell_colors()
+
 	add_child(background_poly)
 
 	# Light Occluder
@@ -55,12 +57,13 @@ func _ready() -> void:
 
 	#####
 	if randf() <= 0.5:
-		var mat: ShaderMaterial = background_poly.material
-		mat.set_shader_parameter("highlight", true)
+		var mat: Material = background_poly.material
+		if mat is ShaderMaterial:
+			(mat as ShaderMaterial).set_shader_parameter("highlight", true)
 
 
-func _get_cell_colors() -> PackedColorArray:
-	var base_color := Colors.rand_color()
+func _get_cell_colors(color: Color) -> PackedColorArray:
+	var base_color := color
 	var _color_variation := 0.1
 
 	var colors: PackedColorArray = []
