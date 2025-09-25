@@ -5,9 +5,8 @@ extends Node2D
 var wandering_light_scene := preload('res://scenes/WanderingLight.tscn')
 
 
-func _ready():
+func _ready() -> void:
 	_generate_grid()
-
 
 	# Sunlight from straight above
 	var sun := DirectionalLight2D.new()
@@ -23,19 +22,18 @@ func _ready():
 	# Wandering Lights
 	for i in range(10):
 		var light: WanderingLight = wandering_light_scene.instantiate()
-		light.global_position = Vector2(randi_range(1, Util.LEVEL_WIDTH-1), randi_range(1, Util.LEVEL_HEIGHT-1)) * Util.CELL_SIZE
+		var light_pos := Vector2(randi_range(1, Global.LEVEL_WIDTH - 1), randi_range(1, Global.LEVEL_HEIGHT - 1))
+		light_pos *= Global.CELL_SIZE
+		light.global_position = light_pos
 		add_child(light)
 
 	# Add path
-	var path : Path = Path.new()
+	var path: Path = Path.new()
 	add_child(path)
 
-func _generate_grid():
-	for y in range(Util.LEVEL_HEIGHT):
-		for x in range(Util.LEVEL_WIDTH):
+func _generate_grid() -> void:
+	for y in range(Global.LEVEL_HEIGHT):
+		for x in range(Global.LEVEL_WIDTH):
 			var type: Cell.CellType = Cell.CellType.values().pick_random()
 			var c := Cell.new(Vector2i(x, y), type)
 			add_child(c)
-
-	
-

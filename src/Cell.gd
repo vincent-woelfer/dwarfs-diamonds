@@ -49,15 +49,6 @@ func _ready() -> void:
 		occluder.occluder = occluder_poly
 		add_child(occluder)
 
-	# if not is_solid and randf() <= 0.05:
-	# 	var light := PointLight2D.new()
-	# 	light.energy = 1.5
-	# 	light.texture_scale = 1.75
-	# 	light.texture = preload("res://gradient.png")
-	# 	light.position = grid_pos * Util.CELL_SIZE.x
-	# 	light.shadow_enabled = true
-	# 	add_child(light)
-
 
 
 func _get_cell_colors() -> PackedColorArray:
@@ -79,10 +70,10 @@ func _get_cell_colors() -> PackedColorArray:
 # Returns a rectangle polygon for cell at grid position (x, y)
 func _get_cell_polygon(x: int, y: int) -> PackedVector2Array:
 	# 4 Corners
-	var top_left := Vector2(x * Util.CELL_SIZE.x, y * Util.CELL_SIZE.y)
-	var top_right := top_left + Vector2(Util.CELL_SIZE.x, 0)
-	var bot_right := top_left + Util.CELL_SIZE
-	var bot_left := top_left + Vector2(0, Util.CELL_SIZE.y)
+	var top_left := Vector2(x * Global.CELL_SIZE, y * Global.CELL_SIZE)
+	var top_right := top_left + Vector2(Global.CELL_SIZE, 0)
+	var bot_right := top_left + Global.CELL_SIZE_VEC
+	var bot_left := top_left + Vector2(0, Global.CELL_SIZE)
 
 	# 4 Sides
 	var top := (top_left + top_right) * 0.5
@@ -91,8 +82,8 @@ func _get_cell_polygon(x: int, y: int) -> PackedVector2Array:
 	var left := (bot_left + top_left) * 0.5
 
 	# Offset
-	var max_corner_offset := Util.CELL_SIZE.length() * 0.1
-	var max_side_offset := Util.CELL_SIZE.length() * 0.125
+	var max_corner_offset := Global.CELL_SIZE * 0.1
+	var max_side_offset := Global.CELL_SIZE * 0.125
 
 	top_left += Util.rand_circular_offset(top_left, max_corner_offset)
 	top_right += Util.rand_circular_offset(top_right, max_corner_offset)
