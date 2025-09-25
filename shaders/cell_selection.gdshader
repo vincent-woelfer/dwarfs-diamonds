@@ -1,5 +1,4 @@
 shader_type canvas_item;
-render_mode unshaded;
 
 // Parameters
 uniform vec4 color_gap : source_color = vec4(0.0, 0.0, 0.0, 1.0);
@@ -10,8 +9,6 @@ uniform float speed : hint_range(0.0, 10.0) = 0.1;
 uniform float angle : hint_range(0.0, 6.283) = 0.7854; // radians
 
 uniform bool highlight = false;
-
-// uniform sampler2D SCREEN_TEXTURE : hint_screen_texture;
 
 // Varyings
 varying vec2 vert_pos; // in world space
