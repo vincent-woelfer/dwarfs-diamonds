@@ -15,9 +15,9 @@ func _ready() -> void:
 	# add_child(sun)
 
 	# Darkness
-	var darkness := CanvasModulate.new()
-	darkness.color = Color(0.5, 0.5, 0.5)
-	add_child(darkness)
+	# var darkness := CanvasModulate.new()
+	# darkness.color = Color(0.5, 0.5, 0.5)
+	# add_child(darkness)
 
 	# Wandering Lights
 	for i in range(10):

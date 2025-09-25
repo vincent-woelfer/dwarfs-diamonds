@@ -2,6 +2,8 @@
 class_name Cell
 extends Node2D
 
+var shader_material: ShaderMaterial = preload("res://assets/materials/cell_selection_material.tres")
+
 # Variables
 enum CellType {
 	A,
@@ -27,12 +29,14 @@ func _init(_grid_pos: Vector2i, _type: CellType) -> void:
 	self.is_solid = randf() <= 0.3
 
 
-
 func _ready() -> void:
 	# Background
 	background_poly = Polygon2D.new()
 	background_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
 	background_poly.color = Colors.get_cell_color(type, is_solid)
+
+	background_poly.material = shader_material.duplicate(true)
+	
 	if is_solid:
 		background_poly.light_mask = 0
 	# background_poly.vertex_colors = _get_cell_colors()
@@ -49,6 +53,10 @@ func _ready() -> void:
 		occluder.occluder = occluder_poly
 		add_child(occluder)
 
+	#####
+	if randf() <= 0.5:
+		var mat: ShaderMaterial = background_poly.material
+		mat.set_shader_parameter("highlight", true)
 
 
 func _get_cell_colors() -> PackedColorArray:
@@ -96,6 +104,3 @@ func _get_cell_polygon(x: int, y: int) -> PackedVector2Array:
 
 	# Clockwise, starting from top-left
 	return PackedVector2Array([top_left, top, top_right, right, bot_right, bot, bot_left, left])
-
-
-
