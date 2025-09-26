@@ -1,4 +1,5 @@
 shader_type canvas_item;
+render_mode blend_disabled, unshaded;
 
 // Parameters
 uniform vec4 color_stripe : source_color = vec4(1.0, 0.0, 0.0, 1.0);
@@ -31,6 +32,6 @@ void fragment() {
     float stripe = floor(mod(w * divisions, stripe_bias));
     vec4 highlight_color = (stripe < 0.5) ? screen_color : color_stripe;
 
-	COLOR = (highlight) ? highlight_color : screen_color;
+	// COLOR = (highlight) ? highlight_color : screen_color;
     COLOR = mask_color;
 }

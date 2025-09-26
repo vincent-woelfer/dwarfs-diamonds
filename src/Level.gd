@@ -13,7 +13,6 @@ func _ready() -> void:
 	# Viewport setup
 	selection_mask_viewport.world_2d = self.get_world_2d()
 
-
 	var mat := ($PostProcessColorRect as ColorRect).material as ShaderMaterial
 	mat.set_shader_parameter("MASK_TEXTURE", buffer_tex)
 
