@@ -37,12 +37,14 @@ func _ready() -> void:
 	background_poly.vertex_colors = _get_cell_colors(background_poly.color)
 
 	# background_poly.material = shader_material.duplicate(true)
-	
+
 	# Change light mask if solid (no light passes through)
 	if is_solid:
 		background_poly.light_mask = 0
 
 	add_child(background_poly)
+
+	background_poly.add_to_group("polygons")
 
 	# Light Occluder
 	if is_solid:

@@ -4,8 +4,21 @@ extends Node2D
 
 var wandering_light_scene := preload('res://scenes/WanderingLight.tscn')
 
+# MOVE ELSEWHERE
+@onready var selection_mask_viewport: Viewport = $SelectionMaskViewport
+@onready var buffer_tex: Texture2D = selection_mask_viewport.get_texture()
+
 
 func _ready() -> void:
+	# Viewport setup
+	selection_mask_viewport.world_2d = self.get_world_2d()
+
+
+	var mat := ($PostProcessColorRect as ColorRect).material as ShaderMaterial
+	mat.set_shader_parameter("MASK_TEXTURE", buffer_tex)
+
+
+	# GRID
 	_generate_grid()
 
 	# Sunlight from straight above
@@ -28,8 +41,8 @@ func _ready() -> void:
 		add_child(light)
 
 	# Add path
-	var path: Path = Path.new()
-	add_child(path)
+	# var path: Path = Path.new()
+	# add_child(path)
 
 func _generate_grid() -> void:
 	for y in range(Global.LEVEL_HEIGHT):

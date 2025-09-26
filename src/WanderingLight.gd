@@ -6,7 +6,7 @@ extends Node2D
 
 var dir: Vector2
 var curve : float
-var speed := 100
+var speed := 60
 
 func _ready() -> void:
     dir = Vector2.from_angle(randf_range(0, 2 * PI)).normalized()

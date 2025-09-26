@@ -4,15 +4,14 @@
 [ext_resource type="Script" uid="uid://dyag5xrvgqmps" path="res://src/Camera.gd" id="2_twpsu"]
 [ext_resource type="Shader" uid="uid://5ho7wjfmxpqs" path="res://shaders/post.gdshader" id="3_lrqlo"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_sqa0i"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lrqlo"]
+resource_local_to_scene = true
 shader = ExtResource("3_lrqlo")
 shader_parameter/color_stripe = Color(1, 0, 0, 1)
-shader_parameter/color_gap = Color(0, 0, 1, 0.2)
-shader_parameter/divisions = 64.0
-shader_parameter/stripe_bias = 2.0
-shader_parameter/speed = 0.1
+shader_parameter/divisions = 128.0
+shader_parameter/stripe_bias = 1.75
+shader_parameter/speed = 0.025
 shader_parameter/angle = 0.7854
-shader_parameter/highlight = true
 
 [node name="Level" type="Node2D"]
 script = ExtResource("1_j5px3")
@@ -21,16 +20,25 @@ script = ExtResource("1_j5px3")
 limit_enabled = false
 script = ExtResource("2_twpsu")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
-
-[node name="ColorRect" type="ColorRect" parent="CanvasLayer"]
-material = SubResource("ShaderMaterial_sqa0i")
+[node name="PostProcessColorRect" type="ColorRect" parent="."]
+z_index = 1
+material = SubResource("ShaderMaterial_lrqlo")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = -737.0
-offset_bottom = 260.0
+offset_right = 1280.0
+offset_bottom = 896.0
 grow_horizontal = 2
 grow_vertical = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
+
+[node name="SelectionMaskViewport" type="SubViewport" parent="."]
+disable_3d = true
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(1280, 896)
+size_2d_override_stretch = true
+render_target_update_mode = 4
+
+[node name="Camera" type="Camera2D" parent="SelectionMaskViewport"]
+limit_enabled = false
+script = ExtResource("2_twpsu")
