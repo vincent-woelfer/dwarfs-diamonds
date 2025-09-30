@@ -22,7 +22,9 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	pass
+	# print("Stencil Viewport Visible rect: ", self.get_visible_rect())
+	self.canvas_transform = parent_viewport.canvas_transform
+	print("Stencil Viewport transform: ", self.canvas_transform)
 
 
 func update_size(new_size: Vector2) -> void:
