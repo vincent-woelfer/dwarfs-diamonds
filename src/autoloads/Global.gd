@@ -5,8 +5,8 @@ extends Node2D
 # Grid dimensions
 const CELL_SIZE: int = 64
 const CELL_SIZE_VEC: Vector2 = Vector2(CELL_SIZE, CELL_SIZE)
-const LEVEL_WIDTH: int = 20
-const LEVEL_HEIGHT: int = 14
+const LEVEL_WIDTH: int = 22
+const LEVEL_HEIGHT: int = 20
 
 func _ready() -> void:
 	if not Engine.is_editor_hint():

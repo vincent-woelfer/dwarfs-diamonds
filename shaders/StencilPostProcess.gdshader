@@ -1,5 +1,5 @@
 shader_type canvas_item;
-render_mode blend_disabled, unshaded;
+render_mode blend_disabled, unshaded; // world_vertex_coords;
 
 // Parameters
 uniform vec4 stripe_color : source_color = vec4(1.0, 0.0, 0.0, 1.0);

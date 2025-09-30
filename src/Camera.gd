@@ -8,7 +8,7 @@ extends Camera2D
 # For panning and level bounds
 # The world size (as in)
 var level_size: Vector2 = Global.CELL_SIZE_VEC * Vector2(Global.LEVEL_WIDTH, Global.LEVEL_HEIGHT)
-var margin_cells: int = 0
+var margin_cells: int = 2
 
 
 var viewport_size: Vector2 = Vector2.ZERO # Set in _ready
@@ -44,7 +44,7 @@ func _process(delta: float) -> void:
 
 
 func _clamp_to_level() -> void:
-	var half_view := viewport_size * 0.5
+	var viewport_half := viewport_size * 0.5
 	var margin := margin_cells * Global.CELL_SIZE
-	position.x = clamp(position.x, half_view.x - margin, level_size.x - half_view.x + margin)
-	position.y = clamp(position.y, half_view.y - margin, level_size.y - half_view.y + margin)
+	position.x = clamp(position.x, viewport_half.x - margin, level_size.x - viewport_half.x + margin)
+	position.y = clamp(position.y, viewport_half.y - margin, level_size.y - viewport_half.y + margin)
