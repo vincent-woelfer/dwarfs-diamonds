@@ -3,14 +3,23 @@
 extends Node2D
 
 # Grid dimensions
-const CELL_SIZE: int = 64
+const CELL_SIZE: int = 128
 const CELL_SIZE_VEC: Vector2 = Vector2(CELL_SIZE, CELL_SIZE)
-const LEVEL_WIDTH: int = 22
-const LEVEL_HEIGHT: int = 20
+
+# Size=128 at 3840x2160 (4K) gives 30x16.8 cells
+const LEVEL_WIDTH: int = 30
+const LEVEL_HEIGHT: int = 24
+
+# Aspect setting "keep-width" = width is constant (3840), height changes with aspect ratio
+# Aspect setting "expand" = both width and height change with aspect ratio. Both will never be smaller than the base size (3840x2160),
+# one will always be larger or exact base size.
 
 func _ready() -> void:
+	get_viewport().connect("size_changed", Callable(self, "_on_window_size_changed"))
+
 	if not Engine.is_editor_hint():
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		pass
+		# Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		# Input.mouse_mode = Input.MOUSE_MODE_CONFINED
 
 # React to keyboard inputs to directly trigger events
@@ -29,3 +38,8 @@ func _input(event: InputEvent) -> void:
 		# DEBUG Input Actions
 		###################################################################
 		# ...
+
+# React to window size changes
+func _on_window_size_changed() -> void:
+	var size: Vector2i = get_viewport().get_visible_rect().size
+	print("Resized to: ", size)

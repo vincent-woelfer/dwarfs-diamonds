@@ -31,7 +31,7 @@ void fragment() {
 
     // Determine Colors
     vec4 highlight_color = (stripe >= 0.5) ? stripe_color : screen_color;
-    vec4 background_color = (stripe >= 0.5) ? mix(screen_color, vec4(1,0,1,1), 0.5) : screen_color;
+    vec4 background_color = (stripe >= 0.5) ? mix(screen_color, vec4(1,0,1,1), 0.15) : screen_color;
 
     if (highlight) {
         COLOR = highlight_color;

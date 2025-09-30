@@ -3,12 +3,12 @@ extends Camera2D
 
 # Positional parameters
 # pixels per second
-@export var pan_speed: float = 600.0
+@export var pan_speed: float = 900.0
 
 # For panning and level bounds
 # The world size (as in)
 var level_size: Vector2 = Global.CELL_SIZE_VEC * Vector2(Global.LEVEL_WIDTH, Global.LEVEL_HEIGHT)
-var margin_cells: int = 2
+var margin_cells: int = 4
 
 
 var viewport_size: Vector2 = Vector2.ZERO # Set in _ready
@@ -20,6 +20,7 @@ func _ready() -> void:
 
 	# Start centered on horizonal axis
 	position.x = level_size.x * 0.5
+	position.y = viewport_size.y * 0.5 - Global.CELL_SIZE
 	_clamp_to_level()
 
 

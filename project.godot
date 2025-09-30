@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Dwarfs"
+config/name="Dwarfs-Diamonds"
 run/main_scene="uid://pbh6gu6l3vu2"
 config/features=PackedStringArray("4.5", "Forward Plus")
 config/icon="res://icon.svg"
@@ -34,20 +34,24 @@ gdscript/warnings/unsafe_call_argument=1
 
 [display]
 
-window/size/viewport_width=1408
-window/size/viewport_height=200
+window/size/viewport_width=3840
+window/size/viewport_height=2000
 window/size/mode=3
-window/size/initial_position_type=3
-window/size/borderless=true
+window/size/extend_to_title=true
+window/size/sharp_corners=true
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-window/vsync/vsync_mode=0
+window/handheld/orientation=1
 
 [file_customization]
 
 folder_colors={
 "res://src/": "blue"
 }
+
+[gui]
+
+theme/default_theme_scale=2.0
 
 [input]
 

@@ -20,22 +20,9 @@ func _ready() -> void:
 
 	# color_rect.size = self.size
 
-	print("Stencil Viewport size: ", self.size)
 	print("Window size: ", window.size)
-
-	print("Stencil Viewport got world2D: ", self.world_2d)
-	print("Parent Viewport got world2D: ", parent_viewport.world_2d)
+	print("Stencil Viewport size: ", self.size)
 
 
 func _process(delta: float) -> void:
 	pass
-	# TODO verify this works
-
-	# print("----- Stencil Viewport -----")
-	# print("Local  Canvas Transform: ", self.canvas_transform)
-	# print("Global Canvas Transform: ", self.global_canvas_transform)
-	# print("Parent Local  Canvas Transform: ", parent_viewport.canvas_transform)
-	# print("Parent Global Canvas Transform: ", parent_viewport.global_canvas_transform)
-	# if parent_viewport:
-		# self.canvas_transform = parent_viewport.canvas_transform
-		# self.global_canvas_transform = parent_viewport.global_canvas_transform
