@@ -45,7 +45,7 @@ func _input(event: InputEvent) -> void:
 # React to window size changes
 func _on_window_size_changed() -> void:
 	var size: Vector2i = get_viewport().get_visible_rect().size
-	print("Updated Window Size to: ", size)
+	# print("Updated Window Size to: ", size)
 
 	if post_process_canvas_layer:
 		post_process_canvas_layer.update_size(size)

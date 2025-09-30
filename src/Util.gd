@@ -35,3 +35,13 @@ static func rand_from_coords(x: float, y: float, z: int = 0) -> float:
 	var n := x_ * 73856093 ^ y_ * 19349663 ^ z * 83492791
 	n = n & 0x7fffffff
 	return float(n % 10001) / 10000.0
+
+
+########################################################################
+# LERP
+########################################################################
+const EPSILON: float = 0.001
+static func lerp_towards_f(curr: float, goal: float, speed: float, delta: float) -> float:
+	if abs(goal - curr) < EPSILON:
+		return goal
+	return lerp(curr, goal, 1.0 - exp(-speed * delta))
