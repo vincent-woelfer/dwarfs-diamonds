@@ -35,7 +35,6 @@ gdscript/warnings/unsafe_call_argument=1
 [display]
 
 window/size/viewport_width=1408
-window/size/viewport_height=640
 window/size/mode=3
 window/size/initial_position_type=3
 window/size/borderless=true
