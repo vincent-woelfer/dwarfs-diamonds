@@ -2,8 +2,6 @@
 class_name Cell
 extends Node2D
 
-var shader_material: ShaderMaterial = preload("res://assets/materials/cell_selection_material.tres")
-
 # Variables
 enum CellType {
 	A,

@@ -9,8 +9,6 @@ uniform float stripe_bias : hint_range(1.0, 10.0) = 1.75;
 uniform float speed : hint_range(0.0, 10.0) = 0.025;
 uniform float angle : hint_range(0.0, 6.283) = 0.7854; // radians
 
-// uniform bool highlight = true;
-
 uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, repeat_disable;
 uniform sampler2D MASK_TEXTURE: repeat_disable, filter_nearest;
 
@@ -23,7 +21,7 @@ void fragment() {
     
     bool highlight = (mask_color.r > 0.5);
 
-    // Correct for aspect ratio for stripses only
+    // Correct for aspect ratio for stripes only
     float aspect = SCREEN_PIXEL_SIZE.x / SCREEN_PIXEL_SIZE.y;
     uv = vec2(uv.x, uv.y * aspect);
 
@@ -33,7 +31,7 @@ void fragment() {
     vec4 highlight_color = (stripe < 0.5) ? screen_color : color_stripe;
 
     if (highlight) {
-        COLOR = highlight_color;
+        COLOR = mix(highlight_color, vec4(0,0,0,1), 0.3);
     } else {
         COLOR = mix(screen_color, vec4(0,0,0,1), 0.3);
     }
