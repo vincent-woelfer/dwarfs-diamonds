@@ -44,10 +44,11 @@ func _on_window_size_changed() -> void:
 	var size: Vector2i = get_viewport().get_visible_rect().size
 	# print("Updated Window Size to: ", size)
 
-	var post_process_canvas_layer: PostProcessCanvasLayer = get_tree().root.get_node("root/PostProcessCanvasLayer")
-	if post_process_canvas_layer:
-		post_process_canvas_layer.update_size(size)
+	if not Engine.is_editor_hint():
+		var post_process_canvas_layer: PostProcessCanvasLayer = get_tree().root.get_node("root/PostProcessCanvasLayer")
+		if post_process_canvas_layer:
+			post_process_canvas_layer.update_size(size)
 
-	var stencil_viewport: StencilViewport = get_tree().root.get_node("root/StencilViewport")
-	if stencil_viewport:
-		stencil_viewport.update_size(size)
+		var stencil_viewport: StencilViewport = get_tree().root.get_node("root/StencilViewport")
+		if stencil_viewport:
+			stencil_viewport.update_size(size)

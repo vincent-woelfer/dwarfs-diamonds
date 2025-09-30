@@ -11,8 +11,9 @@ enum CellType {
 
 var type: CellType
 var grid_pos: Vector2i
+
 var is_solid: bool
-# var pos: Vector2
+var is_selected: bool = false
 
 # Visuals
 var background_poly: Polygon2D
@@ -22,15 +23,19 @@ var stencil_poly: Polygon2D
 var occluder: LightOccluder2D
 var occluder_poly: OccluderPolygon2D
 
-static var unshaded_material: CanvasItemMaterial = CanvasItemMaterial.new()
+# Selection
+var collision_area: Area2D
+var collision_poly: CollisionPolygon2D
+
+static var unshaded_material: CanvasItemMaterial = preload("res://assets/materials/unshaded_material.tres")
 
 # Methods
-
-func _init(_grid_pos: Vector2i, _type: CellType) -> void:
+func _init(_grid_pos: Vector2i, _type: CellType, _is_solid: bool) -> void:
 	self.grid_pos = _grid_pos
 	self.type = _type
 
-	self.is_solid = randf() <= 0.3
+	# self.is_solid = randf() <= 0.3
+	self.is_solid = _is_solid
 
 
 func _ready() -> void:
@@ -42,43 +47,53 @@ func _ready() -> void:
 	background_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
 	background_poly.color = Colors.get_cell_color(type, is_solid)
 	background_poly.visibility_layer = (1 << 0) # Layer 1
-	# background_poly.vertex_colors = _get_cell_colors(background_poly.color)
-
 	# Change light mask if solid (no light passes through)
 	if is_solid:
 		background_poly.light_mask = 0
-
 	add_child(background_poly)
 
 	# Stencil
-	if not Engine.is_editor_hint():
-		stencil_poly = Polygon2D.new()
-		stencil_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
-		stencil_poly.color = Color8(255, 0, 0) if (grid_pos.x % 2 == 0 and grid_pos.y % 2 == 0) else Color8(0, 0, 0, 0)
-		stencil_poly.visibility_layer = (1 << 1) # Layer 2
-
-		unshaded_material.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
-		stencil_poly.material = unshaded_material
-		add_child(stencil_poly)
+	stencil_poly = Polygon2D.new()
+	stencil_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
+	stencil_poly.visibility_layer = (1 << 1) # Layer 2
+	stencil_poly.material = unshaded_material
+	add_child(stencil_poly)
 
 	# Light Occluder
-	if is_solid:
-		occluder_poly = OccluderPolygon2D.new()
-		occluder_poly.polygon = background_poly.polygon
-		occluder_poly.closed = true
-		occluder_poly.cull_mode = OccluderPolygon2D.CULL_DISABLED
+	occluder_poly = OccluderPolygon2D.new()
+	occluder_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
+	occluder_poly.closed = true
+	occluder_poly.cull_mode = OccluderPolygon2D.CULL_DISABLED
 
-		occluder = LightOccluder2D.new()
-		occluder.occluder = occluder_poly
-		add_child(occluder)
+	occluder = LightOccluder2D.new()
+	occluder.occluder = occluder_poly
+	add_child(occluder)
 
-	#####
-	# if randf() <= 0.5:
-		# var mat: Material = background_poly.material
-		# # if mat is ShaderMaterial:
-			# (mat as ShaderMaterial).set_shader_parameter("highlight", true)
+	# Collision (for selection)
+	collision_poly = CollisionPolygon2D.new()
+	collision_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
+	collision_area = Area2D.new()
+	collision_area.add_child(collision_poly)
+	add_child(collision_area)
+
+	_process(0.0)
 
 
+func _process(delta: float) -> void:
+	occluder.visible = is_solid
+
+	# Update stencil color (for selection)
+	if Engine.is_editor_hint():
+		stencil_poly.color.r = 0.0
+		stencil_poly.color.g = 0.0
+
+	else:
+		stencil_poly.color.r = 1.0 if is_selected else 0.0
+
+		# Update solid stencil
+		stencil_poly.color.g = 1.0 if is_solid else 0.0
+
+	
 func _get_cell_colors(color: Color) -> PackedColorArray:
 	var base_color := color
 	var _color_variation := 0.1
