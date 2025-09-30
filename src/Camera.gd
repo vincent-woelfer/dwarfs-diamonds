@@ -39,6 +39,10 @@ func _process(delta: float) -> void:
 
 	_clamp_to_level()
 
+	# Also set for stencil viewport
+	self.get_canvas_transform()
+
+
 
 func _clamp_to_level() -> void:
 	# Get the visible screen size (in world units)
