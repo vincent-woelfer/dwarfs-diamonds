@@ -49,12 +49,12 @@ func _ready() -> void:
 	add_child(background_poly)
 
 	# Stencil
-	# if not Engine.is_editor_hint():
-	stencil_poly = Polygon2D.new()
-	stencil_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
-	stencil_poly.color = Color8(255, 0, 0) if (grid_pos.x % 2 == 0 and grid_pos.y % 2 == 0) else Color8(0, 0, 0, 0)
-	stencil_poly.visibility_layer = (1 << 1) # Layer 2
-	add_child(stencil_poly)
+	if not Engine.is_editor_hint():
+		stencil_poly = Polygon2D.new()
+		stencil_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
+		stencil_poly.color = Color8(255, 0, 0) if (grid_pos.x % 2 == 0 and grid_pos.y % 2 == 0) else Color8(0, 0, 0, 0)
+		stencil_poly.visibility_layer = (1 << 1) # Layer 2
+		add_child(stencil_poly)
 
 	# Light Occluder
 	if is_solid:

@@ -1,16 +1,20 @@
 class_name StencilViewport
 extends SubViewport
 
+@onready var window: Window
 @onready var parent_viewport: Viewport
 
 func _ready() -> void:
-	parent_viewport = get_parent().get_viewport()
+	window = get_tree().root
+	parent_viewport = window.get_viewport()
 
 	# Render only layer 2 (the stencil layer)
 	self.canvas_cull_mask = (1 << 1)
 	parent_viewport.canvas_cull_mask = (1 << 0) # Ensure parent renders only layer 1
 
 	self.world_2d = parent_viewport.world_2d
+
+	self.size = window.size
 
 
 	print("Stencil Viewport got parent viewport: ", parent_viewport)

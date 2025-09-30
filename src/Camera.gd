@@ -15,18 +15,12 @@ var viewport_size: Vector2 = Vector2.ZERO # Set in _ready
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	print("Main Camera Ready. Viewport: ", get_viewport())
-
-
 	# Get the visible screen size (in world units)
 	viewport_size = get_viewport_rect().size / zoom
 
 	# Start centered on horizonal axis
 	position.x = level_size.x * 0.5
 	_clamp_to_level()
-
-	# Only render layer 1 (the normal layer)
-	# get_viewport().canvas_cull_mask = (1 << 0)
 
 
 func _process(delta: float) -> void:
