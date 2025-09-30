@@ -9,6 +9,7 @@
 viewport_path = NodePath("StencilViewport")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_jh1ax"]
+resource_local_to_scene = true
 shader = ExtResource("4_sqa0i")
 shader_parameter/color_stripe = Color(1, 0, 0, 1)
 shader_parameter/divisions = 128.0
@@ -25,25 +26,22 @@ script = ExtResource("1_j5px3")
 limit_enabled = false
 script = ExtResource("2_twpsu")
 
-[node name="StencilColorRect" type="ColorRect" parent="Camera"]
+[node name="StencilViewport" type="SubViewport" parent="."]
+disable_3d = true
+transparent_bg = true
+canvas_cull_mask = 4293918723
+size = Vector2i(1408, 640)
+render_target_update_mode = 4
+script = ExtResource("3_lrqlo")
+
+[node name="PostProcessCanvasLayer" type="CanvasLayer" parent="."]
+follow_viewport_enabled = true
+
+[node name="StencilColorRect" type="ColorRect" parent="PostProcessCanvasLayer"]
 z_index = 1
 material = SubResource("ShaderMaterial_jh1ax")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -704.0
-offset_top = -324.0
-offset_right = 704.0
-offset_bottom = 324.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="StencilViewport" type="SubViewport" parent="."]
-disable_3d = true
-transparent_bg = true
-canvas_cull_mask = 4293918722
-size = Vector2i(1408, 640)
-size_2d_override = Vector2i(1408, 640)
-size_2d_override_stretch = true
-render_target_update_mode = 4
-script = ExtResource("3_lrqlo")

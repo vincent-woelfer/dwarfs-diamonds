@@ -26,7 +26,7 @@ func _ready() -> void:
 	_clamp_to_level()
 
 	# Only render layer 1 (the normal layer)
-	get_viewport().canvas_cull_mask = (1 << 0)
+	# get_viewport().canvas_cull_mask = (1 << 0)
 
 
 func _process(delta: float) -> void:

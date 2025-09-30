@@ -32,8 +32,10 @@ void fragment() {
     float stripe = floor(mod(w * divisions, stripe_bias));
     vec4 highlight_color = (stripe < 0.5) ? screen_color : color_stripe;
 
-    // COLOR = mask_color;
-	// COLOR = (highlight) ? highlight_color : screen_color;
-    // COLOR = vec4(1,0,1,1);
-    COLOR = mix(screen_color, vec4(1,0,0,1), 0.2);
+    if (highlight) {
+        COLOR = highlight_color;
+    } else {
+        COLOR = mix(screen_color, vec4(0,0,0,1), 0.3);
+    }
+    // COLOR = mix(screen_color, mask_color, 0.7);
 }
