@@ -2,8 +2,8 @@ shader_type canvas_item;
 render_mode blend_disabled, unshaded;
 
 // Parameters
-uniform vec4 color_stripe : source_color = vec4(1.0, 0.0, 0.0, 1.0);
-// uniform vec4 color_gap : source_color = vec4(0.0, 0.0, 1.0, 0.2);
+uniform vec4 stripe_color : source_color = vec4(1.0, 0.0, 0.0, 1.0);
+
 uniform float divisions : hint_range(1.0, 256.0) = 128.0;
 uniform float stripe_bias : hint_range(1.0, 10.0) = 1.75;
 uniform float speed : hint_range(0.0, 10.0) = 0.025;
@@ -28,12 +28,15 @@ void fragment() {
     // Stripe math
     float w = cos(angle) * uv.x + sin(angle) * uv.y - speed * TIME;
     float stripe = floor(mod(w * divisions, stripe_bias));
-    vec4 highlight_color = (stripe < 0.5) ? screen_color : color_stripe;
+
+    // Determine Colors
+    vec4 highlight_color = (stripe >= 0.5) ? stripe_color : screen_color;
+    vec4 background_color = (stripe >= 0.5) ? mix(screen_color, vec4(1,1,1,1), 0.5) : screen_color;
 
     if (highlight) {
-        COLOR = mix(highlight_color, vec4(0,0,0,1), 0.3);
+        COLOR = highlight_color;
     } else {
-        COLOR = mix(screen_color, vec4(0,0,0,1), 0.3);
+        COLOR = background_color;
     }
     // COLOR = mix(screen_color, mask_color, 0.7);
 }
