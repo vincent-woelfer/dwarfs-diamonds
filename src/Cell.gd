@@ -16,7 +16,11 @@ var grid_pos: Vector2i
 var is_solid: bool
 # var pos: Vector2
 
+# Visuals
 var background_poly: Polygon2D
+var stencil_poly: Polygon2D
+
+# Light / Shadows
 var occluder: LightOccluder2D
 var occluder_poly: OccluderPolygon2D
 
@@ -30,23 +34,29 @@ func _init(_grid_pos: Vector2i, _type: CellType) -> void:
 
 
 func _ready() -> void:
+	# Required for chilren to be able to use these layers
+	self.visibility_layer = (1 << 0) | (1 << 1) # Layers 1 and 2
+
 	# Background
 	background_poly = Polygon2D.new()
 	background_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
 	background_poly.color = Colors.get_cell_color(type, is_solid)
-	background_poly.vertex_colors = _get_cell_colors(background_poly.color)
-
-	# background_poly.material = shader_material.duplicate(true)
-	background_poly.set_visibility_layer_bit(1, true)
-	if self.grid_pos.y > 8:
-		background_poly.set_visibility_layer_bit(1, false)
-		background_poly.set_visibility_layer_bit(2, true)
+	background_poly.visibility_layer = (1 << 0) # Layer 1
+	# background_poly.vertex_colors = _get_cell_colors(background_poly.color)
 
 	# Change light mask if solid (no light passes through)
 	if is_solid:
 		background_poly.light_mask = 0
 
 	add_child(background_poly)
+
+	# Stencil
+	if not Engine.is_editor_hint():
+		stencil_poly = Polygon2D.new()
+		stencil_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
+		stencil_poly.color = Color8(255, 0, 0) if (grid_pos.x % 2 == 0 and grid_pos.y % 2 == 0) else Color8(0, 0, 0, 0)
+		stencil_poly.visibility_layer = (1 << 1) # Layer 2
+		add_child(stencil_poly)
 
 	# Light Occluder
 	if is_solid:

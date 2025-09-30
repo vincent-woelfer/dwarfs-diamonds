@@ -6,6 +6,8 @@ static func rand_color() -> Color:
 
 
 static func get_cell_color(type: Cell.CellType, solid: bool) -> Color:
+	return Color.GREEN.lerp(rand_color(), 0.35)
+	
 	# return Color.GRAY
 	if solid:
 		match type:
