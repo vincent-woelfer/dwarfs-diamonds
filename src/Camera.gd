@@ -8,7 +8,7 @@ extends Camera2D
 # For panning and level bounds
 # The world size (as in)
 var level_size: Vector2 = Global.CELL_SIZE_VEC * Vector2(Global.LEVEL_WIDTH, Global.LEVEL_HEIGHT)
-var margin_cells: int = 1
+var margin_cells: int = 0
 
 
 var viewport_size: Vector2 = Vector2.ZERO # Set in _ready
