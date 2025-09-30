@@ -14,9 +14,6 @@ const LEVEL_HEIGHT: int = 24
 # Aspect setting "expand" = both width and height change with aspect ratio. Both will never be smaller than the base size (3840x2160),
 # one will always be larger or exact base size.
 
-@onready var post_process_canvas_layer: PostProcessCanvasLayer = get_tree().root.get_node("root/PostProcessCanvasLayer")
-@onready var stencil_viewport: StencilViewport = get_tree().root.get_node("root/StencilViewport")
-
 func _ready() -> void:
 	get_viewport().connect("size_changed", Callable(self, "_on_window_size_changed"))
 
@@ -47,8 +44,10 @@ func _on_window_size_changed() -> void:
 	var size: Vector2i = get_viewport().get_visible_rect().size
 	# print("Updated Window Size to: ", size)
 
+	var post_process_canvas_layer: PostProcessCanvasLayer = get_tree().root.get_node("root/PostProcessCanvasLayer")
 	if post_process_canvas_layer:
 		post_process_canvas_layer.update_size(size)
 
+	var stencil_viewport: StencilViewport = get_tree().root.get_node("root/StencilViewport")
 	if stencil_viewport:
 		stencil_viewport.update_size(size)
