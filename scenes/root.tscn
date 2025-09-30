@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://pbh6gu6l3vu2"]
+[gd_scene load_steps=8 format=3 uid="uid://pbh6gu6l3vu2"]
 
 [ext_resource type="Script" uid="uid://6tsnng1yc534" path="res://src/Level.gd" id="1_j5px3"]
 [ext_resource type="Script" uid="uid://dyag5xrvgqmps" path="res://src/Camera.gd" id="2_twpsu"]
@@ -6,34 +6,31 @@
 [ext_resource type="Script" uid="uid://cbuy847y21d8h" path="res://src/PostProcessCanvasLayer.gd" id="4_jh1ax"]
 [ext_resource type="Shader" uid="uid://xfugqc6jg0g2" path="res://shaders/StencilPostProcess.gdshader" id="4_sqa0i"]
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_sqa0i"]
+[sub_resource type="ViewportTexture" id="ViewportTexture_jh1ax"]
 viewport_path = NodePath("StencilViewport")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sqa0i"]
 resource_local_to_scene = true
 shader = ExtResource("4_sqa0i")
-shader_parameter/stripe_color = Color(1, 0, 0, 1)
+shader_parameter/highlight_stripe_color = Color(1, 0, 0, 0.8)
+shader_parameter/highlight_gap_color = Color(1, 0, 0, 0.2)
 shader_parameter/divisions = 128.0
 shader_parameter/stripe_bias = 1.75
-shader_parameter/speed = 0.025
+shader_parameter/speed = 0.02
 shader_parameter/angle = 0.7854
-shader_parameter/MASK_TEXTURE = SubResource("ViewportTexture_sqa0i")
-
-[sub_resource type="ViewportTexture" id="ViewportTexture_jh1ax"]
-viewport_path = NodePath("StencilViewport")
+shader_parameter/STENCIL_TEXTURE = SubResource("ViewportTexture_jh1ax")
 
 [node name="root" type="Node2D"]
 visibility_layer = 3
-
-[node name="Camera" type="Camera2D" parent="."]
-limit_enabled = false
-script = ExtResource("2_twpsu")
-metadata/_custom_type_script = "uid://dyag5xrvgqmps"
 
 [node name="Level" type="Node2D" parent="."]
 visibility_layer = 3
 script = ExtResource("1_j5px3")
 metadata/_custom_type_script = "uid://6tsnng1yc534"
+
+[node name="Camera" type="Node2D" parent="."]
+script = ExtResource("2_twpsu")
+metadata/_custom_type_script = "uid://dyag5xrvgqmps"
 
 [node name="StencilViewport" type="SubViewport" parent="."]
 disable_3d = true
@@ -48,7 +45,3 @@ script = ExtResource("4_jh1ax")
 
 [node name="StencilColorRect" type="ColorRect" parent="PostProcessCanvasLayer"]
 material = SubResource("ShaderMaterial_sqa0i")
-
-[node name="DebugStencilViewportDisplay" type="TextureRect" parent="."]
-visible = false
-texture = SubResource("ViewportTexture_jh1ax")

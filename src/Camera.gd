@@ -1,14 +1,17 @@
 class_name Camera
-extends Camera2D
+extends Node2D
 
 # Positional parameters
 # pixels per second
-@export var pan_speed: float = 900.0
+var pan_speed: float = 900.0
+var zoom: Vector2 = Vector2.ONE
 
 # For panning and level bounds
 # The world size (as in)
 var level_size: Vector2 = Global.CELL_SIZE_VEC * Vector2(Global.LEVEL_WIDTH, Global.LEVEL_HEIGHT)
 var margin_cells: int = 4
+
+@onready var stencil_viewport: StencilViewport = get_tree().root.get_node("root/StencilViewport")
 
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
@@ -39,8 +42,15 @@ func _process(delta: float) -> void:
 
 	_clamp_to_level()
 
-	# Also set for stencil viewport
-	self.get_canvas_transform()
+	# Set root viewport and stencil viewport transform
+	var t := Transform2D()
+	t.x *= zoom
+	t.y *= zoom
+	t.origin = -position * zoom + get_viewport_rect().size * 0.5
+
+	get_viewport().canvas_transform = t
+	stencil_viewport.canvas_transform = t
+
 
 
 
