@@ -18,11 +18,13 @@ func _ready() -> void:
 	# Size
 	self.size = window.size
 
-	# color_rect.size = self.size
-
-	print("Window size: ", window.size)
-	print("Stencil Viewport size: ", self.size)
+	
 
 
 func _process(delta: float) -> void:
 	pass
+
+
+func update_size(new_size: Vector2) -> void:
+	self.size = new_size
+	# print("Updated Stencil-Viewport-Size to: ", self.size)

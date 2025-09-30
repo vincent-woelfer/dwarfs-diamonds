@@ -10,15 +10,11 @@ extends Camera2D
 var level_size: Vector2 = Global.CELL_SIZE_VEC * Vector2(Global.LEVEL_WIDTH, Global.LEVEL_HEIGHT)
 var margin_cells: int = 4
 
-
-var viewport_size: Vector2 = Vector2.ZERO # Set in _ready
-
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	# Get the visible screen size (in world units)
-	viewport_size = get_viewport_rect().size / zoom
-
 	# Start centered on horizonal axis
+	var viewport_size: Vector2 = get_viewport_rect().size / zoom
 	position.x = level_size.x * 0.5
 	position.y = viewport_size.y * 0.5 - Global.CELL_SIZE
 	_clamp_to_level()
@@ -45,7 +41,8 @@ func _process(delta: float) -> void:
 
 
 func _clamp_to_level() -> void:
-	var viewport_half := viewport_size * 0.5
+	# Get the visible screen size (in world units)
+	var viewport_half := get_viewport_rect().size / zoom * 0.5
 	var margin := margin_cells * Global.CELL_SIZE
 	position.x = clamp(position.x, viewport_half.x - margin, level_size.x - viewport_half.x + margin)
 	position.y = clamp(position.y, viewport_half.y - margin, level_size.y - viewport_half.y + margin)

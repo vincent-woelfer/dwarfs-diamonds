@@ -50,4 +50,5 @@ script = ExtResource("4_jh1ax")
 material = SubResource("ShaderMaterial_sqa0i")
 
 [node name="DebugStencilViewportDisplay" type="TextureRect" parent="."]
+visible = false
 texture = SubResource("ViewportTexture_jh1ax")

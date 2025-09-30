@@ -8,8 +8,9 @@ var level_size: Vector2 = Global.CELL_SIZE_VEC * Vector2(Global.LEVEL_WIDTH, Glo
 
 func _ready() -> void:
     color_rect.position = Vector2.ZERO
-    color_rect.size = get_tree().root.size # Windows size
+    color_rect.size = get_viewport().get_visible_rect().size # Windows size
 
-    print("PostProcessCanvasLayer Viewport: ", get_viewport())
-    print("PostProcessCanvasLayer ColorRect Size: ", color_rect.size)
 
+func update_size(new_size: Vector2) -> void:
+    color_rect.size = new_size
+    # print("Updated PostProcessCanvasLayer ColorRect Size to: ", color_rect.size)
