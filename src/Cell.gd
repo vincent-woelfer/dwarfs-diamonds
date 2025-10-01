@@ -35,7 +35,7 @@ func _init(_grid_pos: Vector2i, _type: CellType, _is_solid: bool) -> void:
 	self.type = _type
 	self.is_solid = _is_solid
 
-	# self.is_selected = randf() < 0.2
+	self.is_selected = randf() < 0.1
 
 func _ready() -> void:
 	# Required for chilren to be able to use these layers
@@ -88,7 +88,10 @@ func _process(delta: float) -> void:
 
 	# Set Stencild Colors. Dont write to alpha, this is done only once to show/hide stencil in editor vs game
 	# Update selected stencil
-	stencil_poly.color.r8 = 255 if is_selected else 0
+	stencil_poly.color.r8 = 0
+	stencil_poly.color.r8 |= (1 << 0) if is_selected else 0
+
+
 	# Update solid stencil
 	stencil_poly.color.g8 = 255 if is_solid else 0
 

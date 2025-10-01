@@ -19,7 +19,7 @@ func _ready() -> void:
 
 	# Darkness
 	var darkness := CanvasModulate.new()
-	darkness.color = Color(0.7, 0.7, 0.7)
+	darkness.color = Color(0.75, 0.75, 0.75)
 	add_child(darkness)
 
 	# Wandering Lights

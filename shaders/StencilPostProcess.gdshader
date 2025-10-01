@@ -51,8 +51,12 @@ void fragment() {
     // Sample Textures with correct UV
     vec4 screen_color = texture(SCREEN_TEXTURE, uv);
     vec4 stencil_color = texture(STENCIL_TEXTURE, uv);
+    int stencil_bits = int(stencil_color.r * 255.0 + 0.5);
     
-    bool highlight = (stencil_color.r > 0.5);
+    // Flags in red channel. Bit 0 = highlight
+    bool highlight = (stencil_bits & (1 << 0)) != 0;
+
+    // Solid is green channel > 0.5
     bool is_solid = (stencil_color.g > 0.5);
 
     // BLUR
