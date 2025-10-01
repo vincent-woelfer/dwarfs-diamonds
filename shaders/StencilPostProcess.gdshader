@@ -56,9 +56,9 @@ void fragment() {
     bool is_solid = (stencil_color.g > 0.5);
 
     // BLUR
-    float blur_h = blur_horizontal(STENCIL_TEXTURE, uv, blur_radius);
-    float blur_v = blur_vertical(STENCIL_TEXTURE, uv, blur_radius);
-    float blur_strength = (blur_h + blur_v) * 0.5;
+    // float blur_h = blur_horizontal(STENCIL_TEXTURE, uv, blur_radius);
+    // float blur_v = blur_vertical(STENCIL_TEXTURE, uv, blur_radius);
+    // float blur_strength = (blur_h + blur_v) * 0.5;
 
     // Correct UV for aspect ratio for strip generation only
     float aspect = SCREEN_PIXEL_SIZE.x / SCREEN_PIXEL_SIZE.y;
@@ -80,8 +80,8 @@ void fragment() {
         // blur_strength is [0, 1], 1 meaning total green = total solid
         // float darken_factor = mix(1.0, 0.2, blur_strength);
         // float darken_factor = mix(0.7, 0.2, pow(blur_strength, 3.0));
-        float darken_factor = 0.35;
-        COLOR *= darken_factor;
+        float darken_factor = 0.65;
+        COLOR.rgb *= darken_factor;
 
         // Border Drawing
         // if (blur_strength <= 0.9) {

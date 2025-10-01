@@ -35,6 +35,7 @@ func _init(_grid_pos: Vector2i, _type: CellType, _is_solid: bool) -> void:
 	self.type = _type
 	self.is_solid = _is_solid
 
+	# self.is_selected = randf() < 0.2
 
 func _ready() -> void:
 	# Required for chilren to be able to use these layers
@@ -50,7 +51,7 @@ func _ready() -> void:
 	# Stencil
 	stencil_poly = Polygon2D.new()
 	stencil_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
-	stencil_poly.color = Color(0.0, 0.0, 0.0, 0.0)
+	stencil_poly.color = Color(0.0, 0.0, 0.0, 0.0) if Engine.is_editor_hint() else Color(0.0, 0.0, 0.0, 1.0)
 	stencil_poly.visibility_layer = Util.LAYER_2
 	stencil_poly.material = unshaded_material
 	add_child(stencil_poly)
@@ -83,34 +84,30 @@ func _process(delta: float) -> void:
 	# Change light mask if solid (no light passes through)
 	background_poly.light_mask = 0 if is_solid else 1
 
+	background_poly.color = Colors.get_cell_color(type, is_solid)
 
-	# Update stencil color (for selection)
-	if Engine.is_editor_hint():
-		stencil_poly.color.r = 0.0
-		stencil_poly.color.g = 0.0
-
-	else:
-		# Update selected stencil
-		stencil_poly.color.r = 1.0 if is_selected else 0.0
-		# Update solid stencil
-		stencil_poly.color.g = 1.0 if is_solid else 0.0
+	# Set Stencild Colors. Dont write to alpha, this is done only once to show/hide stencil in editor vs game
+	# Update selected stencil
+	stencil_poly.color.r8 = 255 if is_selected else 0
+	# Update solid stencil
+	stencil_poly.color.g8 = 255 if is_solid else 0
 
 
-func _get_cell_colors(color: Color) -> PackedColorArray:
-	var base_color := color
-	const _color_variation := 0.1
+# func _get_cell_colors(color: Color) -> PackedColorArray:
+# 	var base_color := color
+# 	const _color_variation := 0.1
 
-	var colors: PackedColorArray = []
-	for i in range(8):
-		colors.append(base_color)
+# 	var colors: PackedColorArray = []
+# 	for i in range(8):
+# 		colors.append(base_color)
 
-	# for i in range(8):
-		# var r = clamp(base_color.r + randf_range(-color_variation, color_variation), 0.0, 1.0)
-		# var g = clamp(base_color.g + randf_range(-color_variation, color_variation), 0.0, 1.0)
-		# var b = clamp(base_color.b + randf_range(-color_variation, color_variation), 0.0, 1.0)
-		# colors.append(Color(r, g, b, 1.0))
+# 	# for i in range(8):
+# 		# var r = clamp(base_color.r + randf_range(-color_variation, color_variation), 0.0, 1.0)
+# 		# var g = clamp(base_color.g + randf_range(-color_variation, color_variation), 0.0, 1.0)
+# 		# var b = clamp(base_color.b + randf_range(-color_variation, color_variation), 0.0, 1.0)
+# 		# colors.append(Color(r, g, b, 1.0))
 
-	return colors
+# 	return colors
 
 # Returns a rectangle polygon for cell at grid position (x, y)
 func _get_cell_polygon(x: int, y: int) -> PackedVector2Array:

@@ -3,7 +3,7 @@ extends Node2D
 
 # Positional parameters
 # pixels per second
-var pan_speed: float = 900.0
+var pan_speed: float = 1000.0
 
 var zoom_curr: float = 1.0
 var zoom_target: float = 1.0

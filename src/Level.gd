@@ -11,14 +11,15 @@ func _ready() -> void:
 
 	# Sunlight from straight above
 	var sun := DirectionalLight2D.new()
+	sun.rotation_degrees = -5.0
 	sun.color = Color(1.0, 0.93, 0.88)
-	sun.energy = 1.85
+	sun.energy = 3.0
 	sun.shadow_enabled = true
 	add_child(sun)
 
 	# Darkness
 	var darkness := CanvasModulate.new()
-	darkness.color = Color(0.5, 0.5, 0.5)
+	darkness.color = Color(0.7, 0.7, 0.7)
 	add_child(darkness)
 
 	# Wandering Lights
@@ -47,7 +48,9 @@ func _ready() -> void:
 
 func _generate_grid() -> void:
 	var texture: NoiseTexture2D = NoiseTexture2D.new()
-	texture.noise = FastNoiseLite.new()
+	var fast_noise_lite := FastNoiseLite.new()
+	fast_noise_lite.seed = 57
+	texture.noise = fast_noise_lite
 	await texture.changed
 	var image := texture.get_image()
 

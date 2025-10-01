@@ -7,18 +7,26 @@ static func rand_color() -> Color:
 
 
 static func get_cell_color(type: Cell.CellType, solid: bool) -> Color:
+	var color: Color
+	
 	match type:
 		Cell.CellType.A:
-			return COLOR_A
+			color = COLOR_A
 		Cell.CellType.B:
-			return COLOR_B
+			color = COLOR_B
 		Cell.CellType.C:
-			return COLOR_C
+			color = COLOR_C
+		_:
+			assert(false, "Unknown CellType")
+			color = Color.WHITE
 
-	assert(false, "Unknown CellType")
-	return Color.WHITE
+	# Not here, done in shader
+	# if solid:
+		# color = color.darkened(0.3)
 
+	return color
 
+	
 static var COLOR_A: Color = Color8(42, 36, 48)
 static var COLOR_B: Color = Color8(58, 36, 38)
 static var COLOR_C: Color = Color8(46, 38, 31)
