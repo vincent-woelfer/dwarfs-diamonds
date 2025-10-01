@@ -33,29 +33,25 @@ static var unshaded_material: CanvasItemMaterial = preload("res://assets/materia
 func _init(_grid_pos: Vector2i, _type: CellType, _is_solid: bool) -> void:
 	self.grid_pos = _grid_pos
 	self.type = _type
-
-	# self.is_solid = randf() <= 0.3
 	self.is_solid = _is_solid
 
 
 func _ready() -> void:
 	# Required for chilren to be able to use these layers
-	self.visibility_layer = (1 << 0) | (1 << 1) # Layers 1 and 2
+	self.visibility_layer = Util.LAYER_1 | Util.LAYER_2
 
 	# Background
 	background_poly = Polygon2D.new()
 	background_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
 	background_poly.color = Colors.get_cell_color(type, is_solid)
-	background_poly.visibility_layer = (1 << 0) # Layer 1
-	# Change light mask if solid (no light passes through)
-	if is_solid:
-		background_poly.light_mask = 0
+	background_poly.visibility_layer = Util.LAYER_1
 	add_child(background_poly)
 
 	# Stencil
 	stencil_poly = Polygon2D.new()
 	stencil_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
-	stencil_poly.visibility_layer = (1 << 1) # Layer 2
+	stencil_poly.color = Color(0.0, 0.0, 0.0, 0.0)
+	stencil_poly.visibility_layer = Util.LAYER_2
 	stencil_poly.material = unshaded_material
 	add_child(stencil_poly)
 
@@ -69,18 +65,24 @@ func _ready() -> void:
 	occluder.occluder = occluder_poly
 	add_child(occluder)
 
-	# Collision (for selection)
+	# # Collision (for selection)
 	collision_poly = CollisionPolygon2D.new()
 	collision_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
 	collision_area = Area2D.new()
 	collision_area.add_child(collision_poly)
+	collision_area.visible = false
 	add_child(collision_area)
 
 	_process(0.0)
 
 
+# TODO add dirty flag here? -> Benchmark
 func _process(delta: float) -> void:
 	occluder.visible = is_solid
+
+	# Change light mask if solid (no light passes through)
+	background_poly.light_mask = 0 if is_solid else 1
+
 
 	# Update stencil color (for selection)
 	if Engine.is_editor_hint():
@@ -88,15 +90,15 @@ func _process(delta: float) -> void:
 		stencil_poly.color.g = 0.0
 
 	else:
+		# Update selected stencil
 		stencil_poly.color.r = 1.0 if is_selected else 0.0
-
 		# Update solid stencil
 		stencil_poly.color.g = 1.0 if is_solid else 0.0
 
-	
+
 func _get_cell_colors(color: Color) -> PackedColorArray:
 	var base_color := color
-	var _color_variation := 0.1
+	const _color_variation := 0.1
 
 	var colors: PackedColorArray = []
 	for i in range(8):

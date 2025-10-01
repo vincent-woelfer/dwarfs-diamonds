@@ -11,9 +11,10 @@ func _ready() -> void:
 
 	# Sunlight from straight above
 	var sun := DirectionalLight2D.new()
-	sun.energy = 1.5
+	sun.color = Color(1.0, 0.93, 0.88)
+	sun.energy = 1.85
 	sun.shadow_enabled = true
-	# add_child(sun)
+	add_child(sun)
 
 	# Darkness
 	var darkness := CanvasModulate.new()
@@ -21,7 +22,7 @@ func _ready() -> void:
 	add_child(darkness)
 
 	# Wandering Lights
-	for i in range(10):
+	for i in range(16):
 		var light: WanderingLight = wandering_light_scene.instantiate()
 		var light_pos := Vector2(randi_range(1, Global.LEVEL_WIDTH - 1), randi_range(1, Global.LEVEL_HEIGHT - 1))
 		light_pos *= Global.CELL_SIZE
@@ -53,8 +54,12 @@ func _generate_grid() -> void:
 	for x in range(Global.LEVEL_WIDTH):
 		for y in range(Global.LEVEL_HEIGHT):
 			var type: Cell.CellType = Cell.CellType.values().pick_random()
-			# var is_solid: bool = randf() <= 0.3
+
+			# Is Solid
 			var fac := 15.0
 			var is_solid: bool = image.get_pixel(roundi(x * fac), roundi(y * fac)).r > 0.3
+			if y <= 3:
+				is_solid = false
+
 			var c := Cell.new(Vector2i(x, y), type, is_solid)
 			add_child(c)

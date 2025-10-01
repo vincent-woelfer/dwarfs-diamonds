@@ -15,7 +15,7 @@ var zoom_max: float = 3.0
 
 # For panning and level bounds
 # The world size (as in)
-var level_size: Vector2 = Global.CELL_SIZE_VEC * Vector2(Global.LEVEL_WIDTH, Global.LEVEL_HEIGHT)
+var level_size: Vector2 = Global.CELL_SIZE_VEC * Global.LEVEL_SIZE_VEC
 var margin_cells: int = 4
 
 @onready var stencil_viewport: StencilViewport = get_tree().root.get_node("root/StencilViewport")
