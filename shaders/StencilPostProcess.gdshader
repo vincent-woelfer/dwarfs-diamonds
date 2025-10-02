@@ -39,7 +39,8 @@ void fragment() {
 
     // --- GREEN channel fields ---
     // Extract 3-bit field starting at bit 0, then normalize to [0.0, 1.0]
-    int mining_process_bits = (stencil_g8 >> 0) & 7;
+    const int bitmask_3bits = (1 << 3) - 1; // 0b00000111
+    int mining_process_bits = (stencil_g8 >> 0) & bitmask_3bits;
     float mining_process = float(mining_process_bits) / 7.0;
 
 

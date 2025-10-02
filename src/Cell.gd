@@ -90,6 +90,7 @@ func _process(delta: float) -> void:
 	background_poly.light_mask = 0 if is_solid else 1
 
 	background_poly.color = Colors.get_cell_color(type, is_solid)
+	
 
 	if mining_process > 0.0:
 		mining_process += delta * 0.3
@@ -112,7 +113,6 @@ func _encode_stencil_buffer() -> void:
 	stencil_poly.color.g8 = 0
 	# Mining Process in 3 bits
 	stencil_poly.color.g8 |= Util.encode_into_bits(mining_process, 0, 3)
-
 
 	# BLUE channel
 	stencil_poly.color.b8 = 0
