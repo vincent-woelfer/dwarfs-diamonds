@@ -56,9 +56,14 @@ func _process(delta: float) -> void:
 				cell.is_highlighted = not cell.is_highlighted
 			
 	# Mine Cells
-	if Input.is_action_pressed("mouse_right"):
+	if Input.is_action_just_pressed("mouse_right_mine"):
 		for cell in curr_selected_cells:
 			_start_mining(cell)
+
+	# Build Cells
+	if Input.is_action_just_pressed("mouse_right_build"):
+		for cell in curr_selected_cells:
+			_build(cell)
 
 	# Update prev -> curr
 	prev_selected_cells = curr_selected_cells.duplicate()
@@ -74,7 +79,6 @@ func _process(delta: float) -> void:
 		if mining_cell.mining_process >= 1.0:
 			mining_cell.is_solid = false
 			mining_cell.mining_process = 0.0
-			mining_cell.is_selected = false
 			currently_mining_cells.erase(mining_cell)
 
 
@@ -84,6 +88,14 @@ func _start_mining(cell: Cell) -> void:
 
 	currently_mining_cells.append(cell)
 
+func _build(cell: Cell) -> void:
+	if cell == null or cell.is_solid:
+		return
+
+	cell.is_solid = true
+	cell.mining_process = 0.0
+	if cell in currently_mining_cells:
+		currently_mining_cells.erase(cell)
 
 # Sample cells at mouse position
 # Can be expanded to a radius or area
