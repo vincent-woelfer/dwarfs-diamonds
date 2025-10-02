@@ -46,6 +46,24 @@ static func rand_from_coords(x: float, y: float, z: int = 0) -> float:
 
 
 ########################################################################
+# BIT STUFF
+########################################################################
+# Encodes a normalized float (0.0–1.0) into an integer bitfield
+# value     – float in range [0.0, 1.0]
+# num_bits  – how many bits to use (e.g. 3 bits → values 0–7)
+# start_bit – where in the integer to place the bits (bit offset)
+static func encode_into_bits(value: float, start_bit: int, num_bits: int) -> int:
+	value = clampf(value, 0.0, 1.0)
+	
+	# e.g. 3 bits -> 7
+	var max_val: int = (1 << num_bits) - 1
+	# scale into 0..max_val
+	var quantized: int = clampi(roundi(value * max_val), 0, max_val)
+	# shift into correct position
+	return quantized << start_bit
+
+
+########################################################################
 # LERP
 ########################################################################
 const EPSILON: float = 0.001

@@ -15,6 +15,10 @@ const LEVEL_SIZE_VEC: Vector2 = Vector2(LEVEL_WIDTH, LEVEL_HEIGHT)
 # Aspect setting "expand" = both width and height change with aspect ratio. Both will never be smaller than the base size (3840x2160),
 # one will always be larger or exact base size.
 
+# Relevant Game Objects
+# @onready var camera: Camera = get_tree().root.get_node("Camera")
+# @onready var level: Level = get_tree().root.get_node("Level")
+
 func _ready() -> void:
 	# Hook into window size changes
 	get_viewport().connect("size_changed", Callable(self, "_on_window_size_changed"))
@@ -26,6 +30,10 @@ func _ready() -> void:
 		pass
 		# Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		# Input.mouse_mode = Input.MOUSE_MODE_CONFINED
+
+
+func _process(delta: float) -> void:
+	pass
 
 # React to keyboard inputs to directly trigger events
 func _input(event: InputEvent) -> void:

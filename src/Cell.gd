@@ -15,6 +15,8 @@ var grid_pos: Vector2i
 var is_solid: bool
 var is_selected: bool = false
 
+var mining_process: float = 0.0
+
 # Visuals
 var background_poly: Polygon2D
 var stencil_poly: Polygon2D
@@ -27,7 +29,9 @@ var occluder_poly: OccluderPolygon2D
 var collision_area: Area2D
 var collision_poly: CollisionPolygon2D
 
-static var unshaded_material: CanvasItemMaterial = preload("res://assets/materials/unshaded_material.tres")
+
+# Material
+var unshaded_material: CanvasItemMaterial = preload("res://assets/materials/unshaded_material.tres")
 
 # Methods
 func _init(_grid_pos: Vector2i, _type: CellType, _is_solid: bool) -> void:
@@ -36,6 +40,7 @@ func _init(_grid_pos: Vector2i, _type: CellType, _is_solid: bool) -> void:
 	self.is_solid = _is_solid
 
 	self.is_selected = randf() < 0.1
+	self.mining_process = 0.1 if randf() < 0.2 else 0.0
 
 func _ready() -> void:
 	# Required for chilren to be able to use these layers
@@ -86,14 +91,31 @@ func _process(delta: float) -> void:
 
 	background_poly.color = Colors.get_cell_color(type, is_solid)
 
-	# Set Stencild Colors. Dont write to alpha, this is done only once to show/hide stencil in editor vs game
-	# Update selected stencil
+	if mining_process > 0.0:
+		mining_process += delta * 0.3
+		mining_process = clampf(mining_process, 0.0, 1.0)
+
+		if mining_process >= 1.0:
+			mining_process = 0.001
+
+	_encode_stencil_buffer()
+	
+
+# Set Stencil Colors. Dont write to alpha, this is done only once to show/hide stencil in editor vs game
+func _encode_stencil_buffer() -> void:
+	# Encode flags in RED channel
 	stencil_poly.color.r8 = 0
 	stencil_poly.color.r8 |= (1 << 0) if is_selected else 0
+	stencil_poly.color.r8 |= (1 << 1) if is_solid else 0
+
+	# Encode numbers in GREEN channel
+	stencil_poly.color.g8 = 0
+	# Mining Process in 3 bits
+	stencil_poly.color.g8 |= Util.encode_into_bits(mining_process, 0, 3)
 
 
-	# Update solid stencil
-	stencil_poly.color.g8 = 255 if is_solid else 0
+	# BLUE channel
+	stencil_poly.color.b8 = 0
 
 
 # func _get_cell_colors(color: Color) -> PackedColorArray:

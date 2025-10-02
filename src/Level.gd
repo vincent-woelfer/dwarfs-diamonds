@@ -19,7 +19,8 @@ func _ready() -> void:
 
 	# Darkness
 	var darkness := CanvasModulate.new()
-	darkness.color = Color(0.75, 0.75, 0.75)
+	var d := 0.8
+	darkness.color = Color(d, d, d, 1.0)
 	add_child(darkness)
 
 	# Wandering Lights
@@ -59,8 +60,9 @@ func _generate_grid() -> void:
 			var type: Cell.CellType = Cell.CellType.values().pick_random()
 
 			# Is Solid
-			var fac := 15.0
-			var is_solid: bool = image.get_pixel(roundi(x * fac), roundi(y * fac)).r > 0.3
+			var noise_scale := 15.0
+			var threshold_above_is_solid := 0.35
+			var is_solid: bool = image.get_pixel(roundi(x * noise_scale), roundi(y * noise_scale)).r > threshold_above_is_solid
 			if y <= 3:
 				is_solid = false
 
