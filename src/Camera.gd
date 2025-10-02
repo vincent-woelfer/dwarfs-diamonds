@@ -30,6 +30,13 @@ func _ready() -> void:
 	_clamp_to_level()
 
 
+func mouse_pos_world_space() -> Vector2:
+	# Mouse in local viewport space
+	var screen_mouse: Vector2 = get_viewport().get_mouse_position()
+	var centered := screen_mouse - get_viewport_rect().size * 0.5
+	return self.position + centered / zoom_curr
+	
+
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mbe := event as InputEventMouseButton

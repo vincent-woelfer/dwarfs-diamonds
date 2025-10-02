@@ -4,6 +4,8 @@ extends Node2D
 
 var wandering_light_scene := preload('res://scenes/WanderingLight.tscn')
 
+var cells: Array[Array] = []
+
 
 func _ready() -> void:
 	# GRID
@@ -35,19 +37,19 @@ func _ready() -> void:
 	# var path: Path = Path.new()
 	# add_child(path)
 
-# 	_randomize_selection()
-	
-# func _randomize_selection() -> void:
-# 	for cell in get_children():
-# 		if cell is Cell:
-# 			var c := cell as Cell
-# 			c.is_selected = randf() < 0.2
 
-# 	await Util.await_time(1.0)
-# 	_randomize_selection()
-	
+func get_cell(pos: Vector2i) -> Cell:
+	if pos.x < 0 or pos.x >= Global.LEVEL_WIDTH:
+		return null
+	if pos.y < 0 or pos.y >= Global.LEVEL_HEIGHT:
+		return null
+	@warning_ignore("unsafe_cast")
+	return cells[pos.x][pos.y] as Cell
+
 
 func _generate_grid() -> void:
+	cells.clear()
+
 	var texture: NoiseTexture2D = NoiseTexture2D.new()
 	var fast_noise_lite := FastNoiseLite.new()
 	fast_noise_lite.seed = 57
@@ -56,6 +58,7 @@ func _generate_grid() -> void:
 	var image := texture.get_image()
 
 	for x in range(Global.LEVEL_WIDTH):
+		var row: Array[Cell] = []
 		for y in range(Global.LEVEL_HEIGHT):
 			var type: Cell.CellType = Cell.CellType.values().pick_random()
 
@@ -67,4 +70,8 @@ func _generate_grid() -> void:
 				is_solid = false
 
 			var c := Cell.new(Vector2i(x, y), type, is_solid)
+			row.append(c)
+			# c.position = Vector2(x * Global.CELL_SIZE, y * Global.CELL_SIZE)
 			add_child(c)
+
+		cells.append(row)

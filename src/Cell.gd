@@ -13,6 +13,9 @@ var type: CellType
 var grid_pos: Vector2i
 
 var is_solid: bool
+# Red stripes, used for destruction marked
+var is_highlighted: bool = false
+# Yellow overlay, used for selection
 var is_selected: bool = false
 
 var mining_process: float = 0.0
@@ -39,8 +42,9 @@ func _init(_grid_pos: Vector2i, _type: CellType, _is_solid: bool) -> void:
 	self.type = _type
 	self.is_solid = _is_solid
 
-	self.is_selected = randf() < 0.1
-	self.mining_process = 0.1 if randf() < 0.2 else 0.0
+	self.is_highlighted = randf() < 0.05
+	self.is_selected = false
+	# self.mining_process = 0.1 if randf() < 0.2 else 0.0
 
 func _ready() -> void:
 	# Required for chilren to be able to use these layers
@@ -91,14 +95,6 @@ func _process(delta: float) -> void:
 
 	background_poly.color = Colors.get_cell_color(type, is_solid)
 	
-
-	if mining_process > 0.0:
-		mining_process += delta * 0.3
-		mining_process = clampf(mining_process, 0.0, 1.0)
-
-		if mining_process >= 1.0:
-			mining_process = 0.001
-
 	_encode_stencil_buffer()
 	
 
@@ -106,8 +102,9 @@ func _process(delta: float) -> void:
 func _encode_stencil_buffer() -> void:
 	# Encode flags in RED channel
 	stencil_poly.color.r8 = 0
-	stencil_poly.color.r8 |= (1 << 0) if is_selected else 0
+	stencil_poly.color.r8 |= (1 << 0) if is_highlighted else 0
 	stencil_poly.color.r8 |= (1 << 1) if is_solid else 0
+	stencil_poly.color.r8 |= (1 << 2) if is_selected else 0
 
 	# Encode numbers in GREEN channel
 	stencil_poly.color.g8 = 0

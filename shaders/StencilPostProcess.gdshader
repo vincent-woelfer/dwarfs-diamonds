@@ -18,6 +18,8 @@ uniform float angle : hint_range(0.0, 6.283) = 0.7854; // radians
 // Mining = 54, 15, 90
 const vec4 mining_color = vec4(0.211, 0.058, 0.352, 0.8);
 
+const vec4 selection_color = vec4(1.0, 1.0, 0.0, 0.5);
+
 
 ////////////////////////////////////////////////////////////////////////////////////////
 void fragment() {
@@ -34,8 +36,9 @@ void fragment() {
     int stencil_b8 = int(round(stencil_color.b * 255.0));
 
     // --- RED channel flags ---
-    bool highlight = (stencil_r8 & (1 << 0)) != 0;
-    bool is_solid  = (stencil_r8 & (1 << 1)) != 0;
+    bool is_highlighted = (stencil_r8 & (1 << 0)) != 0;
+    bool is_solid       = (stencil_r8 & (1 << 1)) != 0;
+    bool is_selected    = (stencil_r8 & (1 << 2)) != 0;
 
     // --- GREEN channel fields ---
     // Extract 3-bit field starting at bit 0, then normalize to [0.0, 1.0]
@@ -68,13 +71,17 @@ void fragment() {
     }
 
     // HIGHLIGHT
-    if (highlight) {
+    if (is_highlighted) {
         // Choose stripe color
         vec4 highlight_color = (stripe >= 0.5) 
             ? mix(COLOR, highlight_stripe_color, highlight_stripe_color.a) 
             : mix(COLOR, highlight_gap_color, highlight_gap_color.a);
 
         COLOR = highlight_color;
+    }
+
+    if (is_selected) {
+        COLOR = mix(COLOR, selection_color, selection_color.a);
     }
 
     
