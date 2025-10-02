@@ -47,6 +47,7 @@ func _input(event: InputEvent) -> void:
 		
 		zoom_target = clamp(zoom_target, zoom_min, zoom_max)
 
+
 func _process(delta: float) -> void:
 	var input_vector := Vector2.ZERO
 	

@@ -1,4 +1,4 @@
-@tool
+#@tool
 # No class_name here, the name of the singleton is set in the autoload
 extends Node2D
 
@@ -21,6 +21,9 @@ const LEVEL_SIZE_VEC: Vector2 = Vector2(LEVEL_WIDTH, LEVEL_HEIGHT)
 var mouse_sprite: Polygon2D
 var mouse_size: float = 20.0
 
+var curr_selected_cell: Cell = null
+var prev_selected_cell: Cell = null
+
 func _ready() -> void:
 	# Hook into window mouse_size changes
 	get_viewport().connect("size_changed", Callable(self, "_on_window_size_changed"))
@@ -42,23 +45,35 @@ func _process(delta: float) -> void:
 	var mouse := camera.mouse_pos_world_space()
 	mouse_sprite.global_position = mouse - Vector2.ONE * mouse_size * 0.5
 
+	# Selected Cell
+	curr_selected_cell = level.get_cell_at_world_pos(mouse)
+	if prev_selected_cell and prev_selected_cell != curr_selected_cell:
+		prev_selected_cell.is_selected = false
+	
+	if curr_selected_cell:
+		curr_selected_cell.is_selected = true
 
+	# Click on cells
+	if Input.is_action_just_pressed("mouse_left"):
+		if curr_selected_cell:
+			curr_selected_cell.is_highlighted = not curr_selected_cell.is_highlighted
+
+	# Continuous press
+	elif Input.is_action_pressed("mouse_left"):
+		if curr_selected_cell and curr_selected_cell != prev_selected_cell:
+			curr_selected_cell.is_highlighted = not curr_selected_cell.is_highlighted
+
+	# Update prev -> curr
+	prev_selected_cell = curr_selected_cell
+	
 # React to keyboard inputs to directly trigger events
 func _input(event: InputEvent) -> void:
-	# Only execute in game, check necessary because EventBus is @tool
 	if not Engine.is_editor_hint():
-		###################################################################
-		# NON-Signal Input Actions
-		###################################################################
 		# Quit game
 		if event.is_action_pressed("quit"):
 			HexLog.print_multiline_banner_with_text("Quitting Game")
 			get_tree().quit()
 
-		###################################################################
-		# DEBUG Input Actions
-		###################################################################
-		# ...
 
 # React to window mouse_size changes
 func _on_window_size_changed() -> void:

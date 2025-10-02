@@ -38,13 +38,18 @@ func _ready() -> void:
 	# add_child(path)
 
 
-func get_cell(pos: Vector2i) -> Cell:
-	if pos.x < 0 or pos.x >= Global.LEVEL_WIDTH:
+func get_cell(grid_pos: Vector2i) -> Cell:
+	if grid_pos.x < 0 or grid_pos.x >= Global.LEVEL_WIDTH:
 		return null
-	if pos.y < 0 or pos.y >= Global.LEVEL_HEIGHT:
+	if grid_pos.y < 0 or grid_pos.y >= Global.LEVEL_HEIGHT:
 		return null
 	@warning_ignore("unsafe_cast")
-	return cells[pos.x][pos.y] as Cell
+	return cells[grid_pos.x][grid_pos.y] as Cell
+
+# TODO improve for irregular polygon shapes
+func get_cell_at_world_pos(world_pos: Vector2) -> Cell:
+	var grid_pos := Vector2i(floori(world_pos.x / Global.CELL_SIZE), floori(world_pos.y / Global.CELL_SIZE))
+	return get_cell(grid_pos)
 
 
 func _generate_grid() -> void:
