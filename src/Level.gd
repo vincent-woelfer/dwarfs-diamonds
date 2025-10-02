@@ -6,10 +6,35 @@ var wandering_light_scene := preload('res://scenes/WanderingLight.tscn')
 
 var cells: Array[Array] = []
 
+var pathfinding: AStarGrid2D
 
 func _ready() -> void:
 	# GRID
 	_generate_grid()
+
+	# Required but hacky :/
+	# Wait a frame to ensure all cells are ready
+	await get_tree().process_frame
+
+	# Pathfinding
+	pathfinding = AStarGrid2D.new()
+	pathfinding.region = Rect2i(0, 0, Global.LEVEL_WIDTH * Global.CELL_SIZE, Global.LEVEL_HEIGHT * Global.CELL_SIZE)
+	pathfinding.cell_size = Global.CELL_SIZE_VEC
+	pathfinding.cell_shape = AStarGrid2D.CELL_SHAPE_SQUARE
+	pathfinding.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
+	pathfinding.update()
+
+	for x in range(Global.LEVEL_WIDTH):
+		for y in range(Global.LEVEL_HEIGHT):
+			var grid_pos := Vector2i(x, y)
+			var cell: Cell = get_cell(grid_pos)
+			if not cell:
+				# push_error("Cell at grid_pos ", grid_pos, " is null!")
+				continue
+
+			if cell.is_solid:
+				pathfinding.set_point_solid(grid_pos, true)
+
 
 	# Sunlight from straight above
 	var sun := DirectionalLight2D.new()
@@ -32,10 +57,6 @@ func _ready() -> void:
 		light_pos *= Global.CELL_SIZE
 		light.global_position = light_pos
 		add_child(light)
-
-	# Add path
-	# var path: Path = Path.new()
-	# add_child(path)
 
 
 func get_cell(grid_pos: Vector2i) -> Cell:
@@ -76,9 +97,9 @@ func _generate_grid() -> void:
 				is_solid = false
 				type = Cell.CellType.SKY
 
-			var c := Cell.new(Vector2i(x, y), type, is_solid)
-			row.append(c)
-			c.position = Vector2(x, y) * Global.CELL_SIZE
-			add_child(c)
+			var cell := Cell.new(Vector2i(x, y), type, is_solid)
+			cell.position = Vector2(x, y) * Global.CELL_SIZE
+			row.append(cell)
+			add_child(cell)
 
 		cells.append(row)

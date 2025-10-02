@@ -40,9 +40,9 @@ func _init(_grid_pos: Vector2i, _type: CellType, _is_solid: bool) -> void:
 	self.type = _type
 	self.is_solid = _is_solid
 
-	self.is_highlighted = randf() < 0.05
+	self.is_highlighted = false
 	self.is_selected = false
-	# self.mining_process = 0.1 if randf() < 0.2 else 0.0
+	self.mining_process = 0.0
 
 func _ready() -> void:
 	# Required for chilren to be able to use these layers

@@ -2,14 +2,23 @@ class_name Path
 extends Node2D
 
 
-var points: PackedVector2Array = [Vector2(50, 50), Vector2(200, 100), Vector2(600, 200)]
-var color := Color.BLUE_VIOLET
+var points: PackedVector2Array = []
+var color := Color.GREEN
+
+
+func _init(points_: PackedVector2Array) -> void:
+	self.points = points_
+
 
 func _ready() -> void:
+	self.z_index = 5
+	self.visibility_layer = Util.LAYER_1
 	self.light_mask = 0
 
+
 func _draw() -> void:
-	draw_polyline(points, color, 5.0)
+	draw_polyline(points, color, 25.0)
+
 
 func _process(_delta: float) -> void:
 	queue_redraw()

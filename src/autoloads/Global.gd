@@ -18,6 +18,8 @@ const LEVEL_SIZE_VEC: Vector2 = Vector2(LEVEL_WIDTH, LEVEL_HEIGHT)
 @onready var camera: Camera = get_tree().root.get_node("root/Camera")
 @onready var level: Level = get_tree().root.get_node("root/Level")
 
+var path: Path
+
 func _ready() -> void:
 	# Hook into window mouse_size changes
 	get_viewport().connect("size_changed", Callable(self, "_on_window_size_changed"))
@@ -30,10 +32,22 @@ func _ready() -> void:
 	# Add mouse
 	add_child(MousePointer.new())
 
+	# Path
+	path = Path.new([])
+	add_child(path)
 
 
 func _process(delta: float) -> void:
-	pass
+	var mouse_world_pos: Vector2 = camera.mouse_pos_world_space()
+	var mouse_grid_pos: Vector2i = (mouse_world_pos / CELL_SIZE).floor()
+
+	var path_points := level.pathfinding.get_point_path(Vector2i(0, 0), mouse_grid_pos)
+
+	if path_points.size() >= 2:
+		path.points = path_points		
+	else:
+		path.points = []
+		
 	
 
 # React to keyboard inputs to directly trigger events
