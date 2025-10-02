@@ -16,6 +16,10 @@ static func get_cell_color(type: Cell.CellType, solid: bool) -> Color:
 			color = COLOR_B
 		Cell.CellType.C:
 			color = COLOR_C
+		Cell.CellType.BUILDING:
+			color = COLOR_BUILDING
+		Cell.CellType.SKY:
+			color = COLOR_SKY
 		_:
 			assert(false, "Unknown CellType")
 			color = Color.WHITE
@@ -30,3 +34,5 @@ static func get_cell_color(type: Cell.CellType, solid: bool) -> Color:
 static var COLOR_A: Color = Color8(42, 36, 48)
 static var COLOR_B: Color = Color8(58, 36, 38)
 static var COLOR_C: Color = Color8(46, 38, 31)
+static var COLOR_BUILDING: Color = Color.BURLYWOOD
+static var COLOR_SKY: Color = Color.DEEP_SKY_BLUE

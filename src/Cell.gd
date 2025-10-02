@@ -6,7 +6,9 @@ extends Node2D
 enum CellType {
 	A,
 	B,
-	C
+	C,
+	BUILDING,
+	SKY
 }
 
 var type: CellType

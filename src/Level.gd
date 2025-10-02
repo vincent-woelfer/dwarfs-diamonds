@@ -66,7 +66,7 @@ func _generate_grid() -> void:
 	for x in range(Global.LEVEL_WIDTH):
 		var row: Array[Cell] = []
 		for y in range(Global.LEVEL_HEIGHT):
-			var type: Cell.CellType = Cell.CellType.values().pick_random()
+			var type: Cell.CellType = [Cell.CellType.A, Cell.CellType.B, Cell.CellType.C].pick_random()
 
 			# Is Solid
 			var noise_scale := 15.0
@@ -74,6 +74,7 @@ func _generate_grid() -> void:
 			var is_solid: bool = image.get_pixel(roundi(x * noise_scale), roundi(y * noise_scale)).r > threshold_above_is_solid
 			if y <= 3:
 				is_solid = false
+				type = Cell.CellType.SKY
 
 			var c := Cell.new(Vector2i(x, y), type, is_solid)
 			row.append(c)

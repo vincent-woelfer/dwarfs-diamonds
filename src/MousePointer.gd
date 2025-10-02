@@ -88,11 +88,13 @@ func _start_mining(cell: Cell) -> void:
 
 	currently_mining_cells.append(cell)
 
+
 func _build(cell: Cell) -> void:
 	if cell == null or cell.is_solid:
 		return
 
 	cell.is_solid = true
+	cell.type = Cell.CellType.BUILDING
 	cell.mining_process = 0.0
 	if cell in currently_mining_cells:
 		currently_mining_cells.erase(cell)
