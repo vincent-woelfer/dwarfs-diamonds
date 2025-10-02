@@ -28,10 +28,6 @@ var stencil_poly: Polygon2D
 var occluder: LightOccluder2D
 var occluder_poly: OccluderPolygon2D
 
-# Selection
-# var collision_area: Area2D
-# var collision_poly: CollisionPolygon2D
-
 
 # Material
 var unshaded_material: CanvasItemMaterial = preload("res://assets/materials/unshaded_material.tres")
@@ -76,14 +72,6 @@ func _ready() -> void:
 	occluder = LightOccluder2D.new()
 	occluder.occluder = occluder_poly
 	add_child(occluder)
-
-	# # Collision (for selection)
-	# collision_poly = CollisionPolygon2D.new()
-	# collision_poly.polygon = poly
-	# collision_area = Area2D.new()
-	# collision_area.add_child(collision_poly)
-	# collision_area.visible = false
-	# add_child(collision_area)
 
 	_process(0.0)
 

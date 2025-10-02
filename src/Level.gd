@@ -46,7 +46,8 @@ func get_cell(grid_pos: Vector2i) -> Cell:
 	@warning_ignore("unsafe_cast")
 	return cells[grid_pos.x][grid_pos.y] as Cell
 
-# TODO improve for irregular polygon shapes
+
+# TODO improve accuracy for irregular polygon shapes
 func get_cell_at_world_pos(world_pos: Vector2) -> Cell:
 	var grid_pos := Vector2i(floori(world_pos.x / Global.CELL_SIZE), floori(world_pos.y / Global.CELL_SIZE))
 	return get_cell(grid_pos)
@@ -76,7 +77,7 @@ func _generate_grid() -> void:
 
 			var c := Cell.new(Vector2i(x, y), type, is_solid)
 			row.append(c)
-			c.position = Vector2(x,y) * Global.CELL_SIZE
+			c.position = Vector2(x, y) * Global.CELL_SIZE
 			add_child(c)
 
 		cells.append(row)

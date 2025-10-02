@@ -18,12 +18,6 @@ const LEVEL_SIZE_VEC: Vector2 = Vector2(LEVEL_WIDTH, LEVEL_HEIGHT)
 @onready var camera: Camera = get_tree().root.get_node("root/Camera")
 @onready var level: Level = get_tree().root.get_node("root/Level")
 
-var mouse_sprite: Polygon2D
-var mouse_size: float = 20.0
-
-var curr_selected_cell: Cell = null
-var prev_selected_cell: Cell = null
-
 func _ready() -> void:
 	# Hook into window mouse_size changes
 	get_viewport().connect("size_changed", Callable(self, "_on_window_size_changed"))
@@ -33,39 +27,15 @@ func _ready() -> void:
 		# Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		# Input.mouse_mode = Input.MOUSE_MODE_CONFINED
 
-	mouse_sprite = Polygon2D.new()
-	mouse_sprite.polygon = PackedVector2Array([Vector2(0, 0), Vector2(mouse_size, 0), Vector2(mouse_size, mouse_size), Vector2(0, mouse_size)])
-	mouse_sprite.color = Color(1, 0, 0, 0.5)
-	mouse_sprite.z_index = 10
-	add_child(mouse_sprite)
+	# Add mouse
+	add_child(MousePointer.new())
+
 
 
 func _process(delta: float) -> void:
-	# Move Mouse Sprite
-	var mouse := camera.mouse_pos_world_space()
-	mouse_sprite.global_position = mouse - Vector2.ONE * mouse_size * 0.5
-
-	# Selected Cell
-	curr_selected_cell = level.get_cell_at_world_pos(mouse)
-	if prev_selected_cell and prev_selected_cell != curr_selected_cell:
-		prev_selected_cell.is_selected = false
+	pass
 	
-	if curr_selected_cell:
-		curr_selected_cell.is_selected = true
 
-	# Click on cells
-	if Input.is_action_just_pressed("mouse_left"):
-		if curr_selected_cell:
-			curr_selected_cell.is_highlighted = not curr_selected_cell.is_highlighted
-
-	# Continuous press
-	elif Input.is_action_pressed("mouse_left"):
-		if curr_selected_cell and curr_selected_cell != prev_selected_cell:
-			curr_selected_cell.is_highlighted = not curr_selected_cell.is_highlighted
-
-	# Update prev -> curr
-	prev_selected_cell = curr_selected_cell
-	
 # React to keyboard inputs to directly trigger events
 func _input(event: InputEvent) -> void:
 	if not Engine.is_editor_hint():

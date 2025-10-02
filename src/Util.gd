@@ -119,3 +119,11 @@ static func now() -> float:
 ## Returns true if the given duration has passed since start_time
 static func has_time_passed(timestamp: float, duration: float) -> bool:
 	return now() - timestamp >= duration
+
+
+########################################################################
+# ARRAYS
+########################################################################
+static func array_add_unique_not_null(arr: Array, item: Variant) -> void:
+	if item != null and item not in arr:
+		arr.append(item)
