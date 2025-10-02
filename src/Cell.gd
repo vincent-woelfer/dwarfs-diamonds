@@ -29,8 +29,8 @@ var occluder: LightOccluder2D
 var occluder_poly: OccluderPolygon2D
 
 # Selection
-var collision_area: Area2D
-var collision_poly: CollisionPolygon2D
+# var collision_area: Area2D
+# var collision_poly: CollisionPolygon2D
 
 
 # Material
@@ -50,16 +50,18 @@ func _ready() -> void:
 	# Required for chilren to be able to use these layers
 	self.visibility_layer = Util.LAYER_1 | Util.LAYER_2
 
+	var poly := _get_cell_polygon()
+
 	# Background
 	background_poly = Polygon2D.new()
-	background_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
+	background_poly.polygon = poly
 	background_poly.color = Colors.get_cell_color(type, is_solid)
 	background_poly.visibility_layer = Util.LAYER_1
 	add_child(background_poly)
 
 	# Stencil
 	stencil_poly = Polygon2D.new()
-	stencil_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
+	stencil_poly.polygon = poly
 	stencil_poly.color = Color(0.0, 0.0, 0.0, 0.0) if Engine.is_editor_hint() else Color(0.0, 0.0, 0.0, 1.0)
 	stencil_poly.visibility_layer = Util.LAYER_2
 	stencil_poly.material = unshaded_material
@@ -67,7 +69,7 @@ func _ready() -> void:
 
 	# Light Occluder
 	occluder_poly = OccluderPolygon2D.new()
-	occluder_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
+	occluder_poly.polygon = poly
 	occluder_poly.closed = true
 	occluder_poly.cull_mode = OccluderPolygon2D.CULL_DISABLED
 
@@ -76,12 +78,12 @@ func _ready() -> void:
 	add_child(occluder)
 
 	# # Collision (for selection)
-	collision_poly = CollisionPolygon2D.new()
-	collision_poly.polygon = _get_cell_polygon(grid_pos.x, grid_pos.y)
-	collision_area = Area2D.new()
-	collision_area.add_child(collision_poly)
-	collision_area.visible = false
-	add_child(collision_area)
+	# collision_poly = CollisionPolygon2D.new()
+	# collision_poly.polygon = poly
+	# collision_area = Area2D.new()
+	# collision_area.add_child(collision_poly)
+	# collision_area.visible = false
+	# add_child(collision_area)
 
 	_process(0.0)
 
@@ -115,29 +117,15 @@ func _encode_stencil_buffer() -> void:
 	stencil_poly.color.b8 = 0
 
 
-# func _get_cell_colors(color: Color) -> PackedColorArray:
-# 	var base_color := color
-# 	const _color_variation := 0.1
-
-# 	var colors: PackedColorArray = []
-# 	for i in range(8):
-# 		colors.append(base_color)
-
-# 	# for i in range(8):
-# 		# var r = clamp(base_color.r + randf_range(-color_variation, color_variation), 0.0, 1.0)
-# 		# var g = clamp(base_color.g + randf_range(-color_variation, color_variation), 0.0, 1.0)
-# 		# var b = clamp(base_color.b + randf_range(-color_variation, color_variation), 0.0, 1.0)
-# 		# colors.append(Color(r, g, b, 1.0))
-
-# 	return colors
-
 # Returns a rectangle polygon for cell at grid position (x, y)
-func _get_cell_polygon(x: int, y: int) -> PackedVector2Array:
+func _get_cell_polygon() -> PackedVector2Array:
+	var base: Vector2 = Vector2(grid_pos.x * Global.CELL_SIZE, grid_pos.y * Global.CELL_SIZE)
+
 	# 4 Corners
-	var top_left := Vector2(x * Global.CELL_SIZE, y * Global.CELL_SIZE)
-	var top_right := top_left + Vector2(Global.CELL_SIZE, 0)
-	var bot_right := top_left + Global.CELL_SIZE_VEC
-	var bot_left := top_left + Vector2(0, Global.CELL_SIZE)
+	var top_left := Vector2.ZERO
+	var top_right := Vector2(Global.CELL_SIZE, 0)
+	var bot_right := Global.CELL_SIZE_VEC
+	var bot_left := Vector2(0, Global.CELL_SIZE)
 
 	# 4 Sides
 	var top := (top_left + top_right) * 0.5
@@ -149,14 +137,14 @@ func _get_cell_polygon(x: int, y: int) -> PackedVector2Array:
 	var max_corner_offset := Global.CELL_SIZE * 0.1
 	var max_side_offset := Global.CELL_SIZE * 0.125
 
-	top_left += Util.rand_circular_offset(top_left, max_corner_offset)
-	top_right += Util.rand_circular_offset(top_right, max_corner_offset)
-	bot_right += Util.rand_circular_offset(bot_right, max_corner_offset)
-	bot_left += Util.rand_circular_offset(bot_left, max_corner_offset)
-	top += Util.rand_circular_offset(top, max_side_offset)
-	right += Util.rand_circular_offset(right, max_side_offset)
-	bot += Util.rand_circular_offset(bot, max_side_offset)
-	left += Util.rand_circular_offset(left, max_side_offset)
+	top_left += Util.rand_circular_offset(base + top_left, max_corner_offset)
+	top_right += Util.rand_circular_offset(base + top_right, max_corner_offset)
+	bot_right += Util.rand_circular_offset(base + bot_right, max_corner_offset)
+	bot_left += Util.rand_circular_offset(base + bot_left, max_corner_offset)
+	top += Util.rand_circular_offset(base + top, max_side_offset)
+	right += Util.rand_circular_offset(base + right, max_side_offset)
+	bot += Util.rand_circular_offset(base + bot, max_side_offset)
+	left += Util.rand_circular_offset(base + left, max_side_offset)
 
 	# Clockwise, starting from top-left
 	return PackedVector2Array([top_left, top, top_right, right, bot_right, bot, bot_left, left])

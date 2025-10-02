@@ -76,7 +76,7 @@ func _generate_grid() -> void:
 
 			var c := Cell.new(Vector2i(x, y), type, is_solid)
 			row.append(c)
-			# c.position = Vector2(x * Global.CELL_SIZE, y * Global.CELL_SIZE)
+			c.position = Vector2(x,y) * Global.CELL_SIZE
 			add_child(c)
 
 		cells.append(row)
