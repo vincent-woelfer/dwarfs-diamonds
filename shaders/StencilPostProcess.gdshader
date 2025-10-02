@@ -16,7 +16,7 @@ uniform float angle : hint_range(0.0, 6.283) = 0.7854; // radians
 
 
 // Mining = 54, 15, 90
-const vec4 mining_color = vec4(0.211, 0.058, 0.352, 0.8);
+const vec4 mining_color = vec4(0.311, 0.1, 0.62, 0.8);
 
 const vec4 selection_color = vec4(1.0, 1.0, 0.0, 0.5);
 

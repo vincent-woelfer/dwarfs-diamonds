@@ -8,6 +8,11 @@ var color := Color(1, 0, 0, 0.5)
 var curr_selected_cells: Array[Cell] = []
 var prev_selected_cells: Array[Cell] = []
 
+# Miner interface
+var mine_speed := 0.5 # per second
+var currently_mining_cells: Array[Cell] = []
+
+
 @onready var camera: Camera = get_tree().root.get_node("root/Camera")
 @onready var level: Level = get_tree().root.get_node("root/Level")
 
@@ -50,16 +55,34 @@ func _process(delta: float) -> void:
 			if cell not in prev_selected_cells:
 				cell.is_highlighted = not cell.is_highlighted
 			
-	# # Destroy Cells
-	# if Input.is_action_just_pressed("mouse_right"):
-	# 	if curr_selected_cell and not curr_selected_cell.is_solid:
-	# 		curr_selected_cell.is_solid = true
-	# 		curr_selected_cell.mining_process = 0
-	# 		curr_selected_cell.is_highlighted = false
-	# 		curr_selected_cell.is_selected = false
+	# Mine Cells
+	if Input.is_action_pressed("mouse_right"):
+		for cell in curr_selected_cells:
+			_start_mining(cell)
 
 	# Update prev -> curr
 	prev_selected_cells = curr_selected_cells.duplicate()
+
+	###########
+	# Mining process
+	for mining_cell in currently_mining_cells:
+		if mining_cell == null or not mining_cell.is_solid:
+			currently_mining_cells.erase(mining_cell)
+			continue
+
+		mining_cell.mining_process += mine_speed * delta
+		if mining_cell.mining_process >= 1.0:
+			mining_cell.is_solid = false
+			mining_cell.mining_process = 0.0
+			mining_cell.is_selected = false
+			currently_mining_cells.erase(mining_cell)
+
+
+func _start_mining(cell: Cell) -> void:
+	if cell in currently_mining_cells or cell == null or not cell.is_solid:
+		return
+
+	currently_mining_cells.append(cell)
 
 
 # Sample cells at mouse position
