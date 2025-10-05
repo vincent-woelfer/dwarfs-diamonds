@@ -6,7 +6,7 @@ var wandering_light_scene := preload('res://scenes/WanderingLight.tscn')
 
 var cells: Array[Array] = []
 
-var pathfinding: AStarGrid2D
+var pathfinding: Pathfinding
 
 func _ready() -> void:
 	# GRID
@@ -16,24 +16,9 @@ func _ready() -> void:
 	# Wait a frame to ensure all cells are ready
 	await get_tree().process_frame
 
-	# Pathfinding
-	pathfinding = AStarGrid2D.new()
-	pathfinding.region = Rect2i(0, 0, Global.LEVEL_WIDTH * Global.CELL_SIZE, Global.LEVEL_HEIGHT * Global.CELL_SIZE)
-	pathfinding.cell_size = Global.CELL_SIZE_VEC
-	pathfinding.cell_shape = AStarGrid2D.CELL_SHAPE_SQUARE
-	pathfinding.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_NEVER
-	pathfinding.update()
-
-	for x in range(Global.LEVEL_WIDTH):
-		for y in range(Global.LEVEL_HEIGHT):
-			var grid_pos := Vector2i(x, y)
-			var cell: Cell = get_cell(grid_pos)
-			if not cell:
-				# push_error("Cell at grid_pos ", grid_pos, " is null!")
-				continue
-
-			if cell.is_solid:
-				pathfinding.set_point_solid(grid_pos, true)
+	# PATHFINDING
+	pathfinding = Pathfinding.new()
+	add_child(pathfinding)
 
 
 	# Sunlight from straight above
@@ -77,6 +62,13 @@ func get_cell_at_world_pos(world_pos: Vector2) -> Cell:
 func _generate_grid() -> void:
 	cells.clear()
 
+	# Pre-generate 2D array of nulls
+	for x in range(Global.LEVEL_WIDTH):
+		var row: Array = []
+		for y in range(Global.LEVEL_HEIGHT):
+			row.append(null)
+		cells.append(row)
+
 	var texture: NoiseTexture2D = NoiseTexture2D.new()
 	var fast_noise_lite := FastNoiseLite.new()
 	fast_noise_lite.seed = 57
@@ -85,7 +77,6 @@ func _generate_grid() -> void:
 	var image := texture.get_image()
 
 	for x in range(Global.LEVEL_WIDTH):
-		var row: Array[Cell] = []
 		for y in range(Global.LEVEL_HEIGHT):
 			var type: Cell.CellType = [Cell.CellType.A, Cell.CellType.B, Cell.CellType.C].pick_random()
 
@@ -99,7 +90,5 @@ func _generate_grid() -> void:
 
 			var cell := Cell.new(Vector2i(x, y), type, is_solid)
 			cell.position = Vector2(x, y) * Global.CELL_SIZE
-			row.append(cell)
 			add_child(cell)
-
-		cells.append(row)
+			cells[x][y] = cell

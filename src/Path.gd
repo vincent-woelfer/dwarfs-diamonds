@@ -17,7 +17,15 @@ func _ready() -> void:
 
 
 func _draw() -> void:
-	draw_polyline(points, color, 25.0)
+	if points.size() < 2:
+		return
+
+	# Offset points to be centered on cell
+	var offset_points := PackedVector2Array()
+	for p in points:
+		offset_points.append(p + Global.CELL_SIZE_VEC * 0.5)
+
+	draw_polyline(offset_points, color, 25.0)
 
 
 func _process(_delta: float) -> void:

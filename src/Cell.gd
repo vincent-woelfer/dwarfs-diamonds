@@ -22,6 +22,8 @@ var is_selected: bool = false
 
 var mining_process: float = 0.0
 
+var is_walkable: bool
+
 # Visuals
 var background_poly: Polygon2D
 var stencil_poly: Polygon2D
@@ -78,18 +80,41 @@ func _ready() -> void:
 	_process(0.0)
 
 
-# TODO add dirty flag here? -> Benchmark
 func _process(delta: float) -> void:
+	# TODO add dirty flag here? -> Benchmark
+	# For now just update every time every frame
+	update()
+	
+	_encode_stencil_buffer()
+
+
+func update_walkability(new_is_walkable: bool) -> void:
+	if is_walkable == new_is_walkable:
+		return
+
+	# Actual change -> update a-star
+	# TODO
+
+
+func update() -> void:
+	# GAMEPLAY
+	var neighbour_below := get_neighbour(Vector2i(0, -1))
+	update_walkability(not is_solid and neighbour_below and neighbour_below.is_solid)
+
+	# VISUAL
 	occluder.visible = is_solid
 
 	# Change light mask if solid (no light passes through)
 	background_poly.light_mask = 0 if is_solid else 1
 
 	background_poly.color = Colors.get_cell_color(type, is_solid)
-	
-	_encode_stencil_buffer()
-	
 
+
+func get_neighbour(dir: Vector2i) -> Cell:
+	assert(dir.length() == 1 and (dir.x == 0 or dir.y == 0), "Direction must be a unit vector in cardinal direction (N, S, E, W)")
+	return Global.level.get_cell(grid_pos + dir)
+
+	
 # Set Stencil Colors. Dont write to alpha, this is done only once to show/hide stencil in editor vs game
 func _encode_stencil_buffer() -> void:
 	# Encode flags in RED channel
