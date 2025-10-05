@@ -92,9 +92,9 @@ func update_walkability(new_is_walkable: bool) -> void:
 	if is_walkable == new_is_walkable:
 		return
 
-	# Actual change -> update a-star
-	# TODO
 	is_walkable = new_is_walkable
+
+	Global.level.pathfinding._update_cell_walkability(self)
 
 
 func update() -> void:
