@@ -23,10 +23,13 @@ var is_selected: bool = false
 var mining_process: float = 0.0
 
 var is_walkable: bool
+var has_ladder: bool = false
 
 # Visuals
 var background_poly: Polygon2D
 var stencil_poly: Polygon2D
+
+var ladder_sprite: Sprite2D
 
 # Light / Shadows
 var occluder: LightOccluder2D
@@ -35,6 +38,8 @@ var occluder_poly: OccluderPolygon2D
 
 # Material
 var unshaded_material: CanvasItemMaterial = preload("res://assets/materials/unshaded_material.tres")
+var ladder: CompressedTexture2D = preload("res://assets/ladder.png")
+
 
 # Methods
 func _init(_grid_pos: Vector2i, _type: CellType, _is_solid: bool) -> void:
@@ -45,6 +50,8 @@ func _init(_grid_pos: Vector2i, _type: CellType, _is_solid: bool) -> void:
 	self.is_highlighted = false
 	self.is_selected = false
 	self.mining_process = 0.0
+	
+	has_ladder = randf() < 0.1 if is_solid else false
 
 func _ready() -> void:
 	# Required for chilren to be able to use these layers
@@ -57,9 +64,21 @@ func _ready() -> void:
 	background_poly.polygon = poly
 	background_poly.color = Colors.get_cell_color(type, is_solid)
 	background_poly.visibility_layer = Util.LAYER_1
+	
 	if type == CellType.SKY:
 		background_poly.material = unshaded_material
 	add_child(background_poly)
+
+	# Ladder
+	if has_ladder:
+		ladder_sprite = Sprite2D.new()
+		ladder_sprite.texture = ladder
+		var fac: float = (Global.CELL_SIZE as float) / (ladder.get_width() as float)
+		ladder_sprite.scale = Vector2.ONE * fac
+		ladder_sprite.position = Vector2(Global.CELL_SIZE, Global.CELL_SIZE) * 0.5
+		ladder_sprite.visibility_layer = Util.LAYER_1
+		ladder_sprite.z_index = 2
+		add_child(ladder_sprite)
 
 	# Stencil
 	stencil_poly = Polygon2D.new()
