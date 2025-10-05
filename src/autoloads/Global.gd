@@ -38,11 +38,14 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if not level.pathfinding:
+		return
+
 	# FOR NOW TEST PATH FINDING EVERY FRAME
 	var mouse_world_pos: Vector2 = camera.mouse_pos_world_space()
 	var mouse_grid_pos: Vector2i = (mouse_world_pos / CELL_SIZE).floor()
 
-	var from_id: int = level.pathfinding._hash(Vector2i(0, 3))
+	var from_id: int = level.pathfinding._hash(Vector2i(1, 3))
 	var to_id: int = level.pathfinding._hash(mouse_grid_pos)
 
 	# Check if both points are walkable

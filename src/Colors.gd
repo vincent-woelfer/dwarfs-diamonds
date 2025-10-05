@@ -35,4 +35,4 @@ static var COLOR_A: Color = Color8(42, 36, 48)
 static var COLOR_B: Color = Color8(58, 36, 38)
 static var COLOR_C: Color = Color8(46, 38, 31)
 static var COLOR_BUILDING: Color = Color.BURLYWOOD
-static var COLOR_SKY: Color = Color(0, 0.2, 0.5)
+static var COLOR_SKY: Color = Color(0.3, 0.7, 1.0)

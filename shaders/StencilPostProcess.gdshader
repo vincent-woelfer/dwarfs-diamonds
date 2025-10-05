@@ -21,7 +21,8 @@ const vec4 mining_color = vec4(0.311, 0.1, 0.62, 0.8);
 
 const vec4 selection_color = vec4(1.0, 1.0, 0.0, 0.5);
 
-const vec4 walkable_color = vec4(0.0, 0.0, 1.0, 0.25);
+// for debugging
+const vec4 walkable_color = vec4(0.0, 0.0, 1.0, 0.2);
 
 
 ////////////////////////////////////////////////////////////////////////////////////////

@@ -57,6 +57,8 @@ func _ready() -> void:
 	background_poly.polygon = poly
 	background_poly.color = Colors.get_cell_color(type, is_solid)
 	background_poly.visibility_layer = Util.LAYER_1
+	if type == CellType.SKY:
+		background_poly.material = unshaded_material
 	add_child(background_poly)
 
 	# Stencil
