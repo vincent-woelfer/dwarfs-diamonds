@@ -23,7 +23,7 @@ func _draw() -> void:
 	# Offset points to be centered on cell
 	var offset_points := PackedVector2Array()
 	for p in points:
-		offset_points.append(p + Global.CELL_SIZE_VEC * 0.5)
+		offset_points.append(p * Global.CELL_SIZE_VEC + Global.CELL_SIZE_VEC * 0.5)
 
 	draw_polyline(offset_points, color, 25.0)
 

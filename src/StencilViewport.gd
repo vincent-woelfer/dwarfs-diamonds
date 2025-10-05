@@ -5,14 +5,12 @@ extends SubViewport
 @onready var root_viewport: Viewport = window.get_viewport()
 
 func _ready() -> void:
-	# Render only layer 2 (the stencil layer)
+	# For this stencil-viewport render only layer 2 (the stencil layer)
 	self.canvas_cull_mask = Util.LAYER_2
 
-	# Ensure root-viewport renders only layer 1
+	# Ensure the root-viewport renders only layer 1 (normal game-world layer)
+	# Set this to layer 2 to debug the stencil buffer
 	root_viewport.canvas_cull_mask = Util.LAYER_1
-
-	# Enable Stencil Layer on Main Viewport for testing
-	# root_viewport.set_canvas_cull_mask_bit(1, true)
 
 	self.world_2d = root_viewport.world_2d
 	self.size = window.size

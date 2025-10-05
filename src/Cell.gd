@@ -94,12 +94,15 @@ func update_walkability(new_is_walkable: bool) -> void:
 
 	# Actual change -> update a-star
 	# TODO
+	is_walkable = new_is_walkable
 
 
 func update() -> void:
 	# GAMEPLAY
-	var neighbour_below := get_neighbour(Vector2i(0, -1))
-	update_walkability(not is_solid and neighbour_below and neighbour_below.is_solid)
+	# TODO for now this doesnt work in editor because get_neighbour relies on Global.level (which is not correctly set in editor)
+	if not Engine.is_editor_hint():
+		var neighbour_below := get_neighbour(Vector2i(0, 1))
+		update_walkability((not is_solid) and neighbour_below and neighbour_below.is_solid)
 
 	# VISUAL
 	occluder.visible = is_solid
@@ -128,8 +131,9 @@ func _encode_stencil_buffer() -> void:
 	# Mining Process in 3 bits
 	stencil_poly.color.g8 |= Util.encode_into_bits(mining_process, 0, 3)
 
-	# BLUE channel
+	# BLUE channel - used for debugging
 	stencil_poly.color.b8 = 0
+	stencil_poly.color.b8 |= (1 << 6) if is_walkable else 0
 
 
 # Returns a rectangle polygon for cell at grid position (x, y)

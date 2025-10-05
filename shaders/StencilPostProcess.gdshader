@@ -15,10 +15,13 @@ uniform float speed : hint_range(0.0, 10.0) = 0.015;
 uniform float angle : hint_range(0.0, 6.283) = 0.7854; // radians
 
 
+// STATIC COLORS
 // Mining = 54, 15, 90
 const vec4 mining_color = vec4(0.311, 0.1, 0.62, 0.8);
 
 const vec4 selection_color = vec4(1.0, 1.0, 0.0, 0.5);
+
+const vec4 walkable_color = vec4(0.0, 0.0, 1.0, 0.25);
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -46,6 +49,9 @@ void fragment() {
     int mining_process_bits = (stencil_g8 >> 0) & bitmask_3bits;
     float mining_process = float(mining_process_bits) / 7.0;
 
+    // --- BLUE channel fields ---
+    // used for debugging
+    bool is_walkable    = (stencil_b8 & (1 << 6)) != 0;
 
     // Correct UV for aspect ratio for strip generation only
     float aspect = SCREEN_PIXEL_SIZE.x / SCREEN_PIXEL_SIZE.y;
@@ -82,6 +88,11 @@ void fragment() {
 
     if (is_selected) {
         COLOR = mix(COLOR, selection_color, selection_color.a);
+    }
+
+    // WALKABLE (for debugging)
+    if (is_walkable) {
+        COLOR = mix(COLOR, walkable_color, walkable_color.a);
     }
 
     

@@ -1,4 +1,4 @@
-#@tool
+# @tool
 # No class_name here, the name of the singleton is set in the autoload
 extends Node2D
 
@@ -45,7 +45,10 @@ func _process(delta: float) -> void:
 	var from_id: int = level.pathfinding._hash(Vector2i(0, 3))
 	var to_id: int = level.pathfinding._hash(mouse_grid_pos)
 
-	if not level.pathfinding.astar.has_point(from_id) or not level.pathfinding.astar.has_point(to_id):
+	# Check if both points are walkable
+	var both_walkable := level.pathfinding.astar.has_point(from_id) and level.pathfinding.astar.has_point(to_id)
+
+	if not both_walkable:
 		path.points = []
 		return
 

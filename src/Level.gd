@@ -14,6 +14,8 @@ func _ready() -> void:
 
 	# Required but hacky :/
 	# Wait a frame to ensure all cells are ready
+	# Wait a second frame to ensure all cells have updated their walkability
+	await get_tree().process_frame
 	await get_tree().process_frame
 
 	# PATHFINDING
