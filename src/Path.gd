@@ -20,12 +20,12 @@ func _draw() -> void:
 	if points.size() < 2:
 		return
 
-	# Offset points to be centered on cell
+	# Convert points from grid_space to world_space and offset to be centered on cell
 	var offset_points := PackedVector2Array()
 	for p in points:
-		offset_points.append(p * Global.CELL_SIZE_VEC + Global.CELL_SIZE_VEC * 0.5)
+		offset_points.append((p + Vector2(0.5, 0.5)) * Global.CELL_SIZE_VEC)
 
-	draw_polyline(offset_points, color, 25.0)
+	draw_polyline(offset_points, color, 20.0)
 
 
 func _process(_delta: float) -> void:
