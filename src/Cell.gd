@@ -121,7 +121,7 @@ func update() -> void:
 
 
 func get_neighbour(dir: Vector2i) -> Cell:
-	assert(dir.length() == 1 and (dir.x == 0 or dir.y == 0), "Direction must be a unit vector in cardinal direction (N, S, E, W)")
+	assert(dir.length() == 1 and (dir.x == 0 or dir.y == 0), "Direction must be a unit vector in cardinal direction")
 	return Global.level.get_cell(grid_pos + dir)
 
 	
