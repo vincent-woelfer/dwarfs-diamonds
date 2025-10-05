@@ -77,6 +77,9 @@ func _ready() -> void:
 	occluder.occluder = occluder_poly
 	add_child(occluder)
 
+	# TODO most likely remove this, only required for editor preview
+	# Move whats needed for initial construction elsewqhere.
+	# process should be able to assume everything is ready (including neighbours)
 	_process(0.0)
 
 
@@ -94,7 +97,9 @@ func update_walkability(new_is_walkable: bool) -> void:
 
 	is_walkable = new_is_walkable
 
-	Global.level.pathfinding._update_cell_walkability(self)
+	# TODO this if is a bit hacky, only reuqired at level construction. Find better way
+	if Global.level and Global.level.pathfinding:
+		Global.level.pathfinding._update_cell_walkability(self)
 
 
 func update() -> void:
