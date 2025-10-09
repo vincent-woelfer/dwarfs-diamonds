@@ -16,16 +16,15 @@ uniform float angle : hint_range(0.0, 6.283) = 0.7854; // radians
 
 
 // STATIC COLORS
-// Mining = 54, 15, 90
-const vec4 mining_color = vec4(0.311, 0.1, 0.62, 0.8);
+const vec4 mining_color = vec4(0.4, 0.18, 0.75, 0.8);
 
-const vec4 selection_color = vec4(1.0, 1.0, 0.0, 0.5);
+const vec4 selection_color = vec4(1.0, 1.0, 0.0, 0.2);
 
 // for debugging
 const vec4 walkable_color = vec4(0.0, 0.0, 1.0, 0.05);
 
 
-const float is_solid_darken_factor = 0.7;
+const float is_solid_darken_factor = 0.5;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 void fragment() {

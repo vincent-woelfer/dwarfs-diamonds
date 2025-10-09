@@ -24,27 +24,27 @@ func _ready() -> void:
 
 
 	# Sunlight from straight above
-	var sun := DirectionalLight2D.new()
-	sun.rotation_degrees = -5.0
-	sun.color = Color(1.0, 0.93, 0.88)
-	sun.energy = 3.0
-	sun.shadow_enabled = true
-	add_child(sun)
+	# var sun := DirectionalLight2D.new()
+	# sun.rotation_degrees = -5.0
+	# sun.color = Color(1.0, 0.93, 0.88)
+	# sun.energy = 3.0
+	# sun.shadow_enabled = true
+	# add_child(sun)
 
 	# Darkness
-	var darkness := CanvasModulate.new()
-	# var d := 0.8
-	var d := 1.0
-	darkness.color = Color(d, d, d, 1.0)
-	add_child(darkness)
+	# var darkness := CanvasModulate.new()
+	# # var d := 0.8
+	# var d := 1.0
+	# darkness.color = Color(d, d, d, 1.0)
+	# add_child(darkness)
 
 	# Wandering Lights
-	for i in range(16):
-		var light: WanderingLight = wandering_light_scene.instantiate()
-		var light_pos := Vector2(randi_range(1, Global.LEVEL_WIDTH - 1), randi_range(1, Global.LEVEL_HEIGHT - 1))
-		light_pos *= Global.CELL_SIZE
-		light.global_position = light_pos
-		add_child(light)
+	# for i in range(16):
+	# 	var light: WanderingLight = wandering_light_scene.instantiate()
+	# 	var light_pos := Vector2(randi_range(1, Global.LEVEL_WIDTH - 1), randi_range(1, Global.LEVEL_HEIGHT - 1))
+	# 	light_pos *= Global.CELL_SIZE
+	# 	light.global_position = light_pos
+	# 	add_child(light)
 
 
 func get_cell(grid_pos: Vector2i) -> Cell:

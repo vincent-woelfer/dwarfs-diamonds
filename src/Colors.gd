@@ -28,7 +28,7 @@ static func get_cell_color(type: Global.CellType, solid: bool) -> Color:
 	# if solid:
 		# color = color.darkened(0.3)
 
-	return color.brightened(0.2)
+	return color.lightened(0.2)
 
 	
 static var COLOR_A: Color = Color8(42, 36, 48)
