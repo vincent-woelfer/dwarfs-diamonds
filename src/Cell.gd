@@ -57,11 +57,13 @@ func _process(delta: float) -> void:
 	
 
 func update() -> void:
-	# GAMEPLAY
-	# TODO for now this doesnt work in editor because get_neighbour relies on Global.level (which is not correctly set in editor)
-	if not Engine.is_editor_hint():
-		var neighbour_below := get_neighbour(Vector2i(0, 1))
-		update_walkability((not is_solid) and neighbour_below and neighbour_below.is_solid)
+	# Get Neighbours
+	var n_bot := get_neighbour(Vector2i(0, 1))
+
+
+	# Update walkability
+	var new_walkable := (not is_solid) and n_bot and n_bot.is_solid
+	update_walkability(new_walkable)
 
 
 
@@ -69,11 +71,10 @@ func update_walkability(new_is_walkable: bool) -> void:
 	if is_walkable == new_is_walkable:
 		return
 
-	is_walkable = new_is_walkable
+	self.is_walkable = new_is_walkable
 
-	# TODO this if is a bit hacky, only reuqired at level construction. Find better way
 	if Global.level and Global.level.nav:
-		Global.level.nav._update_cell_walkability(self)
+		Global.level.nav.update_cell(self)
 
 
 

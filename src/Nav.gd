@@ -12,7 +12,7 @@ func _process(delta: float) -> void:
 	pass
 	
 
-func _update_cell_walkability(cell: Cell) -> void:
+func update_cell(cell: Cell) -> void:
 	if not astar:
 		return
 
@@ -26,7 +26,7 @@ func _update_cell_walkability(cell: Cell) -> void:
 			_connect_cell_with_neighbours(grid_pos)
 
 	# Remove cell as walkable
-	else:
+	elif not cell.is_walkable:
 		if astar.has_point(id):
 			astar.remove_point(id)
 

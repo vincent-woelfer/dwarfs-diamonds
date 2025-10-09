@@ -17,8 +17,6 @@ var ladder_sprite: Sprite2D
 var occluder: LightOccluder2D
 var occluder_poly: OccluderPolygon2D
 
-var dirty: bool = true
-
 
 # Methods
 func _init(_parent_cell: Cell) -> void:
@@ -71,12 +69,9 @@ func _ready() -> void:
 	update()
 
 
+# dirty flag IS ONLY A PERFOCMANCE OPTIMIZATION -> ignore for now
 func _process(delta: float) -> void:
-	dirty = true
-
-	if dirty:
-		dirty = false
-		update()	
+	update()
 
 
 func update() -> void:
