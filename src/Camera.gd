@@ -79,7 +79,8 @@ func _process(delta: float) -> void:
 	t.origin = - position * zoom_curr + get_viewport_rect().size * 0.5
 
 	get_viewport().canvas_transform = t
-	stencil_viewport.canvas_transform = t
+	if stencil_viewport:
+		stencil_viewport.canvas_transform = t
 
 
 func _clamp_to_level() -> void:

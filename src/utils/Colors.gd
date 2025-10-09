@@ -1,4 +1,3 @@
-@tool
 class_name Colors
 
 static func rand_color() -> Color:

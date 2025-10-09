@@ -1,4 +1,3 @@
-# @tool
 # No class_name here, the name of the singleton is set in the autoload
 extends Node2D
 
@@ -27,50 +26,20 @@ enum CellType {
 @onready var camera: Camera = get_tree().root.get_node("root/Camera")
 @onready var level: Level = get_tree().root.get_node("root/Level")
 
-var path: Path
-
 
 func _ready() -> void:
 	# Hook into window mouse_size changes
-	get_viewport().connect("size_changed", Callable(self, "_on_window_size_changed"))
+	if not Engine.is_editor_hint():
+		get_viewport().connect("size_changed", Callable(self, "_on_window_size_changed"))
 
 	if not Engine.is_editor_hint():
 		pass
 		# Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		# Input.mouse_mode = Input.MOUSE_MODE_CONFINED
 
-	# Add mouse
-	add_child(MousePointer.new())
-
-	# Path
-	path = Path.new([])
-	add_child(path)
-
 
 func _process(delta: float) -> void:
-	if not level.nav:
-		return
-
-	# FOR NOW TEST PATH FINDING EVERY FRAME
-	var mouse_world_pos: Vector2 = camera.mouse_pos_world_space()
-	var mouse_grid_pos: Vector2i = (mouse_world_pos / CELL_SIZE).floor()
-
-	var from_id: int = level.nav._hash(Vector2i(1, 3))
-	var to_id: int = level.nav._hash(mouse_grid_pos)
-
-	# Check if both points are walkable
-	var both_walkable := level.nav.astar.has_point(from_id) and level.nav.astar.has_point(to_id)
-
-	if not both_walkable:
-		path.points = []
-		return
-
-	var path_points := level.nav.astar.get_point_path(from_id, to_id, false)
-
-	if path_points.size() >= 2:
-		path.points = path_points
-	else:
-		path.points = []
+	pass
 		
 	
 # React to keyboard inputs to directly trigger events

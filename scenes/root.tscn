@@ -1,9 +1,11 @@
-[gd_scene load_steps=8 format=3 uid="uid://pbh6gu6l3vu2"]
+[gd_scene load_steps=10 format=3 uid="uid://pbh6gu6l3vu2"]
 
 [ext_resource type="Script" uid="uid://6tsnng1yc534" path="res://src/Level.gd" id="1_j5px3"]
 [ext_resource type="Script" uid="uid://dyag5xrvgqmps" path="res://src/Camera.gd" id="2_twpsu"]
-[ext_resource type="Script" uid="uid://d1qcyrj8x1c0i" path="res://src/StencilViewport.gd" id="3_lrqlo"]
-[ext_resource type="Script" uid="uid://cbuy847y21d8h" path="res://src/PostProcessCanvasLayer.gd" id="4_jh1ax"]
+[ext_resource type="Script" uid="uid://dbjxic6v0lmsn" path="res://src/DebugPath.gd" id="3_kycxp"]
+[ext_resource type="Script" uid="uid://cl5edeyo0f0k5" path="res://src/post_processing/StencilViewport.gd" id="3_lrqlo"]
+[ext_resource type="Script" uid="uid://cu5vij5h7nlbn" path="res://src/MousePointer.gd" id="4_j287u"]
+[ext_resource type="Script" uid="uid://ywmes8ymdo2a" path="res://src/post_processing/PostProcessCanvasLayer.gd" id="4_jh1ax"]
 [ext_resource type="Shader" uid="uid://xfugqc6jg0g2" path="res://shaders/StencilPostProcess.gdshader" id="4_sqa0i"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_jh1ax"]
@@ -29,6 +31,14 @@ metadata/_custom_type_script = "uid://6tsnng1yc534"
 [node name="Camera" type="Node2D" parent="."]
 script = ExtResource("2_twpsu")
 metadata/_custom_type_script = "uid://dyag5xrvgqmps"
+
+[node name="DebugPath" type="Node2D" parent="."]
+script = ExtResource("3_kycxp")
+metadata/_custom_type_script = "uid://dbjxic6v0lmsn"
+
+[node name="MousePointer" type="Node2D" parent="."]
+script = ExtResource("4_j287u")
+metadata/_custom_type_script = "uid://cu5vij5h7nlbn"
 
 [node name="StencilViewport" type="SubViewport" parent="."]
 disable_3d = true

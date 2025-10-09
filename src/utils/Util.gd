@@ -1,4 +1,3 @@
-@tool
 class_name Util
 
 ########################################################################
@@ -127,3 +126,26 @@ static func has_time_passed(timestamp: float, duration: float) -> bool:
 static func array_add_unique_not_null(arr: Array, item: Variant) -> void:
 	if item != null and item not in arr:
 		arr.append(item)
+
+
+########################################################################
+# Hash
+########################################################################
+static func hash(v: Vector2i) -> int:
+	# Maps [x,y] -> N, works bidirectionally but only for unsigned integers
+	# Based on Szudzik pairing
+	# https://www.vertexfragment.com/ramblings/cantor-szudzik-pairing-functions/#szudzik-pairing
+	return ((v.x * v.x) + v.x + v.y) if v.x >= v.y else ((v.y * v.y) + v.x)
+
+
+static func unhash(n: int) -> Vector2i:
+	# Reverse of Szudzik pairing (unsigned)
+	var sqrt_n := int(floori(sqrt(n)))
+	var sq := sqrt_n * sqrt_n
+	
+	if n - sq < sqrt_n:
+		# Case where x < y, so y = sqrt_n
+		return Vector2i(n - sq, sqrt_n)
+	else:
+		# Case where x >= y
+		return Vector2i(sqrt_n, n - sq - sqrt_n)

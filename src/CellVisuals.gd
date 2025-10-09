@@ -1,4 +1,3 @@
-@tool
 class_name CellVisuals
 extends Node2D
 

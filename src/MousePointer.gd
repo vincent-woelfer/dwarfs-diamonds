@@ -13,10 +13,6 @@ var mine_speed := 0.5 # per second
 var currently_mining_cells: Array[Cell] = []
 
 
-@onready var camera: Camera = get_tree().root.get_node("root/Camera")
-@onready var level: Level = get_tree().root.get_node("root/Level")
-
-
 func _ready() -> void:
 	sprite = Polygon2D.new()
 	sprite.polygon = PackedVector2Array([Vector2(0, 0), Vector2(size, 0), Vector2(size, size), Vector2(0, size)])
@@ -29,7 +25,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	# Move Mouse Sprite
-	self.position = camera.mouse_pos_world_space()
+	self.position = Global.camera.mouse_pos_world_space()
 
 	# Selected Cell
 	curr_selected_cells = _sample_cells_at_mouse_pos(self.position)
@@ -82,6 +78,14 @@ func _process(delta: float) -> void:
 			currently_mining_cells.erase(mining_cell)
 
 
+
+	########
+	if Input.is_action_just_pressed("dev_debug_path_start"):
+		if curr_selected_cells.size() > 0:
+			var cell := curr_selected_cells[0]
+			EventBus.emit_signal("Signal_DebugPathGoalCell", cell.grid_pos)
+
+
 func _start_mining(cell: Cell) -> void:
 	if cell in currently_mining_cells or cell == null or not cell.is_solid:
 		return
@@ -104,7 +108,7 @@ func _build(cell: Cell) -> void:
 func _sample_cells_at_mouse_pos(world_pos: Vector2) -> Array[Cell]:
 	var cells: Array[Cell] = []
 
-	var cell := level.get_cell_at_world_pos(world_pos)
+	var cell := Global.level.get_cell_at_world_pos(world_pos)
 	Util.array_add_unique_not_null(cells, cell)
 
 	# for x in range(2):

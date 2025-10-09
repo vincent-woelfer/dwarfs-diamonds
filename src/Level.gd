@@ -1,4 +1,3 @@
-@tool
 class_name Level
 extends Node2D
 
@@ -18,7 +17,6 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	# nav
 	nav = Nav.new()
 	add_child(nav)
 
@@ -47,22 +45,8 @@ func _ready() -> void:
 	# 	add_child(light)
 
 
-func get_cell(grid_pos: Vector2i) -> Cell:
-	if grid_pos.x < 0 or grid_pos.x >= Global.LEVEL_WIDTH:
-		return null
-	if grid_pos.y < 0 or grid_pos.y >= Global.LEVEL_HEIGHT:
-		return null
-	@warning_ignore("unsafe_cast")
-	return cells[grid_pos.x][grid_pos.y] as Cell
-
-
-# TODO improve accuracy for irregular polygon shapes
-func get_cell_at_world_pos(world_pos: Vector2) -> Cell:
-	var grid_pos := Vector2i(floori(world_pos.x / Global.CELL_SIZE), floori(world_pos.y / Global.CELL_SIZE))
-	return get_cell(grid_pos)
-
-
 func _generate_grid() -> void:
+	HexLog.print_banner_with_text("Generating Grid")
 	cells.clear()
 
 	# Pre-generate 2D array of nulls
@@ -95,3 +79,22 @@ func _generate_grid() -> void:
 			cell.position = Vector2(x, y) * Global.CELL_SIZE
 			add_child(cell)
 			cells[x][y] = cell
+
+
+########################################################################
+# Helper functions
+########################################################################
+func get_cell(grid_pos: Vector2i) -> Cell:
+	if grid_pos.x < 0 or grid_pos.x >= Global.LEVEL_WIDTH:
+		return null
+	if grid_pos.y < 0 or grid_pos.y >= Global.LEVEL_HEIGHT:
+		return null
+	@warning_ignore("unsafe_cast")
+	return cells[grid_pos.x][grid_pos.y] as Cell
+
+
+
+# TODO improve accuracy for irregular polygon shapes
+func get_cell_at_world_pos(world_pos: Vector2) -> Cell:
+	var grid_pos := Vector2i(floori(world_pos.x / Global.CELL_SIZE), floori(world_pos.y / Global.CELL_SIZE))
+	return get_cell(grid_pos)
