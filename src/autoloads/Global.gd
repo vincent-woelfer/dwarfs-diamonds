@@ -14,11 +14,21 @@ const LEVEL_SIZE_VEC: Vector2 = Vector2(LEVEL_WIDTH, LEVEL_HEIGHT)
 # Aspect setting "expand" = both width and height change with aspect ratio. Both will never be smaller than the base mouse_size (3840x2160),
 # one will always be larger or exact base mouse_size.
 
+# ENUMS / CONSTANTS
+enum CellType {
+	A,
+	B,
+	C,
+	BUILDING,
+	SKY
+}
+
 # Relevant Game Objects
 @onready var camera: Camera = get_tree().root.get_node("root/Camera")
 @onready var level: Level = get_tree().root.get_node("root/Level")
 
 var path: Path
+
 
 func _ready() -> void:
 	# Hook into window mouse_size changes
@@ -38,24 +48,24 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if not level.pathfinding:
+	if not level.nav:
 		return
 
 	# FOR NOW TEST PATH FINDING EVERY FRAME
 	var mouse_world_pos: Vector2 = camera.mouse_pos_world_space()
 	var mouse_grid_pos: Vector2i = (mouse_world_pos / CELL_SIZE).floor()
 
-	var from_id: int = level.pathfinding._hash(Vector2i(1, 3))
-	var to_id: int = level.pathfinding._hash(mouse_grid_pos)
+	var from_id: int = level.nav._hash(Vector2i(1, 3))
+	var to_id: int = level.nav._hash(mouse_grid_pos)
 
 	# Check if both points are walkable
-	var both_walkable := level.pathfinding.astar.has_point(from_id) and level.pathfinding.astar.has_point(to_id)
+	var both_walkable := level.nav.astar.has_point(from_id) and level.nav.astar.has_point(to_id)
 
 	if not both_walkable:
 		path.points = []
 		return
 
-	var path_points := level.pathfinding.astar.get_point_path(from_id, to_id, false)
+	var path_points := level.nav.astar.get_point_path(from_id, to_id, false)
 
 	if path_points.size() >= 2:
 		path.points = path_points

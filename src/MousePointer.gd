@@ -94,7 +94,7 @@ func _build(cell: Cell) -> void:
 		return
 
 	cell.is_solid = true
-	cell.type = Cell.CellType.BUILDING
+	cell.type = Global.CellType.BUILDING
 	cell.mining_process = 0.0
 	if cell in currently_mining_cells:
 		currently_mining_cells.erase(cell)

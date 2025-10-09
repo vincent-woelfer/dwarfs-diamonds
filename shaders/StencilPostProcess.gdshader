@@ -22,8 +22,10 @@ const vec4 mining_color = vec4(0.311, 0.1, 0.62, 0.8);
 const vec4 selection_color = vec4(1.0, 1.0, 0.0, 0.5);
 
 // for debugging
-const vec4 walkable_color = vec4(0.0, 0.0, 1.0, 0.2);
+const vec4 walkable_color = vec4(0.0, 0.0, 1.0, 0.05);
 
+
+const float is_solid_darken_factor = 0.7;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 void fragment() {
@@ -66,9 +68,8 @@ void fragment() {
     COLOR = screen_color;
 
     // SOLID
-    if (is_solid) {
-        float darken_factor = 0.8;
-        COLOR.rgb *= darken_factor;
+    if (is_solid) {        
+        COLOR.rgb *= is_solid_darken_factor;
     }
 
     // MINING

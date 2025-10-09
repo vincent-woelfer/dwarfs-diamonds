@@ -1,12 +1,12 @@
 @tool
-class_name Pathfinding
+class_name Nav
 extends Node2D
 
 var astar: AStar2D
 
 
 func _ready() -> void:
-	_generate_pathfinding()
+	_generate_nav()
 
 
 func _process(delta: float) -> void:
@@ -29,7 +29,7 @@ func _update_cell_walkability(cell: Cell) -> void:
 			astar.remove_point(id)
 
 
-func _generate_pathfinding() -> void:
+func _generate_nav() -> void:
 	astar = AStar2D.new()
 	var max_dim: int = maxi(Global.LEVEL_WIDTH, Global.LEVEL_HEIGHT)
 	astar.reserve_space(max_dim * max_dim)

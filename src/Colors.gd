@@ -6,19 +6,19 @@ static func rand_color() -> Color:
 	# return Color(randf(), randf(), randf(), 1.0)
 
 
-static func get_cell_color(type: Cell.CellType, solid: bool) -> Color:
+static func get_cell_color(type: Global.CellType, solid: bool) -> Color:
 	var color: Color
 	
 	match type:
-		Cell.CellType.A:
+		Global.CellType.A:
 			color = COLOR_A
-		Cell.CellType.B:
+		Global.CellType.B:
 			color = COLOR_B
-		Cell.CellType.C:
+		Global.CellType.C:
 			color = COLOR_C
-		Cell.CellType.BUILDING:
+		Global.CellType.BUILDING:
 			color = COLOR_BUILDING
-		Cell.CellType.SKY:
+		Global.CellType.SKY:
 			color = COLOR_SKY
 		_:
 			assert(false, "Unknown CellType")
@@ -28,7 +28,7 @@ static func get_cell_color(type: Cell.CellType, solid: bool) -> Color:
 	# if solid:
 		# color = color.darkened(0.3)
 
-	return color
+	return color.brightened(0.2)
 
 	
 static var COLOR_A: Color = Color8(42, 36, 48)

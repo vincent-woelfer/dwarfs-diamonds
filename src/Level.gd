@@ -6,7 +6,7 @@ var wandering_light_scene := preload('res://scenes/WanderingLight.tscn')
 
 var cells: Array[Array] = []
 
-var pathfinding: Pathfinding
+var nav: Nav
 
 func _ready() -> void:
 	# GRID
@@ -18,9 +18,9 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	# PATHFINDING
-	pathfinding = Pathfinding.new()
-	add_child(pathfinding)
+	# nav
+	nav = Nav.new()
+	add_child(nav)
 
 
 	# Sunlight from straight above
@@ -33,7 +33,8 @@ func _ready() -> void:
 
 	# Darkness
 	var darkness := CanvasModulate.new()
-	var d := 0.8
+	# var d := 0.8
+	var d := 1.0
 	darkness.color = Color(d, d, d, 1.0)
 	add_child(darkness)
 
@@ -80,7 +81,7 @@ func _generate_grid() -> void:
 
 	for x in range(Global.LEVEL_WIDTH):
 		for y in range(Global.LEVEL_HEIGHT):
-			var type: Cell.CellType = [Cell.CellType.A, Cell.CellType.B, Cell.CellType.C].pick_random()
+			var type: Global.CellType = [Global.CellType.A, Global.CellType.B, Global.CellType.C].pick_random()
 
 			# Is Solid
 			var noise_scale := 15.0
@@ -88,7 +89,7 @@ func _generate_grid() -> void:
 			var is_solid: bool = image.get_pixel(roundi(x * noise_scale), roundi(y * noise_scale)).r > threshold_above_is_solid
 			if y <= 3:
 				is_solid = false
-				type = Cell.CellType.SKY
+				type = Global.CellType.SKY
 
 			var cell := Cell.new(Vector2i(x, y), type, is_solid)
 			cell.position = Vector2(x, y) * Global.CELL_SIZE

@@ -1,0 +1,143 @@
+@tool
+class_name CellVisuals
+extends Node2D
+
+# Parent Cell
+var c: Cell
+
+# Material
+var unshaded_material: CanvasItemMaterial = preload("res://assets/materials/unshaded_material.tres")
+var ladder: CompressedTexture2D = preload("res://assets/ladder.png")
+
+var background_poly: Polygon2D
+var stencil_poly: Polygon2D
+
+var ladder_sprite: Sprite2D
+
+# Light / Shadows
+var occluder: LightOccluder2D
+var occluder_poly: OccluderPolygon2D
+
+var dirty: bool = true
+
+
+# Methods
+func _init(_parent_cell: Cell) -> void:
+	self.c = _parent_cell
+
+
+func _ready() -> void:
+	# Required for chilren to be able to use these layers
+	self.visibility_layer = Util.LAYER_1 | Util.LAYER_2
+
+	var poly := _get_cell_polygon()
+
+	# Background
+	background_poly = Polygon2D.new()
+	background_poly.polygon = poly
+	background_poly.visibility_layer = Util.LAYER_1
+	
+	if c.type == Global.CellType.SKY:
+		background_poly.material = unshaded_material
+	add_child(background_poly)
+
+	# Ladder
+	ladder_sprite = Sprite2D.new()
+	ladder_sprite.texture = ladder
+	var fac: float = (Global.CELL_SIZE as float) / (ladder.get_width() as float)
+	ladder_sprite.scale = Vector2.ONE * fac
+	ladder_sprite.position = Vector2(Global.CELL_SIZE, Global.CELL_SIZE) * 0.5
+	ladder_sprite.visibility_layer = Util.LAYER_1
+	ladder_sprite.z_index = 2
+	add_child(ladder_sprite)
+
+	# Stencil
+	stencil_poly = Polygon2D.new()
+	stencil_poly.polygon = poly
+	stencil_poly.color = Color(0.0, 0.0, 0.0, 0.0) if Engine.is_editor_hint() else Color(0.0, 0.0, 0.0, 1.0)
+	stencil_poly.visibility_layer = Util.LAYER_2
+	stencil_poly.material = unshaded_material
+	add_child(stencil_poly)
+
+	# Light Occluder
+	occluder_poly = OccluderPolygon2D.new()
+	occluder_poly.polygon = poly
+	occluder_poly.closed = true
+	occluder_poly.cull_mode = OccluderPolygon2D.CULL_DISABLED
+
+	occluder = LightOccluder2D.new()
+	occluder.occluder = occluder_poly
+	add_child(occluder)
+
+	update()
+
+
+func _process(delta: float) -> void:
+	if dirty:
+		dirty = false
+		update()	
+
+
+func update() -> void:
+	# VISUAL
+	occluder.visible = c.is_solid
+
+	ladder_sprite.visible = c.has_ladder
+
+	# Change light mask if solid (no light passes through)
+	background_poly.light_mask = 0 if c.is_solid else 1
+
+	background_poly.color = Colors.get_cell_color(c.type, c.is_solid)
+
+	_encode_stencil_buffer()
+
+	
+# Set Stencil Colors. Dont write to alpha, this is done only once to show/hide stencil in editor vs game
+func _encode_stencil_buffer() -> void:
+	# Encode flags in RED channel
+	stencil_poly.color.r8 = 0
+	stencil_poly.color.r8 |= (1 << 0) if c.is_highlighted else 0
+	stencil_poly.color.r8 |= (1 << 1) if c.is_solid else 0
+	stencil_poly.color.r8 |= (1 << 2) if c.is_selected else 0
+
+	# Encode numbers in GREEN channel
+	stencil_poly.color.g8 = 0
+	# Mining Process in 3 bits
+	stencil_poly.color.g8 |= Util.encode_into_bits(c.mining_process, 0, 3)
+
+	# BLUE channel - used for debugging
+	stencil_poly.color.b8 = 0
+	stencil_poly.color.b8 |= (1 << 6) if c.is_walkable else 0
+
+
+# Returns a rectangle polygon for cell at grid position (x, y)
+func _get_cell_polygon() -> PackedVector2Array:
+	var base: Vector2 = Vector2(c.grid_pos.x * Global.CELL_SIZE, c.grid_pos.y * Global.CELL_SIZE)
+
+	# 4 Corners
+	var top_left := Vector2.ZERO
+	var top_right := Vector2(Global.CELL_SIZE, 0)
+	var bot_right := Global.CELL_SIZE_VEC
+	var bot_left := Vector2(0, Global.CELL_SIZE)
+
+	# 4 Sides
+	var top := (top_left + top_right) * 0.5
+	var right := (top_right + bot_right) * 0.5
+	var bot := (bot_right + bot_left) * 0.5
+	var left := (bot_left + top_left) * 0.5
+
+	# Offset
+	var max_corner_offset := Global.CELL_SIZE * 0.1
+	var max_side_offset := Global.CELL_SIZE * 0.125
+
+	top_left += Util.rand_circular_offset(base + top_left, max_corner_offset)
+	top_right += Util.rand_circular_offset(base + top_right, max_corner_offset)
+	bot_right += Util.rand_circular_offset(base + bot_right, max_corner_offset)
+	bot_left += Util.rand_circular_offset(base + bot_left, max_corner_offset)
+	top += Util.rand_circular_offset(base + top, max_side_offset)
+	right += Util.rand_circular_offset(base + right, max_side_offset)
+	bot += Util.rand_circular_offset(base + bot, max_side_offset)
+	left += Util.rand_circular_offset(base + left, max_side_offset)
+
+	# Clockwise, starting from top-left
+	return PackedVector2Array([top_left, top, top_right, right, bot_right, bot, bot_left, left])
