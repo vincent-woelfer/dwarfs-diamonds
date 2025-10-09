@@ -72,6 +72,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	dirty = true
+
 	if dirty:
 		dirty = false
 		update()	

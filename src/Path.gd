@@ -4,9 +4,10 @@ extends Node2D
 
 var points: PackedVector2Array = []
 var color := Color.GREEN
+var width := 15.0
 
 
-func _init(points_: PackedVector2Array) -> void:
+func _init(points_: PackedVector2Array = []) -> void:
 	self.points = points_
 
 
@@ -25,7 +26,7 @@ func _draw() -> void:
 	for p in points:
 		offset_points.append((p + Vector2(0.5, 0.5)) * Global.CELL_SIZE_VEC)
 
-	draw_polyline(offset_points, color, 20.0)
+	draw_polyline(offset_points, color, width)
 
 
 func _process(_delta: float) -> void:

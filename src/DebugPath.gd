@@ -7,7 +7,7 @@ var start_pos: Vector2i = Vector2i(1, 3)
 
 
 func _ready() -> void:
-	path = Path.new([])
+	path = Path.new()
 	add_child(path)
 
 	EventBus.Signal_DebugPathGoalCell.connect(update_start_pos)
@@ -39,4 +39,4 @@ func _process(delta: float) -> void:
 		return
 
 	var path_points := nav.astar.get_point_path(from_id, to_id, false)
-	path.points = []
+	path.points = path_points
