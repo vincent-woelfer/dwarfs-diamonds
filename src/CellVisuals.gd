@@ -20,6 +20,8 @@ var occluder_poly: OccluderPolygon2D
 
 # Methods
 func _init(_parent_cell: Cell) -> void:
+	self.process_priority = Enum.ProcessPriority.CELL_VISUAL
+
 	self.c = _parent_cell
 
 
@@ -34,7 +36,7 @@ func _ready() -> void:
 	background_poly.polygon = poly
 	background_poly.visibility_layer = Util.LAYER_1
 	
-	if c.type == Global.CellType.SKY:
+	if c.type == Enum.CellType.SKY:
 		background_poly.material = unshaded_material
 	add_child(background_poly)
 
@@ -103,7 +105,7 @@ func _encode_stencil_buffer() -> void:
 
 	# BLUE channel - used for debugging
 	stencil_poly.color.b8 = 0
-	stencil_poly.color.b8 |= (1 << 6) if c.is_walkable else 0
+	stencil_poly.color.b8 |= (1 << 6) if c.is_standable() else 0
 
 
 # Returns a rectangle polygon for cell at grid position (x, y)

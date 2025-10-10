@@ -17,5 +17,5 @@ func _physics_process(delta: float) -> void:
 	dir = dir.rotated(curve * delta)
 	global_translate(speed * delta * dir)
 
-	if Util.is_map_border(global_position):
+	if Util.is_pos_inside_map_no_border(global_position):
 		dir *= -1

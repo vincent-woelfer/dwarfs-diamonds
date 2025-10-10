@@ -20,7 +20,7 @@ func update_start_pos(new_start_pos: Vector2i) -> void:
 
 func _process(delta: float) -> void:
 	var nav := Global.level.nav
-	if not nav or not nav.astar:
+	if not nav or not nav._astar:
 		return
 
 	# Start = fixed
@@ -32,11 +32,11 @@ func _process(delta: float) -> void:
 	var to_id: int = Util.hash(mouse_grid_pos)
 	
 	# Check if both points are in astar
-	var both_walkable := nav.astar.has_point(from_id) and nav.astar.has_point(to_id)
+	var both_walkable := nav._astar.has_point(from_id) and nav._astar.has_point(to_id)
 
 	if not both_walkable:
 		path.points = []
 		return
 
-	var path_points := nav.astar.get_point_path(from_id, to_id, false)
+	var path_points := nav._astar.get_point_path(from_id, to_id, false)
 	path.points = path_points

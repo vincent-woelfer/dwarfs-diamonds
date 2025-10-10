@@ -8,7 +8,7 @@ var color := Color(1, 0, 0, 0.5)
 var curr_selected_cells: Array[Cell] = []
 var prev_selected_cells: Array[Cell] = []
 
-# Miner interface
+# Miner interface -> TODO Move to Component ???
 var mine_speed := 0.5 # per second
 var currently_mining_cells: Array[Cell] = []
 
@@ -78,7 +78,6 @@ func _process(delta: float) -> void:
 			currently_mining_cells.erase(mining_cell)
 
 
-
 	########
 	if Input.is_action_just_pressed("dev_debug_path_start"):
 		if curr_selected_cells.size() > 0:
@@ -98,18 +97,19 @@ func _build(cell: Cell) -> void:
 		return
 
 	cell.is_solid = true
-	cell.type = Global.CellType.BUILDING
+	cell.type = Enum.CellType.BUILDING
 	cell.mining_process = 0.0
 	if cell in currently_mining_cells:
 		currently_mining_cells.erase(cell)
 
+
 # Sample cells at mouse position
-# Can be expanded to a radius or area
+# TODO Can later be expanded to a radius or area or pattern
 func _sample_cells_at_mouse_pos(world_pos: Vector2) -> Array[Cell]:
 	var cells: Array[Cell] = []
 
 	var cell := Global.level.get_cell_at_world_pos(world_pos)
-	Util.array_add_unique_not_null(cells, cell)
+	Util.array_append_unique_not_null(cells, cell)
 
 	# for x in range(2):
 		# var cell := level.get_cell_at_world_pos(world_pos + Vector2(x, 0) * Global.CELL_SIZE)

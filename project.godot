@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 Global="*res://src/autoloads/Global.gd"
 EventBus="*res://src/autoloads/EventBus.gd"
+Enum="*res://src/autoloads/Enum.gd"
 
 [debug]
 

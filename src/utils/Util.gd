@@ -9,12 +9,16 @@ const LAYER_2 := 1 << 1
 ########################################################################
 # Dwardfs & Diamonds NEW
 ########################################################################
-static func is_map_border(pos: Vector2) -> bool:
+static func is_pos_inside_map_no_border(pos: Vector2) -> bool:
 	var min_x := 0.0
 	var min_y := 0.0
 	var max_x := Global.LEVEL_WIDTH * Global.CELL_SIZE
 	var max_y := Global.LEVEL_HEIGHT * Global.CELL_SIZE
-	return pos.x <= min_x or pos.y <= min_y or pos.x >= max_x or pos.y >= max_y
+	return pos.x > min_x and pos.y > min_y and pos.x < max_x and pos.y < max_y
+
+
+static func is_grid_pos_valid(grid_pos: Vector2i) -> bool:
+	return grid_pos.x >= 0 and grid_pos.x < Global.LEVEL_WIDTH and grid_pos.y >= 0 and grid_pos.y < Global.LEVEL_HEIGHT
 
 
 static func rand_circular_offset(v: Vector2, r_max: float) -> Vector2:
@@ -32,7 +36,7 @@ static func vec_from_radius_angle(r: float, angle: float) -> Vector2:
 
 static func rand_from_coords(pos: Vector2, z: int = 0) -> float:
 	# No offset for map border
-	if is_map_border(pos):
+	if not is_pos_inside_map_no_border(pos):
 		return 0.0
 
 	# Round inputs to 2 decimal places
@@ -42,6 +46,40 @@ static func rand_from_coords(pos: Vector2, z: int = 0) -> float:
 	var n := x_ * 73856093 ^ y_ * 19349663 ^ z * 83492791
 	n = n & 0x7fffffff
 	return float(n % 10001) / 10000.0
+
+
+########################################################################
+# Neighbours
+########################################################################
+static var neighbours_cardinal := [
+	Vector2i(-1, 0),
+	Vector2i(1, 0),
+	Vector2i(0, -1),
+	Vector2i(0, 1)
+]
+
+static var neighbours_diagonal := [
+	Vector2i(-1, -1),
+	Vector2i(1, 1),
+	Vector2i(-1, 1),
+	Vector2i(1, -1)
+]
+
+static var neighbours_all := neighbours_cardinal + neighbours_diagonal
+
+## Allows for both cardinal and diagonal neighbours
+static func are_neighbours(pos_a: Vector2i, pos_b: Vector2i) -> bool:
+	# Squared distance must be 1 (cardinal) or 2 (diagonal). dist-2-cardinal = 2*2 = 4 so is not a neighbour
+	var dist: int = pos_a.distance_squared_to(pos_b)
+	return dist == 1 or dist == 2
+
+static func are_cardinal_neighbours(pos_a: Vector2i, pos_b: Vector2i) -> bool:
+	# Squared distance must be 1 (cardinal)
+	return pos_a.distance_squared_to(pos_b) == 1
+
+static func are_diagonal_neighbours(pos_a: Vector2i, pos_b: Vector2i) -> bool:
+	# Squared distance must be 2 (diagonal)
+	return pos_a.distance_squared_to(pos_b) == 2
 
 
 ########################################################################
@@ -123,7 +161,7 @@ static func has_time_passed(timestamp: float, duration: float) -> bool:
 ########################################################################
 # ARRAYS
 ########################################################################
-static func array_add_unique_not_null(arr: Array, item: Variant) -> void:
+static func array_append_unique_not_null(arr: Array, item: Variant) -> void:
 	if item != null and item not in arr:
 		arr.append(item)
 
