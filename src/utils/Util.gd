@@ -48,6 +48,16 @@ static func rand_from_coords(pos: Vector2, z: int = 0) -> float:
 	return float(n % 10001) / 10000.0
 
 
+static func grid_space_to_world_space_cell_center(grid_pos: Vector2i) -> Vector2:
+	return ((grid_pos as Vector2) + Vector2(0.5, 0.5)) * Global.CELL_SIZE_VEC
+
+static func grid_space_to_world_space_cell_center_array(grid_poses: Array[Vector2i]) -> Array[Vector2]:
+	var world_positions: Array[Vector2] = []
+	for gp in grid_poses:
+		world_positions.append(grid_space_to_world_space_cell_center(gp))
+	return world_positions
+
+
 ########################################################################
 # Neighbours
 ########################################################################

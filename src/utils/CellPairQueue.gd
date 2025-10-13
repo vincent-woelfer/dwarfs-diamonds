@@ -39,10 +39,8 @@ func append_unidirectional(grid_pos_from: Vector2i, grid_pos_to: Vector2i) -> vo
 
 	var new_pair := Pair.new(grid_pos_from, grid_pos_to)
 
-	# Check for duplicates
-	for p in _pairs:
-		if p.equals(new_pair):
-			return # duplicate, skip
+	# Dont check for duplicates, just add
+	# This is faster and duplicates are not a big problem
 
 	_pairs.append(new_pair)
 
