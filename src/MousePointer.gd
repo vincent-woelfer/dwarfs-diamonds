@@ -44,6 +44,7 @@ func _process(delta: float) -> void:
 		for cell in curr_selected_cells:
 			# Toggle highlight
 			cell.is_highlighted = not cell.is_highlighted
+			Global.level.job_manager.add_job(Job.new(Enum.JobType.BUILD, Enum.JobStatus.BLOCKED, cell))
 
 	# Continuous press
 	elif Input.is_action_pressed("mouse_left"):
@@ -88,7 +89,7 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("dev_place_debug_path_start"):
 		if curr_selected_cells.size() > 0:
 			var cell := curr_selected_cells[0]
-			EventBus.emit_signal("Signal_DebugPathSetStartCell", cell.grid_pos)
+			EventBus.Signal_DebugPathSetStartCell.emit(cell.grid_pos)
 
 
 func _start_mining(cell: Cell) -> void:

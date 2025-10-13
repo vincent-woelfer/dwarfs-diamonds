@@ -6,6 +6,8 @@ extends Node
 ###################################
 signal Signal_DebugPathSetStartCell(pos: Vector2i)
 
+signal Signal_NavUpdated() # Emitted when the nav grid has been updated
+
 
 ###################################
 # SIGNALS DIRECTLY FROM INPUT KEYS (default key as comment behind signal)
@@ -19,7 +21,7 @@ func _ready() -> void:
 	# EventBus.Signal_HexConstChanged.connect(generate_geometry)
 
 	# Signal emitting is done like this:
-	# EventBus.emit_signal("Signal_HexConstChanged", ...)
+	# EventBus.Signal_XXX.emit(...)
 
 	###################################
 	# Connect signals here to enable logging functions below.

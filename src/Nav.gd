@@ -65,6 +65,8 @@ func _update_cell_connections() -> void:
 	if duration > 1:
 		print("Updated %d nav-connections in: %d ms" % [cell_connections, duration])
 
+	EventBus.Signal_NavUpdated.emit()
+
 
 func _update_cell_individually(grid_pos: Vector2i) -> void:
 	var cell: Cell = Global.level.get_cell(grid_pos)
