@@ -10,7 +10,7 @@ func _ready() -> void:
 	path = Path.new()
 	add_child(path)
 
-	EventBus.Signal_DebugPathGoalCell.connect(update_start_pos)
+	EventBus.Signal_DebugPathSetStartCell.connect(update_start_pos)
 
 
 func update_start_pos(new_start_pos: Vector2i) -> void:

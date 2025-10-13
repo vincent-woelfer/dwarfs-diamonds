@@ -37,7 +37,7 @@ func _init(_grid_pos: Vector2i, _type: Enum.CellType, _is_solid: bool) -> void:
 	self.is_selected = false
 	self.mining_process = 0.0
 	
-	has_ladder = randf() < 0.1 if is_solid else false
+	has_ladder = randf() < 0.1 if not is_solid else false
 
 	
 func _ready() -> void:
@@ -48,17 +48,24 @@ func _ready() -> void:
 	add_child(visual)
 
 
-func _process(delta: float) -> void:
+# func _process(delta: float) -> void:
 	# TODO add dirty flag here? -> Benchmark
 	# For now just update every time every frame
-	update()
+	# update()
 	
 
 ## Called for every cell every frame.
 ## Called before Nav updates connections
-func update() -> void:
-	pass
+# func update() -> void:
+	# pass
 	# Used to have update of flags here but they are derived directly now
+
+
+func update_nav() -> void:
+	# Update all neighbours. Self not needed as its implicitly updated when neighbour updates
+	for n: Vector2i in Util.neighbours_all:
+		var n_grid_pos: Vector2i = grid_pos + n
+		Global.level.nav.update_cell(n_grid_pos)
 
 
 ########################################################################
@@ -68,6 +75,7 @@ func update() -> void:
 # Basically means "free air"
 func is_passable() -> bool:
 	return not is_solid
+
 
 # Standable = solid ground or ladder. Can stand on it. Also requires passable
 func is_standable() -> bool:
@@ -85,6 +93,7 @@ func is_standable() -> bool:
 func get_neighbour(grid_offset: Vector2i) -> Cell:
 	assert(Util.are_neighbours(Vector2i(0, 0), grid_offset))
 	return Global.level.get_cell(grid_pos + grid_offset)
+
 
 func get_nav_id() -> int:
 	return Util.hash(grid_pos)

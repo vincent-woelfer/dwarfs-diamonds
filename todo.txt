@@ -1,4 +1,2 @@
 
 
-- Diagonale Verbindungen
-- Update on change

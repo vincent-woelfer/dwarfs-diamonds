@@ -71,7 +71,7 @@ func _generate_grid() -> void:
 			var noise_scale := 15.0
 			var threshold_above_is_solid := 0.35
 			var is_solid: bool = image.get_pixel(roundi(x * noise_scale), roundi(y * noise_scale)).r > threshold_above_is_solid
-			if y <= 3:
+			if y <= Global.SKY_HEIGHT:
 				is_solid = false
 				type = Enum.CellType.SKY
 

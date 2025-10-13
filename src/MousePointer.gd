@@ -61,11 +61,18 @@ func _process(delta: float) -> void:
 		for cell in curr_selected_cells:
 			_build(cell)
 
+	# Build Laders
+	if Input.is_action_just_pressed("mouse_right_build_ladder"):
+		for cell in curr_selected_cells:
+			if not cell.has_ladder:
+				_build_ladder(cell)
+			else:
+				_destroy_ladder(cell)
+
 	# Update prev -> curr
 	prev_selected_cells = curr_selected_cells.duplicate()
 
-	###########
-	# Mining process
+	########### Mining process ########
 	for mining_cell in currently_mining_cells:
 		if mining_cell == null or not mining_cell.is_solid:
 			currently_mining_cells.erase(mining_cell)
@@ -73,16 +80,15 @@ func _process(delta: float) -> void:
 
 		mining_cell.mining_process += mine_speed * delta
 		if mining_cell.mining_process >= 1.0:
-			mining_cell.is_solid = false
-			mining_cell.mining_process = 0.0
 			currently_mining_cells.erase(mining_cell)
+			_destroy(mining_cell)
 
 
-	########
-	if Input.is_action_just_pressed("dev_debug_path_start"):
+	######## DEBUG ########
+	if Input.is_action_just_pressed("dev_place_debug_path_start"):
 		if curr_selected_cells.size() > 0:
 			var cell := curr_selected_cells[0]
-			EventBus.emit_signal("Signal_DebugPathGoalCell", cell.grid_pos)
+			EventBus.emit_signal("Signal_DebugPathSetStartCell", cell.grid_pos)
 
 
 func _start_mining(cell: Cell) -> void:
@@ -92,18 +98,54 @@ func _start_mining(cell: Cell) -> void:
 	currently_mining_cells.append(cell)
 
 
+func _destroy(cell: Cell) -> void:
+	if cell == null or not cell.is_solid:
+		return
+
+	# Update cell
+	cell.is_solid = false
+	cell.has_ladder = false
+	cell.mining_process = 0.0
+	if cell.grid_pos.y <= Global.SKY_HEIGHT:
+		cell.type = Enum.CellType.SKY
+
+	cell.update_nav()
+
+
 func _build(cell: Cell) -> void:
 	if cell == null or cell.is_solid:
 		return
 
+	# Update cell
 	cell.is_solid = true
+	cell.has_ladder = false
 	cell.type = Enum.CellType.BUILDING
 	cell.mining_process = 0.0
 	if cell in currently_mining_cells:
 		currently_mining_cells.erase(cell)
 
+	cell.update_nav()
 
-# Sample cells at mouse position
+
+func _build_ladder(cell: Cell) -> void:
+	if cell == null or cell.is_solid:
+		return
+
+	# Update cell
+	cell.has_ladder = true
+	cell.update_nav()
+
+
+func _destroy_ladder(cell: Cell) -> void:
+	if cell == null:
+		return
+
+	# Update cell
+	cell.has_ladder = false
+	cell.update_nav()
+
+
+## Sample cells at mouse position. Guaranteed to not be null
 # TODO Can later be expanded to a radius or area or pattern
 func _sample_cells_at_mouse_pos(world_pos: Vector2) -> Array[Cell]:
 	var cells: Array[Cell] = []

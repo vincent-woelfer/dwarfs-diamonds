@@ -4,7 +4,7 @@ extends Node
 ###################################
 # GAMEPLAY SIGNALS
 ###################################
-signal Signal_DebugPathGoalCell(pos: Vector2i)
+signal Signal_DebugPathSetStartCell(pos: Vector2i)
 
 
 ###################################

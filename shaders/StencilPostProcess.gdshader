@@ -24,7 +24,7 @@ const vec4 selection_color = vec4(1.0, 1.0, 0.0, 0.2);
 const vec4 walkable_color = vec4(0.0, 0.0, 1.0, 0.05);
 
 
-const float is_solid_darken_factor = 0.5;
+const float is_solid_darken_factor = 0.35;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 void fragment() {

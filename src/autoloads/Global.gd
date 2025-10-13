@@ -13,6 +13,7 @@ const LEVEL_SIZE_VEC: Vector2 = Vector2(LEVEL_WIDTH, LEVEL_HEIGHT)
 # Aspect setting "expand" = both width and height change with aspect ratio. Both will never be smaller than the base mouse_size (3840x2160),
 # one will always be larger or exact base mouse_size.
 
+const SKY_HEIGHT: int = 3
 
 # Relevant Game Objects
 @onready var camera: Camera = get_tree().root.get_node("root/Camera")

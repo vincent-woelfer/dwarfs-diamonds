@@ -6,6 +6,17 @@ var _astar: AStar2D = null
 var _cell_connections_to_update: CellPairQueue = CellPairQueue.new()
 
 
+# PUBLIC METHODS
+func update_cell(grid_pos: Vector2i) -> void:
+	if not Util.is_grid_pos_valid(grid_pos):
+		return
+
+	# Queue for connection update with all neighbours
+	for n_offset: Vector2i in Util.neighbours_all:
+		var neighbor_pos := grid_pos + n_offset
+		_cell_connections_to_update.append_bidirectional(grid_pos, neighbor_pos)
+
+
 func _init() -> void:
 	self.process_priority = Enum.ProcessPriority.NAV
 
@@ -53,8 +64,7 @@ func _update_cell_individually(grid_pos: Vector2i) -> void:
 	var cell: Cell = Global.level.get_cell(grid_pos)
 	var id := cell.get_nav_id()
 	_astar.set_point_disabled(id, not cell.is_standable())
-
-	# Currently connections remain if disabled (might change in future)
+	# Currently connections remain if point disabled (might change in future)
 
 
 ## Determines whether to connect or disconnect two cells.
@@ -66,21 +76,60 @@ func _update_cell_connection(cell_pair: CellPairQueue.Pair) -> void:
 	var to: Cell = Global.level.get_cell(cell_pair.grid_pos_to)
 
 	var should_connect := false
-
-	# Cardinal neighbours
 	if Util.are_cardinal_neighbours(from.grid_pos, to.grid_pos):
-		should_connect = from.is_standable() and to.is_standable()
-
-	# Diagonal neighbours
+		should_connect = _should_connect_cardinal_neighbours(from, to)
 	else:
-		# TODO
-		pass
+		should_connect = _should_connect_diagonal_neighbours(from, to)
 
 	# Finally make/break connection
 	if should_connect:
 		_astar.connect_points(from.get_nav_id(), to.get_nav_id(), false)
 	else:
 		_astar.disconnect_points(from.get_nav_id(), to.get_nav_id(), false)
+
+
+func _should_connect_cardinal_neighbours(from: Cell, to: Cell) -> bool:
+	# Both must be standable
+	if (not from.is_standable()) or (not to.is_standable()):
+		return false
+
+	# If Horizontal, always connect
+	if from.grid_pos.y == to.grid_pos.y:
+		return true
+
+	# === Vertical ===
+	var lower_cell := Util.get_lower_cell(from, to)
+
+	# If upwards, we can only go up if the lower cell has a ladder.
+	if from == lower_cell:
+		return lower_cell.has_ladder
+
+	# If downwards, we can always go down
+	else:
+		return true
+	
+	
+func _should_connect_diagonal_neighbours(from: Cell, to: Cell) -> bool:
+	# Both must be standable
+	if (not from.is_standable()) or (not to.is_standable()):
+		return false
+
+	# We have to connecting/diagonal cells:
+	# 1. The lower connecting/diagonal cell must be solid
+	# 2. The upper connecting/diagonal cell must be passable
+	# This ensures that we can walk diagonally up and down slopes
+
+	var lower_cell := Util.get_lower_cell(from, to)
+	var upper_cell := Util.get_upper_cell(from, to)
+
+	var lower_conn_cell: Cell = upper_cell.get_neighbour(Vector2i(0, 1))
+	var upper_conn_cell: Cell = lower_cell.get_neighbour(Vector2i(0, -1))
+
+	# Should always be valid
+	assert(lower_conn_cell != null)
+	assert(upper_conn_cell != null)
+
+	return lower_conn_cell.is_solid and upper_conn_cell.is_passable()
 
 
 # Assumes level is already generated
@@ -119,6 +168,8 @@ func _generate_nav_grid() -> void:
 var debug_show := true
 const debug_color_point_passable := Color(1.0, 0.6, 0.0, 0.6)
 const debug_color_point_standable := Color(1.0, 0.6, 0.0, 1.0)
+const debug_color_point_disabled := Color(1.0, 0.6, 0.0, 0.03)
+
 const debug_color_connection_unidir := Color(1.0, 1.0, 0.0, 0.6)
 const debug_color_connection_bidir := Color(1.0, 1.0, 0.0, 1.0)
 
@@ -131,15 +182,18 @@ func _draw() -> void:
 	if not _astar or not debug_show:
 		return
 
-	# Connections
+	# Connections - dont draw from disabled points
 	for id in _astar.get_point_ids():
 		if _astar.is_point_disabled(id):
 			continue
 
 		var draw_world_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(id)) + debug_offset_downwards
 		
-		# Draw connections
+		# Draw connections - check if to point is disabled
 		for conn_id in _astar.get_point_connections(id):
+			if _astar.is_point_disabled(conn_id):
+				continue
+
 			var conn_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(conn_id)) + debug_offset_downwards
 			var bidirectional := _astar.are_points_connected(id, conn_id, false) and _astar.are_points_connected(conn_id, id, false)
 			var color_actual := debug_color_connection_bidir if bidirectional else debug_color_connection_unidir
@@ -150,12 +204,16 @@ func _draw() -> void:
 
 	# Points on top to ensure visibility
 	for id in _astar.get_point_ids():
-		if _astar.is_point_disabled(id):
-			continue
-
 		var draw_world_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(id)) + debug_offset_downwards
 		var cell: Cell = Global.level.get_cell(Util.unhash(id))
-		var color_actual := debug_color_point_standable if cell.is_standable() else debug_color_point_passable
+
+		var color_actual: Color
+		if _astar.is_point_disabled(id):
+			color_actual = debug_color_point_disabled
+		elif cell.is_standable():
+			color_actual = debug_color_point_standable
+		else:
+			color_actual = debug_color_point_passable
 
 		# Draw point
 		draw_circle(draw_world_pos, debug_size_point, color_actual)
