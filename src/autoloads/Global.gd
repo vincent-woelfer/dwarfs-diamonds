@@ -5,6 +5,10 @@ extends Node2D
 const CELL_SIZE: int = 128
 const CELL_SIZE_VEC: Vector2 = Vector2(CELL_SIZE, CELL_SIZE)
 
+const CELL_SIZE_VEC_HALF: Vector2 = CELL_SIZE_VEC * 0.5
+# const CELL_SIZE_VEC_QUARTER: Vector2 = CELL_SIZE_VEC * 0.25
+# const CELL_SIZE_VEC_FIFTH: Vector2 = CELL_SIZE_VEC * 0.20
+
 # Size=128 at 3840x2160 (4K) gives 30x16.8 cells
 const LEVEL_WIDTH: int = 30
 const LEVEL_HEIGHT: int = 24
@@ -12,6 +16,8 @@ const LEVEL_SIZE_VEC: Vector2 = Vector2(LEVEL_WIDTH, LEVEL_HEIGHT)
 # Aspect setting "keep-width" = width is constant (3840), height changes with aspect ratio
 # Aspect setting "expand" = both width and height change with aspect ratio. Both will never be smaller than the base mouse_size (3840x2160),
 # one will always be larger or exact base mouse_size.
+
+
 
 const SKY_HEIGHT: int = 3
 

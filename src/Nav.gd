@@ -57,7 +57,8 @@ func _update_cell_connections() -> void:
 	queue_redraw()
 
 	var duration := Time.get_ticks_msec() - start_time
-	print("Updated %d nav-connections in: %d ms" % [cell_connections, duration])
+	if duration > 1:
+		print("Updated %d nav-connections in: %d ms" % [cell_connections, duration])
 
 
 func _update_cell_individually(grid_pos: Vector2i) -> void:

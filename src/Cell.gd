@@ -37,7 +37,7 @@ func _init(_grid_pos: Vector2i, _type: Enum.CellType, _is_solid: bool) -> void:
 	self.is_selected = false
 	self.mining_process = 0.0
 	
-	has_ladder = randf() < 0.1 if not is_solid else false
+	has_ladder = randf() < 0.1 if (!is_solid and type != Enum.CellType.SKY) else false
 
 	
 func _ready() -> void:

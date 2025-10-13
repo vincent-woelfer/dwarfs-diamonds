@@ -4,7 +4,7 @@ extends Node2D
 
 var points: PackedVector2Array = []
 var color := Color.GREEN
-var width := 15.0
+var width := 8.0
 
 
 func _init(points_: PackedVector2Array = []) -> void:
