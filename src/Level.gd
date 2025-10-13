@@ -6,6 +6,7 @@ var wandering_light_scene := preload('res://scenes/WanderingLight.tscn')
 var cells: Array[Array] = []
 
 var nav: Nav
+var job_manager: JobManager
 
 func _ready() -> void:
 	# GRID
@@ -20,6 +21,8 @@ func _ready() -> void:
 	nav = Nav.new()
 	add_child(nav)
 
+	job_manager = JobManager.new()
+	add_child(job_manager)
 
 	# Sunlight from straight above
 	# var sun := DirectionalLight2D.new()

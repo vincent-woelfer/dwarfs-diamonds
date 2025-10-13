@@ -37,14 +37,13 @@ func append_unidirectional(grid_pos_from: Vector2i, grid_pos_to: Vector2i) -> vo
 		assert(false, "Positions are not neighbours: %s, %s" % [grid_pos_from, grid_pos_to])
 		return
 
-	var new_pair := Pair.new(grid_pos_from, grid_pos_to)
-
-	# Dont check for duplicates, just add
+	# Dont check for duplicates, just add.
 	# This is faster and duplicates are not a big problem
 
+	var new_pair := Pair.new(grid_pos_from, grid_pos_to)
 	_pairs.append(new_pair)
 
-
+	
 func pop_front() -> Pair:
 	if _pairs.is_empty():
 		return null

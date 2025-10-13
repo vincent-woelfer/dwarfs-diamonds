@@ -6,7 +6,9 @@ var _astar: AStar2D = null
 var _cell_connections_to_update: CellPairQueue = CellPairQueue.new()
 
 
+########################################################################
 # PUBLIC METHODS
+########################################################################
 func update_cell(grid_pos: Vector2i) -> void:
 	if not Util.is_grid_pos_valid(grid_pos):
 		return
@@ -17,6 +19,9 @@ func update_cell(grid_pos: Vector2i) -> void:
 		_cell_connections_to_update.append_bidirectional(grid_pos, neighbor_pos)
 
 
+########################################################################
+# PRIVATE METHODS
+########################################################################
 func _init() -> void:
 	self.process_priority = Enum.ProcessPriority.NAV
 
@@ -177,7 +182,7 @@ const debug_color_connection_bidir := Color(1.0, 1.0, 0.0, 1.0)
 const debug_size_point := 6.0
 const debug_size_connection := 3.0
 
-const debug_offset_downwards := Vector2(0.0, 0.3) * Global.CELL_SIZE_VEC
+const debug_point_offset := Vector2(0.0, 0.3) * Global.CELL_SIZE_VEC
 
 func _draw() -> void:
 	if not _astar or not debug_show:
@@ -188,14 +193,14 @@ func _draw() -> void:
 		if _astar.is_point_disabled(id):
 			continue
 
-		var draw_world_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(id)) + debug_offset_downwards
+		var draw_world_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(id)) + debug_point_offset
 		
 		# Draw connections - check if to point is disabled
 		for conn_id in _astar.get_point_connections(id):
 			if _astar.is_point_disabled(conn_id):
 				continue
 
-			var conn_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(conn_id)) + debug_offset_downwards
+			var conn_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(conn_id)) + debug_point_offset
 			var bidirectional := _astar.are_points_connected(id, conn_id, false) and _astar.are_points_connected(conn_id, id, false)
 			var color_actual := debug_color_connection_bidir if bidirectional else debug_color_connection_unidir
 			var size_actual := debug_size_connection * (2.0 if bidirectional else 1.0)
@@ -205,7 +210,7 @@ func _draw() -> void:
 
 	# Points on top to ensure visibility
 	for id in _astar.get_point_ids():
-		var draw_world_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(id)) + debug_offset_downwards
+		var draw_world_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(id)) + debug_point_offset
 		var cell: Cell = Global.level.get_cell(Util.unhash(id))
 
 		var color_actual: Color

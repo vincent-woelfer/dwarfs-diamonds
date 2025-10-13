@@ -59,15 +59,15 @@ func _process(delta: float) -> void:
 	# Build Cells
 	if Input.is_action_just_pressed("mouse_right_build"):
 		for cell in curr_selected_cells:
-			_build(cell)
+			cell.build_platform()
 
 	# Build Laders
 	if Input.is_action_just_pressed("mouse_right_build_ladder"):
 		for cell in curr_selected_cells:
 			if not cell.has_ladder:
-				_build_ladder(cell)
+				cell.build_ladder()
 			else:
-				_destroy_ladder(cell)
+				cell.destroy_ladder()
 
 	# Update prev -> curr
 	prev_selected_cells = curr_selected_cells.duplicate()
@@ -81,7 +81,7 @@ func _process(delta: float) -> void:
 		mining_cell.mining_process += mine_speed * delta
 		if mining_cell.mining_process >= 1.0:
 			currently_mining_cells.erase(mining_cell)
-			_destroy(mining_cell)
+			mining_cell.destroy()
 
 
 	######## DEBUG ########
@@ -96,53 +96,6 @@ func _start_mining(cell: Cell) -> void:
 		return
 
 	currently_mining_cells.append(cell)
-
-
-func _destroy(cell: Cell) -> void:
-	if cell == null or not cell.is_solid:
-		return
-
-	# Update cell
-	cell.is_solid = false
-	cell.has_ladder = false
-	cell.mining_process = 0.0
-	if cell.grid_pos.y <= Global.SKY_HEIGHT:
-		cell.type = Enum.CellType.SKY
-
-	cell.update_nav()
-
-
-func _build(cell: Cell) -> void:
-	if cell == null or cell.is_solid:
-		return
-
-	# Update cell
-	cell.is_solid = true
-	cell.has_ladder = false
-	cell.type = Enum.CellType.BUILDING
-	cell.mining_process = 0.0
-	if cell in currently_mining_cells:
-		currently_mining_cells.erase(cell)
-
-	cell.update_nav()
-
-
-func _build_ladder(cell: Cell) -> void:
-	if cell == null or cell.is_solid:
-		return
-
-	# Update cell
-	cell.has_ladder = true
-	cell.update_nav()
-
-
-func _destroy_ladder(cell: Cell) -> void:
-	if cell == null:
-		return
-
-	# Update cell
-	cell.has_ladder = false
-	cell.update_nav()
 
 
 ## Sample cells at mouse position. Guaranteed to not be null
