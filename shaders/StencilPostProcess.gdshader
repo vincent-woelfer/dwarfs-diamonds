@@ -8,8 +8,8 @@ uniform sampler2D STENCIL_TEXTURE : source_color, repeat_disable, filter_nearest
 uniform float zoom = 1.0; 
 
 // Parameters
-const vec4 marked_for_mining_stripe_color = vec4(1.0, 0.0, 0.0, 0.8);
-const vec4 marked_for_mining_gap_color = vec4(1.0, 0.0, 0.0, 0.2);
+const vec4 marked_for_mining_stripe_color = vec4(1.0, 0.0, 0.0, 0.5);
+const vec4 marked_for_mining_gap_color = vec4(1.0, 0.0, 0.0, 0.1);
 
 uniform float divisions : hint_range(1.0, 256.0) = 128.0;
 uniform float stripe_bias : hint_range(1.0, 10.0) = 1.75;
