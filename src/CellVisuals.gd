@@ -94,7 +94,7 @@ func update() -> void:
 func _encode_stencil_buffer() -> void:
 	# Encode flags in RED channel
 	stencil_poly.color.r8 = 0
-	stencil_poly.color.r8 |= (1 << 0) if c.is_highlighted else 0
+	stencil_poly.color.r8 |= (1 << 0) if c.is_marked_for_mining else 0
 	stencil_poly.color.r8 |= (1 << 1) if c.is_solid else 0
 	stencil_poly.color.r8 |= (1 << 2) if c.is_selected else 0
 

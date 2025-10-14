@@ -6,8 +6,8 @@ uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, repeat_disable;
 uniform sampler2D STENCIL_TEXTURE : source_color, repeat_disable, filter_nearest;
 
 // Parameters
-const vec4 highlight_stripe_color = vec4(1.0, 0.0, 0.0, 0.8);
-const vec4 highlight_gap_color = vec4(1.0, 0.0, 0.0, 0.2);
+const vec4 marked_for_mining_stripe_color = vec4(1.0, 0.0, 0.0, 0.8);
+const vec4 marked_for_mining_gap_color = vec4(1.0, 0.0, 0.0, 0.2);
 
 uniform float divisions : hint_range(1.0, 256.0) = 128.0;
 uniform float stripe_bias : hint_range(1.0, 10.0) = 1.75;
@@ -41,9 +41,9 @@ void fragment() {
     int stencil_b8 = int(round(stencil_color.b * 255.0));
 
     // --- RED channel flags ---
-    bool is_highlighted = (stencil_r8 & (1 << 0)) != 0;
-    bool is_solid       = (stencil_r8 & (1 << 1)) != 0;
-    bool is_selected    = (stencil_r8 & (1 << 2)) != 0;
+    bool is_marked_for_mining = (stencil_r8 & (1 << 0)) != 0;
+    bool is_solid             = (stencil_r8 & (1 << 1)) != 0;
+    bool is_selected          = (stencil_r8 & (1 << 2)) != 0;
 
     // --- GREEN channel fields ---
     // Extract 3-bit field starting at bit 0, then normalize to [0.0, 1.0]
@@ -77,14 +77,14 @@ void fragment() {
         COLOR.rgb = mix(COLOR.rgb, mining_overlay, mining_process);
     }
 
-    // HIGHLIGHT
-    if (is_highlighted) {
+    // marked_for_mining
+    if (is_marked_for_mining) {
         // Choose stripe color
-        vec4 highlight_color = (stripe >= 0.5) 
-            ? mix(COLOR, highlight_stripe_color, highlight_stripe_color.a) 
-            : mix(COLOR, highlight_gap_color, highlight_gap_color.a);
+        vec4 marked_for_mining_color = (stripe >= 0.5) 
+            ? mix(COLOR, marked_for_mining_stripe_color, marked_for_mining_stripe_color.a) 
+            : mix(COLOR, marked_for_mining_gap_color, marked_for_mining_gap_color.a);
 
-        COLOR = highlight_color;
+        COLOR = marked_for_mining_color;
     }
 
     if (is_selected) {

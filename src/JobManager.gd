@@ -12,6 +12,14 @@ func add_job(job: Job) -> void:
 	queue_redraw()
 
 
+func remove_mining_job_for_cell(cell: Cell) -> void:
+	for job in _jobs:
+		if job.type == Job.Type.MINE and job.cell == cell:
+			_jobs.erase(job)
+			queue_redraw()
+			return
+
+
 ########################################################################
 # PRIVATE METHODS
 ########################################################################
@@ -61,21 +69,20 @@ func _draw() -> void:
 	for job in _jobs:
 		var color_actual: Color
 		match job.type:
-			Enum.JobType.MINE:
+			Job.Type.MINE:
 				color_actual = debug_color_mine
-			Enum.JobType.BUILD:
+			Job.Type.BUILD:
 				color_actual = debug_color_build
-			Enum.JobType.CARRY:
+			Job.Type.CARRY:
 				color_actual = debug_color_carry
 
-		var cell: Cell = job.start_cell
+		var cell: Cell = job.cell
 
 		var draw_world_pos := Util.grid_space_to_world_space_cell_center(cell.grid_pos)
 		var offset_idx: int = num_already_drawn_per_cell.get(cell.grid_pos, 0)
 		num_already_drawn_per_cell[cell.grid_pos] = offset_idx + 1
 
-		# draw_circle(draw_world_pos + _debug_get_offset(offset_idx), debug_size_point, color_actual)
-		var text: String = Enum.JobType.keys()[job.type] + " - " + Enum.JobStatus.keys()[job.status]
+		var text: String = Enum.to_str(Job.Type, job.type) + " - " + Enum.to_str(Job.Status, job.status)
 		var pos := draw_world_pos + _debug_get_offset(offset_idx)
 		draw_string(debug_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, debug_font_size, color_actual)
 

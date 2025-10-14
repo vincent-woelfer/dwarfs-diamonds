@@ -1,12 +1,28 @@
 class_name Job
 extends RefCounted
 
-var type: Enum.JobType
-var status: Enum.JobStatus
+enum Type {
+	MINE,
+	BUILD,
+	CARRY,
+}
 
-var start_cell: Cell
+enum Status {
+	BLOCKED,
+	READY,
+	IN_PROCESS,
+}
 
-func _init(type_: Enum.JobType, status_: Enum.JobStatus, start_cell_: Cell) -> void:
+
+var type: Job.Type
+var status: Job.Status
+
+var cell: Cell
+
+
+func _init(type_: Job.Type, status_: Job.Status, cell_: Cell) -> void:
+	assert(cell_ != null)
+	
 	self.type = type_
 	self.status = status_
-	self.start_cell = start_cell_
+	self.cell = cell_

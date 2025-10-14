@@ -24,7 +24,11 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	# Move Mouse Sprite
+	_update_selected_cells()
+	_actions()
+
+
+func _update_selected_cells() -> void:
 	self.position = Global.camera.mouse_pos_world_space()
 
 	# Selected Cell
@@ -39,27 +43,31 @@ func _process(delta: float) -> void:
 	for cell in curr_selected_cells:
 		cell.is_selected = true
 
-	# Click on cells
+	# Mark cells for mining
+	# Single click
 	if Input.is_action_just_pressed("mouse_left"):
 		for cell in curr_selected_cells:
-			# Toggle highlight
-			cell.is_highlighted = not cell.is_highlighted
-			Global.level.job_manager.add_job(Job.new(Enum.JobType.BUILD, Enum.JobStatus.BLOCKED, cell))
-
+			cell.toogle_marked_for_mining()
+			
 	# Continuous press
 	elif Input.is_action_pressed("mouse_left"):
 		for cell in curr_selected_cells:
 			if cell not in prev_selected_cells:
-				cell.is_highlighted = not cell.is_highlighted
-			
+				cell.toogle_marked_for_mining()
+
+	# Update prev -> curr
+	prev_selected_cells = curr_selected_cells.duplicate()
+
+
+func _actions() -> void:
 	# Mine Cells
 	if Input.is_action_just_pressed("mouse_right_mine"):
 		for cell in curr_selected_cells:
 			mining_comp.start_mining(cell)
-			
+
 
 	# Build Cells
-	if Input.is_action_just_pressed("mouse_right_build"):
+	if Input.is_action_just_pressed("mouse_right_build_platform"):
 		for cell in curr_selected_cells:
 			cell.build_platform()
 
@@ -70,9 +78,6 @@ func _process(delta: float) -> void:
 				cell.build_ladder()
 			else:
 				cell.destroy_ladder()
-
-	# Update prev -> curr
-	prev_selected_cells = curr_selected_cells.duplicate()
 
 	######## DEBUG ########
 	if Input.is_action_just_pressed("dev_place_debug_path_start"):

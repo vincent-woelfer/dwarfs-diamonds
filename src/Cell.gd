@@ -36,8 +36,9 @@ func is_standable() -> bool:
 ########################################################################
 # OTHER FLAGS
 ########################################################################
-# Red stripes, used for destruction marked
-var is_highlighted: bool = false
+# Red stripes, used for marked for mining
+var is_marked_for_mining: bool = false
+
 # Yellow overlay, used for selection
 var is_selected: bool = false
 
@@ -63,6 +64,8 @@ func destroy() -> void:
 	mining_process = 0.0
 	if grid_pos.y <= Global.SKY_HEIGHT:
 		type = Enum.CellType.SKY
+
+	set_marked_for_mining(false)
 
 	queue_nav_update()
 
@@ -94,6 +97,24 @@ func destroy_ladder() -> void:
 	queue_nav_update()
 
 
+func set_marked_for_mining(value: bool) -> void:
+	if is_marked_for_mining == value:
+		return
+
+	is_marked_for_mining = value
+
+	if is_marked_for_mining:
+		# Add mining job
+		var job := Job.new(Job.Type.MINE, Job.Status.READY, self)
+		Global.level.job_manager.add_job(job)
+
+	else:
+		Global.level.job_manager.remove_mining_job_for_cell(self)
+
+func toogle_marked_for_mining() -> void:
+	set_marked_for_mining(not is_marked_for_mining)
+	
+
 ########################################################################
 # PRIVATE METHODS
 ########################################################################
@@ -104,7 +125,7 @@ func _init(_grid_pos: Vector2i, _type: Enum.CellType, _is_solid: bool) -> void:
 	self.type = _type
 	self.is_solid = _is_solid
 
-	self.is_highlighted = false
+	self.is_marked_for_mining = false
 	self.is_selected = false
 	self.mining_process = 0.0
 	
