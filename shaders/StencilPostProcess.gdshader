@@ -79,7 +79,7 @@ void fragment() {
         COLOR.rgb = mix(COLOR.rgb, mining_overlay, mining_process);
     }
 
-    // marked_for_mining
+    // marked_for_mining - dont overdraw pure red, green or blue (used for debugging)
     if (is_marked_for_mining) {
         // Choose stripe color
         vec4 marked_for_mining_color = (stripe >= 0.5) 

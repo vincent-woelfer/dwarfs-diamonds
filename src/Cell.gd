@@ -52,7 +52,7 @@ func queue_nav_update() -> void:
 	# Update all neighbours. Self not needed as its implicitly updated when neighbour updates
 	for n: Vector2i in Util.neighbours_all:
 		var n_grid_pos: Vector2i = grid_pos + n
-		Global.level.nav.update_cell(n_grid_pos)
+		Global.level.nav.queue_update_cell(n_grid_pos)
 
 
 func destroy() -> void:
@@ -98,18 +98,22 @@ func destroy_ladder() -> void:
 
 
 func set_marked_for_mining(value: bool) -> void:
+	# Dont do anything if no change
 	if is_marked_for_mining == value:
+		return
+
+	# Cant set non-solid cells for mining
+	if not is_solid and value:
 		return
 
 	is_marked_for_mining = value
 
+	# Add or remove mining job
 	if is_marked_for_mining:
-		# Add mining job
-		var job := Job.new(Job.Type.MINE, Job.Status.READY, self)
-		Global.level.job_manager.add_job(job)
-
+		Global.level.job_manager.add_job(Job.new(Job.Type.MINE, self))
 	else:
 		Global.level.job_manager.remove_mining_job_for_cell(self)
+
 
 func toogle_marked_for_mining() -> void:
 	set_marked_for_mining(not is_marked_for_mining)

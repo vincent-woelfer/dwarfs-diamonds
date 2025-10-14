@@ -9,7 +9,7 @@ var _cell_connections_to_update: CellPairQueue = CellPairQueue.new()
 ########################################################################
 # PUBLIC METHODS
 ########################################################################
-func update_cell(grid_pos: Vector2i) -> void:
+func queue_update_cell(grid_pos: Vector2i) -> void:
 	if not Util.is_grid_pos_valid(grid_pos):
 		return
 
@@ -18,6 +18,21 @@ func update_cell(grid_pos: Vector2i) -> void:
 		var neighbor_pos := grid_pos + n_offset
 		_cell_connections_to_update.append_bidirectional(grid_pos, neighbor_pos)
 
+
+func find_path(start: Vector2i, goal: Vector2i) -> PackedVector2Array:
+	if not _astar:
+		return []
+
+	var from_id: int = Util.hash(start)
+	var to_id: int = Util.hash(goal)
+
+	# Check if both points are in astar and not disabled
+	var both_valid := _astar.has_point(from_id) and _astar.has_point(to_id) and _astar.is_point_disabled(from_id) == false and _astar.is_point_disabled(to_id) == false
+	if not both_valid:
+		return []
+
+	var path_points: PackedVector2Array = _astar.get_point_path(from_id, to_id, false)
+	return path_points
 
 ########################################################################
 # PRIVATE METHODS
@@ -30,9 +45,6 @@ func _ready() -> void:
 	_generate_nav_grid()
 
 
-# Disabled = currently not walkable
-# Connections might still be there for disabled cells (might changein future)
-
 func _process(delta: float) -> void:
 	if not _astar:
 		return
@@ -40,6 +52,8 @@ func _process(delta: float) -> void:
 	_update_cell_connections()
 	
 
+# Disabled = currently not walkable
+# Connections might still be there for disabled cells (might changein future)
 func _update_cell_connections() -> void:
 	if _cell_connections_to_update.is_empty():
 		return

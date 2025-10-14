@@ -44,9 +44,8 @@ canvas_cull_mask = 4293918723
 size = Vector2i(3840, 2160)
 script = ExtResource("3_lrqlo")
 
-[node name="PostProcessCanvasLayer" type="CanvasLayer" parent="."]
-layer = 2
+[node name="PostProcessCanvasLayer-1" type="CanvasLayer" parent="."]
 script = ExtResource("4_jh1ax")
 
-[node name="StencilColorRect" type="ColorRect" parent="PostProcessCanvasLayer"]
+[node name="StencilColorRect" type="ColorRect" parent="PostProcessCanvasLayer-1"]
 material = SubResource("ShaderMaterial_sqa0i")

@@ -8,6 +8,14 @@ var _jobs: Array[Job] = []
 # PUBLIC METHODS
 ########################################################################
 func add_job(job: Job) -> void:
+	assert(job != null)
+
+	if job.type == Job.Type.MINE:
+		for existing_job in _jobs:
+			if existing_job.type == Job.Type.MINE and existing_job.cell == job.cell:
+				print("JobManager: Not adding duplicate mining job for cell ", job.cell.grid_pos)
+				return
+
 	_jobs.append(job)
 	queue_redraw()
 
@@ -36,10 +44,9 @@ func _process(delta: float) -> void:
 
 
 func _on_nav_updated() -> void:
-	pass
-	# for job in _jobs:
-		# if job.state == Job.State.WAITING_FOR_NAV:
-			# job.check_nav()
+	# Update status of all jobs
+	for job in _jobs:
+		job.update_workable_from_cells()
 
 	queue_redraw()
 	
@@ -48,9 +55,12 @@ func _on_nav_updated() -> void:
 # DEBUG DRAWING
 ########################################################################
 var debug_show := true
-const debug_color_mine := Color(1.0, 0.2, 1.0, 1.0)
-const debug_color_build := Color(0.0, 1.0, 0.4, 1.0)
-const debug_color_carry := Color(1.0, 0.8, 0.0, 1.0)
+# const debug_color_mine := Color(0.0, 1.0, 0.0)
+# const debug_color_build := Color(0.0, 1.0, 0.4)
+# const debug_color_carry := Color(1.0, 0.8, 0.0)
+const debug_color_blocked := Color.RED
+const debug_color_ready := Color.GREEN
+const debug_color_in_progress := Color.PURPLE
 
 const debug_size_point := 7.0
 
@@ -58,7 +68,7 @@ const debug_offset_start := Vector2(-0.44, -0.38) * Global.CELL_SIZE_VEC
 const debug_offset_inc := Vector2(0.0, 0.12) * Global.CELL_SIZE_VEC
 
 var debug_font := ThemeDB.fallback_font
-var debug_font_size := 12
+var debug_font_size := 14
 
 func _draw() -> void:
 	if not debug_show:
@@ -68,13 +78,13 @@ func _draw() -> void:
 
 	for job in _jobs:
 		var color_actual: Color
-		match job.type:
-			Job.Type.MINE:
-				color_actual = debug_color_mine
-			Job.Type.BUILD:
-				color_actual = debug_color_build
-			Job.Type.CARRY:
-				color_actual = debug_color_carry
+		match job.status:
+			Job.Status.BLOCKED:
+				color_actual = debug_color_blocked
+			Job.Status.READY:
+				color_actual = debug_color_ready
+			Job.Status.IN_PROCESS:
+				color_actual = debug_color_in_progress
 
 		var cell: Cell = job.cell
 

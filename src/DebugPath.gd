@@ -29,14 +29,6 @@ func _process(delta: float) -> void:
 	# Goal = mouse
 	var mouse_world_pos: Vector2 = Global.camera.mouse_pos_world_space()
 	var mouse_grid_pos: Vector2i = (mouse_world_pos / Global.CELL_SIZE).floor()
-	var to_id: int = Util.hash(mouse_grid_pos)
-	
-	# Check if both points are in astar
-	var both_walkable := nav._astar.has_point(from_id) and nav._astar.has_point(to_id)
 
-	if not both_walkable:
-		path.points = []
-		return
+	path.points_grid_space = nav.find_path(start_pos, mouse_grid_pos)
 
-	var path_points := nav._astar.get_point_path(from_id, to_id, false)
-	path.points = path_points

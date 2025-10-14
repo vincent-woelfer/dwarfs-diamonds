@@ -56,7 +56,7 @@ func _on_window_size_changed() -> void:
 	print("Updated viewport (game-world) size to: ", size)
 
 	if not Engine.is_editor_hint():
-		var post_process_canvas_layer: PostProcessCanvasLayer = get_tree().root.get_node("root/PostProcessCanvasLayer")
+		var post_process_canvas_layer: PostProcessCanvasLayer = get_tree().root.get_node("root/PostProcessCanvasLayer-1")
 		if post_process_canvas_layer:
 			post_process_canvas_layer.update_size(size)
 
