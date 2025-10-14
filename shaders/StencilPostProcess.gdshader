@@ -5,6 +5,8 @@ render_mode blend_disabled, unshaded;
 uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, repeat_disable;
 uniform sampler2D STENCIL_TEXTURE : source_color, repeat_disable, filter_nearest;
 
+uniform float zoom = 1.0; 
+
 // Parameters
 const vec4 marked_for_mining_stripe_color = vec4(1.0, 0.0, 0.0, 0.8);
 const vec4 marked_for_mining_gap_color = vec4(1.0, 0.0, 0.0, 0.2);
@@ -29,7 +31,7 @@ const float is_solid_darken_factor = 0.35;
 ////////////////////////////////////////////////////////////////////////////////////////
 void fragment() {
     // Get UV in world space
-    vec2 uv = SCREEN_UV;  // UV also works
+    vec2 uv = UV;  // SCREEN_UV also works the same
 
     // Sample Textures with correct UV
     vec4 screen_color = texture(SCREEN_TEXTURE, uv);
@@ -57,7 +59,7 @@ void fragment() {
 
     // Correct UV for aspect ratio for strip generation only
     float aspect = SCREEN_PIXEL_SIZE.x / SCREEN_PIXEL_SIZE.y;
-    vec2 uv_stripes = vec2(uv.x, uv.y * aspect);
+    vec2 uv_stripes = vec2(uv.x, uv.y * aspect) / zoom;
 
     // Stripe math
     float w = cos(angle) * uv_stripes.x + sin(angle) * uv_stripes.y - speed * TIME;
