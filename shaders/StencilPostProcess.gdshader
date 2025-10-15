@@ -65,7 +65,6 @@ void fragment() {
     float w = cos(angle) * uv_stripes.x + sin(angle) * uv_stripes.y - speed * TIME;
     float stripe = floor(mod(w * divisions, stripe_bias));
   
-
     COLOR = screen_color;
 
     // SOLID
@@ -79,7 +78,7 @@ void fragment() {
         COLOR.rgb = mix(COLOR.rgb, mining_overlay, mining_process);
     }
 
-    // marked_for_mining - dont overdraw pure red, green or blue (used for debugging)
+    // MARKED FOR MINING
     if (is_marked_for_mining) {
         // Choose stripe color
         vec4 marked_for_mining_color = (stripe >= 0.5) 
@@ -89,6 +88,7 @@ void fragment() {
         COLOR = marked_for_mining_color;
     }
 
+    // IS SELECTED (highlighted when hovered over)
     if (is_selected) {
         COLOR = mix(COLOR, selection_color, selection_color.a);
     }
@@ -96,6 +96,11 @@ void fragment() {
     // WALKABLE (for debugging)
     if (is_walkable) {
         COLOR = mix(COLOR, walkable_color, walkable_color.a);
+    }
+
+    // DONT OVERWRITE IF ONE CHANNEL IS AT 100%
+    if (screen_color.r >= 0.95 || screen_color.g >= 0.95 || screen_color.b >= 0.95) {
+        COLOR = screen_color;
     }
 
     

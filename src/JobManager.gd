@@ -12,19 +12,19 @@ func add_job(job: Job) -> void:
 
 	if job.type == Job.Type.MINE:
 		for existing_job in _jobs:
-			if existing_job.type == Job.Type.MINE and existing_job.cell == job.cell:
-				print("JobManager: Not adding duplicate mining job for cell ", job.cell.grid_pos)
+			if existing_job.type == Job.Type.MINE and existing_job.target_cell == job.target_cell:
+				print("JobManager: Not adding duplicate mining job for cell ", job.target_cell.grid_pos)
 				return
 
 	_jobs.append(job)
-	queue_redraw()
 
 
+# Called by Global Action if cell is no longer marked for mining
 func remove_mining_job_for_cell(cell: Cell) -> void:
 	for job in _jobs:
-		if job.type == Job.Type.MINE and job.cell == cell:
+		if job.type == Job.Type.MINE and job.target_cell == cell:
+			job.delete()
 			_jobs.erase(job)
-			queue_redraw()
 			return
 
 
@@ -56,27 +56,26 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	pass
+	# To many places, just call every frame. This is because the jobs themselfs can also change
+	queue_redraw()
 
 
 func _on_nav_updated() -> void:
-	# Update status of all jobs
+	# Update all jobs not in progress
 	for job in _jobs:
-		job.update_workable_from_cells()
+		if job.status != Job.Status.IN_PROCESS:
+			job.update_workable_from_cells()
+			job.update_status()
 
-	queue_redraw()
 	
-
 ########################################################################
 # DEBUG DRAWING
 ########################################################################
 var debug_show := true
-# const debug_color_mine := Color(0.0, 1.0, 0.0)
-# const debug_color_build := Color(0.0, 1.0, 0.4)
-# const debug_color_carry := Color(1.0, 0.8, 0.0)
+# Colors must have one channel at 1.0 so PostProcessShader can ignore them
 const debug_color_blocked := Color.RED
 const debug_color_ready := Color.GREEN
-const debug_color_in_progress := Color.PURPLE
+const debug_color_in_progress := Color.BLUE
 
 const debug_size_point := 7.0
 
@@ -90,6 +89,8 @@ func _draw() -> void:
 	if not debug_show:
 		return
 
+	debug_font = ThemeDB.fallback_font if debug_font == null else debug_font
+
 	var num_already_drawn_per_cell: Dictionary[Vector2i, int] = {}
 
 	for job in _jobs:
@@ -102,7 +103,7 @@ func _draw() -> void:
 			Job.Status.IN_PROCESS:
 				color_actual = debug_color_in_progress
 
-		var cell: Cell = job.cell
+		var cell: Cell = job.target_cell
 
 		var draw_world_pos := Util.grid_space_to_world_space_cell_center(cell.grid_pos)
 		var offset_idx: int = num_already_drawn_per_cell.get(cell.grid_pos, 0)
@@ -110,6 +111,7 @@ func _draw() -> void:
 
 		var text: String = Enum.to_str(Job.Type, job.type) + " - " + Enum.to_str(Job.Status, job.status)
 		var pos := draw_world_pos + _debug_get_offset(offset_idx)
+
 		draw_string(debug_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, debug_font_size, color_actual)
 
 

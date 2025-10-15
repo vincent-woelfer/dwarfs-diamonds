@@ -53,6 +53,9 @@ folder_colors={
 
 [gui]
 
+theme/default_font_antialiasing=2
+theme/default_font_multichannel_signed_distance_field=true
+theme/default_font_generate_mipmaps=true
 theme/default_theme_scale=2.0
 
 [input]

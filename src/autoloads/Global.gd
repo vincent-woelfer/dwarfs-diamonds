@@ -14,9 +14,8 @@ const LEVEL_WIDTH: int = 30
 const LEVEL_HEIGHT: int = 24
 const LEVEL_SIZE_VEC: Vector2 = Vector2(LEVEL_WIDTH, LEVEL_HEIGHT)
 # Aspect setting "keep-width" = width is constant (3840), height changes with aspect ratio
-# Aspect setting "expand" = both width and height change with aspect ratio. Both will never be smaller than the base mouse_size (3840x2160),
-# one will always be larger or exact base mouse_size.
-
+# Aspect setting "expand" = both width and height change with aspect ratio.
+# Both will never be smaller than the base mouse_size (3840x2160), one will always be larger or exact base mouse_size.
 
 
 const SKY_HEIGHT: int = 3
@@ -29,7 +28,7 @@ const SKY_HEIGHT: int = 3
 func _ready() -> void:
 	# Hook into window mouse_size changes
 	if not Engine.is_editor_hint():
-		get_viewport().connect("size_changed", Callable(self, "_on_window_size_changed"))
+		get_viewport().size_changed.connect(_on_window_size_changed)
 
 	if not Engine.is_editor_hint():
 		pass
@@ -63,3 +62,20 @@ func _on_window_size_changed() -> void:
 		var stencil_viewport: StencilViewport = get_tree().root.get_node("root/StencilViewport")
 		if stencil_viewport:
 			stencil_viewport.update_size(size)
+
+
+########################################################################
+# GLOBAL GAME ACTIONS
+########################################################################
+# These are called from various places and instead of signals they coordinate the various steps on action contains
+
+func action_mark_cell_for_mining(cell: Cell, is_marked_for_mining: bool) -> void:
+	var changed := cell.set_marked_for_mining(is_marked_for_mining)
+	if not changed:
+		return
+
+	# Add or remove mining job
+	if is_marked_for_mining:
+		level.job_manager.add_job(Job.new(Job.Type.MINE, cell))
+	else:
+		level.job_manager.remove_mining_job_for_cell(cell)

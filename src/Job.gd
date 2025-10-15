@@ -17,40 +17,87 @@ enum Status {
 var type: Job.Type
 var status: Job.Status
 
-var cell: Cell
+# "Center"-Cell of this job (e.g. the cell to be mined)
+var target_cell: Cell
 
+# All cells from which this job can be worked on (e.g. for mining: all free neighbouring cells)
 var workable_from_grid_poses: Array[Vector2i] = []
+
+var assigned_dwarfs: Array[Dwarf] = []
 
 
 func _init(type_: Job.Type, cell_: Cell) -> void:
 	assert(cell_ != null)
 
 	self.type = type_
-	self.cell = cell_
-
-	self.status = Job.Status.BLOCKED
+	self.target_cell = cell_
 
 	update_workable_from_cells()
+	update_status(true)
+
+
+func start_working(dwarf: Dwarf) -> void:
+	assert(dwarf != null)
+
+	# Job must be READY or IN_PROCESS with assigned dwarfs
+	assert(status == Job.Status.READY or (status == Job.Status.IN_PROCESS and !assigned_dwarfs.is_empty()))
+	
+	status = Job.Status.IN_PROCESS
+	Util.array_append_unique_not_null(assigned_dwarfs, dwarf)
+
+
+func abort_working(dwarf: Dwarf) -> void:
+	assert(dwarf != null)
+	assert(status == Job.Status.IN_PROCESS)
+
+	assigned_dwarfs.erase(dwarf)
+
+	if assigned_dwarfs.is_empty():
+		# Set back to READY or BLOCKED depending on workable cells
+		update_workable_from_cells()
+		update_status(true)
+
+
+func delete() -> void:
+	for dwarf in assigned_dwarfs:
+		dwarf.job_with_path = null
+		dwarf._transition_to_state(Dwarf.Status.IDLE)
+
+
+# TODO 
+func finish() -> void:
+	# Only IN_PROCESS jobs can be finished
+	assert(status == Job.Status.IN_PROCESS)
+
+	# TODO do the actual job work (e.g. change cell state for mining/building)
+
+	# Notify all assigned dwarfs that job is done
+	# for dwarf in assigned_dwarfs:
+	# 	dwarf.job_with_path = null
+	# 	dwarf._transition_to_state(Dwarf.Status.IDLE)
 
 
 func update_workable_from_cells() -> void:
-	# TODO add more job types
-	if type == Job.Type.MINE:
-		workable_from_grid_poses = []
-		for n_offset: Vector2i in Util.neighbours_cardinal:
-			var n_cell: Cell = cell.get_neighbour(n_offset)
+	workable_from_grid_poses = []
 
-			# Requires neighbouring cell to be free and standable
+	# MINING
+	if type == Job.Type.MINE:
+		for n_offset: Vector2i in Util.neighbours_cardinal:
+			var n_cell: Cell = target_cell.get_neighbour(n_offset)
+
+			# Requires neighbouring target_cell to be free and standable
 			if n_cell == null or n_cell.is_solid:
 				continue
 			
 			if n_cell.is_standable():
 				workable_from_grid_poses.append(n_cell.grid_pos)
-	
-	# Update Status
-	if status != Status.IN_PROCESS:
+
+
+# TODO maybe change to two bools: blocked/ready and in_process/unassigned
+func update_status(force_update: bool = false) -> void:
+	# Only update if not in progress or forced
+	if status != Status.IN_PROCESS or force_update:
 		if workable_from_grid_poses.is_empty():
 			status = Status.BLOCKED
 		else:
 			status = Status.READY
-

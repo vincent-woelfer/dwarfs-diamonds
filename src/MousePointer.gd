@@ -53,13 +53,13 @@ func _update_selected_cells() -> void:
 	# Single click
 	if Input.is_action_just_pressed("mouse_left"):
 		for cell in curr_selected_cells:
-			cell.toogle_marked_for_mining()
+			Global.action_mark_cell_for_mining(cell, not cell.is_marked_for_mining)
 			
 	# Continuous press
 	elif Input.is_action_pressed("mouse_left"):
 		for cell in curr_selected_cells:
 			if cell not in prev_selected_cells:
-				cell.toogle_marked_for_mining()
+				Global.action_mark_cell_for_mining(cell, not cell.is_marked_for_mining)
 
 	# Update prev -> curr
 	prev_selected_cells = curr_selected_cells.duplicate()

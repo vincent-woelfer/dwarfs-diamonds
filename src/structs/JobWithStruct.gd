@@ -13,4 +13,5 @@ func _init(job_: Job, path_: Path) -> void:
 # Necessary because this struct (RefCounted) has a Node2D as member.
 func _notification(what: int) -> void:
     if what == NOTIFICATION_PREDELETE:
-        path.queue_free()
+        if path and not path.is_queued_for_deletion():
+            path.queue_free()

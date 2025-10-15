@@ -65,7 +65,8 @@ func destroy() -> void:
 	if grid_pos.y <= Global.SKY_HEIGHT:
 		type = Enum.CellType.SKY
 
-	set_marked_for_mining(false)
+	# Call global action to trigger all steps
+	Global.action_mark_cell_for_mining(self, false)
 
 	queue_nav_update()
 
@@ -97,27 +98,19 @@ func destroy_ladder() -> void:
 	queue_nav_update()
 
 
-func set_marked_for_mining(value: bool) -> void:
+## Returns true when state changed
+func set_marked_for_mining(should_mine: bool) -> bool:
 	# Dont do anything if no change
-	if is_marked_for_mining == value:
-		return
+	if is_marked_for_mining == should_mine:
+		return false
 
 	# Cant set non-solid cells for mining
-	if not is_solid and value:
-		return
+	if not is_solid and should_mine:
+		return false
 
-	is_marked_for_mining = value
+	is_marked_for_mining = should_mine
+	return true
 
-	# Add or remove mining job
-	if is_marked_for_mining:
-		Global.level.job_manager.add_job(Job.new(Job.Type.MINE, self))
-	else:
-		Global.level.job_manager.remove_mining_job_for_cell(self)
-
-
-func toogle_marked_for_mining() -> void:
-	set_marked_for_mining(not is_marked_for_mining)
-	
 
 ########################################################################
 # PRIVATE METHODS

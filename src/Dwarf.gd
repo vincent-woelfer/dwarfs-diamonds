@@ -6,19 +6,26 @@ extends Node2D
 @onready var mining_comp: MiningComponent = $MiningComponent
 
 
+static var next_dwarf_id: int = 0
+var dwarf_id: int
 var speed := 10
 var grid_pos: Vector2i
 
 enum Status {IDLE, MOVING, MINING}
 var status: Status
 
-var curr_job_with_path: JobWithPath
+var job_with_path: JobWithPath
 
 
 func _ready() -> void:
+	dwarf_id = next_dwarf_id
+	next_dwarf_id += 1
+
 	status = Status.IDLE
 	global_position = Util.grid_space_to_world_space_cell_center(grid_pos)
-	
+
+	EventBus.Signal_NavUpdated.connect(_on_nav_updated)
+
 
 # TODO implement state machine properly
 func _physics_process(delta: float) -> void:
@@ -32,20 +39,17 @@ func _physics_process(delta: float) -> void:
 
 func _tick_idle(delta: float) -> void:
 	# Try to get a new job
-	var job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_worker(grid_pos)
+	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_worker(grid_pos)
 
-	if job_with_path != null:
-		curr_job_with_path = job_with_path
-		curr_job_with_path.job.status = Job.Status.IN_PROCESS
+	if new_job_with_path != null:
+		job_with_path = new_job_with_path
 
+		new_job_with_path.job.start_working(self)
 		_transition_to_state(Status.MOVING)
 
 		# Draw path by adding to scene tree
-		add_child(curr_job_with_path.path)
-
-		print("Dwarf at %s started job %s at cell %s" % [grid_pos, Enum.to_str(Job.Type, curr_job_with_path.job.type), curr_job_with_path.job.cell])
-	else:
-		print("Dwarf at ", grid_pos, " found no job, staying idle.")
+		add_child(job_with_path.path)
+		print("%s started job %s at cell %s" % [self, Enum.to_str(Job.Type, job_with_path.job.type), job_with_path.job.target_cell])
 
 
 func _tick_moving(delta: float) -> void:
@@ -59,6 +63,30 @@ func _tick_mining(delta: float) -> void:
 func _transition_to_state(new_status: Status) -> void:
 	status = new_status
 	queue_redraw()
+
+
+func _on_nav_updated() -> void:
+	# If nav updated while moving -> recalculate path for job or abort if not valid
+	if job_with_path != null:
+		job_with_path.path.queue_free()
+		
+		# Force job to update workable cells first
+		job_with_path.job.update_workable_from_cells()
+		var new_path: Path = Global.level.nav.find_path_to_one_of(grid_pos, job_with_path.job.workable_from_grid_poses)
+
+		if new_path != null:
+			job_with_path.path = new_path
+			add_child(job_with_path.path)
+		else:
+			print("%s lost path to job at cell %s" % [self, job_with_path.job.target_cell])
+			job_with_path.job.abort_working(self)
+			job_with_path = null
+			_transition_to_state(Status.IDLE)
+
+
+func _to_string() -> String:
+	return "Dwarf(%d | pos=%s, status=%s)" % [dwarf_id, grid_pos, Enum.to_str(Status, status)]
+
 
 ########################################################################
 # DEBUG DRAWING

@@ -8,6 +8,7 @@ var _points_grid_space: Array[Vector2i]
 var _points_world_space: PackedVector2Array
 
 
+# Normal case is > 2 points. 0 is an exception
 func _init(points_grid_space_: Array[Vector2i] = []) -> void:
 	self.top_level = true
 	self.z_index = 5
@@ -20,6 +21,13 @@ func _init(points_grid_space_: Array[Vector2i] = []) -> void:
 ## For no just returns number of points
 func get_length() -> float:
 	return _points_grid_space.size()
+
+
+func get_start() -> Vector2i:
+	return _points_grid_space[0]
+
+func get_end() -> Vector2i:
+	return _points_grid_space[_points_grid_space.size() - 1]
 
 
 ########################################################################
