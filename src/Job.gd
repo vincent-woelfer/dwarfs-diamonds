@@ -58,6 +58,7 @@ func unassign_dwarf(dwarf: Dwarf) -> void:
 		update_status(true)
 
 
+# TODO used for deleting and completing, not nice. Maybe global action ???
 func delete() -> void:
 	for dwarf in assigned_dwarfs:
 		dwarf.job_with_path = null

@@ -99,7 +99,7 @@ void fragment() {
     }
 
     // DONT OVERWRITE IF ONE CHANNEL IS AT 100%
-    if (screen_color.r >= 0.95 || screen_color.g >= 0.95 || screen_color.b >= 0.95) {
+    if (screen_color.r >= 1.0 || screen_color.g >= 1.0 || screen_color.b >= 1.0) {
         COLOR = screen_color;
     }
 

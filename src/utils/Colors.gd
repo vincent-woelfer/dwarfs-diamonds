@@ -34,4 +34,4 @@ static var COLOR_A: Color = Color8(45, 36, 70) # Deep violet-blue tone
 static var COLOR_B: Color = Color8(70, 36, 36) # Muted red-brown tone
 static var COLOR_C: Color = Color8(40, 60, 35) # Olive-green tone
 static var COLOR_BUILDING: Color = Color8(85, 60, 40) # Warm orange-brown
-static var COLOR_SKY: Color = Color(0.3, 0.7, 1.0)
+static var COLOR_SKY: Color = Color(0.3, 0.7, 0.95) # Avoit 1.0 in any channel

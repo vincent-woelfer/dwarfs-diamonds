@@ -11,7 +11,7 @@ const CELL_SIZE_VEC_HALF: Vector2 = CELL_SIZE_VEC * 0.5
 
 # Size=128 at 3840x2160 (4K) gives 30x16.8 cells
 const LEVEL_WIDTH: int = 30
-const LEVEL_HEIGHT: int = 40
+const LEVEL_HEIGHT: int = 30
 const LEVEL_SIZE_VEC: Vector2 = Vector2(LEVEL_WIDTH, LEVEL_HEIGHT)
 # Aspect setting "keep-width" = width is constant (3840), height changes with aspect ratio
 # Aspect setting "expand" = both width and height change with aspect ratio.

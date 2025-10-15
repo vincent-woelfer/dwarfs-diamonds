@@ -51,11 +51,14 @@ static func rand_from_coords(pos: Vector2, z: int = 0) -> float:
 static func grid_space_to_world_space_cell_center(grid_pos: Vector2i) -> Vector2:
 	return ((grid_pos as Vector2) + Vector2(0.5, 0.5)) * Global.CELL_SIZE_VEC
 
+
 static func grid_space_to_world_space_cell_center_array(grid_poses: Array[Vector2i]) -> Array[Vector2]:
 	var world_positions: Array[Vector2] = []
 	for gp in grid_poses:
 		world_positions.append(grid_space_to_world_space_cell_center(gp))
 	return world_positions
+
+# NO world_space_to_grid_space -> Use Level.get_cell_at_world_pos
 
 
 ########################################################################
@@ -126,6 +129,19 @@ static func lerp_towards_f(curr: float, goal: float, speed: float, delta: float)
 		return goal
 	return lerp(curr, goal, 1.0 - exp(-speed * delta))
 
+
+########################################################################
+# GEOMETRY
+########################################################################
+static func is_point_near_line_segment(p: Vector2, a: Vector2, b: Vector2) -> bool:
+	# Rather large epsilon because this is in world space units
+	const epsilon: float = 2.0
+	var ab: Vector2 = b - a
+	var ap: Vector2 = p - a
+	var ab_len: float = ab.length()
+	var cross_product: float = ab.cross(ap)
+	var distance: float = abs(cross_product) / ab_len
+	return distance <= epsilon * ab_len
 
 ########################################################################
 # Physics stuff

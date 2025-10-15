@@ -8,11 +8,11 @@ extends Node2D
 
 static var next_dwarf_id: int = 0
 var dwarf_id: int
-var speed := 10
+var speed := 250.0 # pixels per second
 var grid_pos: Vector2i
 
 enum Status {IDLE, MOVING, MINING}
-var status: Status
+var _status: Status
 
 var job_with_path: JobWithPath
 
@@ -21,7 +21,7 @@ func _ready() -> void:
 	dwarf_id = next_dwarf_id
 	next_dwarf_id += 1
 
-	status = Status.IDLE
+	_status = Status.IDLE
 	global_position = Util.grid_space_to_world_space_cell_center(grid_pos)
 
 	EventBus.Signal_NavUpdated.connect(_on_nav_updated)
@@ -29,11 +29,11 @@ func _ready() -> void:
 
 # TODO implement state machine properly
 func _physics_process(delta: float) -> void:
-	if status == Status.IDLE:
+	if _status == Status.IDLE:
 		_tick_idle(delta)
-	elif status == Status.MOVING:
+	elif _status == Status.MOVING:
 		_tick_moving(delta)
-	elif status == Status.MINING:
+	elif _status == Status.MINING:
 		_tick_mining(delta)
 		
 
@@ -44,7 +44,8 @@ func _tick_idle(delta: float) -> void:
 	if new_job_with_path != null:
 		job_with_path = new_job_with_path
 
-		new_job_with_path.job.assign_dwarf(self)
+		job_with_path.job.assign_dwarf(self)
+		job_with_path.path.update_following_index_to_closest(global_position)
 		_transition_to_state(Status.MOVING)
 
 		# Draw path by adding to scene tree
@@ -53,15 +54,38 @@ func _tick_idle(delta: float) -> void:
 
 
 func _tick_moving(delta: float) -> void:
-	pass
+	global_position = job_with_path.path.follow_path(global_position, speed * delta)
+	grid_pos = Global.level.get_cell_at_world_pos(global_position).grid_pos
+
+	if job_with_path.path.reached_end():
+		# Reached job
+		job_with_path.path.queue_free()
+		job_with_path.path = null
+
+		# Start working - depends on job type
+		# TODO other job types
+		print("%s reached cell %s and starts mining" % [self, job_with_path.job.target_cell])
+
+		_transition_to_state(Status.MINING)
+		mining_comp.start_mining(job_with_path.job.target_cell)
 
 
+# TODO REWORK THIS
 func _tick_mining(delta: float) -> void:
-	pass
+	# TODO is this the righ way to do things?
+	await mining_comp.Signal_OnMiningCompleted
+
+	# Finished mining
+	# TODO print doesnt work, job is already deleted because the cell is not solid anymore
+	print("%s finished mining" % [self])
+	# job_with_path.job.delete()
+	job_with_path = null
+
+	_transition_to_state(Status.IDLE)
 
 
 func _transition_to_state(new_status: Status) -> void:
-	status = new_status
+	_status = new_status
 	queue_redraw()
 
 
@@ -76,6 +100,7 @@ func _on_nav_updated() -> void:
 
 		if new_path != null:
 			job_with_path.path = new_path
+			job_with_path.path.update_following_index_to_closest(global_position)
 			add_child(job_with_path.path)
 		else:
 			print("%s lost path to job at cell %s" % [self, job_with_path.job.target_cell])
@@ -85,7 +110,7 @@ func _on_nav_updated() -> void:
 
 
 func _to_string() -> String:
-	return "Dwarf(%d | pos=%s, status=%s)" % [dwarf_id, grid_pos, Enum.to_str(Status, status)]
+	return "Dwarf(id=%d, pos=%s, status=%s)" % [dwarf_id, grid_pos, Enum.to_str(Status, _status)]
 
 
 ########################################################################
@@ -108,7 +133,7 @@ func _draw() -> void:
 		return
 
 	var color_actual: Color
-	match status:
+	match _status:
 		Status.IDLE:
 			color_actual = debug_color_idle
 		Status.MOVING:
@@ -116,6 +141,6 @@ func _draw() -> void:
 		Status.MINING:
 			color_actual = debug_color_mining
 
-	var text: String = Enum.to_str(Dwarf.Status, status)
+	var text: String = Enum.to_str(Dwarf.Status, _status)
 	var pos := debug_offset
 	draw_string(debug_font, pos, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, color_actual)

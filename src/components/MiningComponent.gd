@@ -2,6 +2,7 @@ class_name MiningComponent
 extends Node2D
 
 
+## Emitted when a cell was completely mined
 signal Signal_OnMiningCompleted(grid_pos: Vector2i)
 
 # per second
