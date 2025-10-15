@@ -8,6 +8,8 @@ signal Signal_DebugPathSetStartCell(pos: Vector2i)
 
 signal Signal_NavUpdated() # Emitted when the nav grid has been updated
 
+signal Signal_MouseHoveredCellChanged(hovered_cell: Cell)
+
 
 ###################################
 # SIGNALS DIRECTLY FROM INPUT KEYS (default key as comment behind signal)

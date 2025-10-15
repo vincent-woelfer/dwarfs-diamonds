@@ -1,0 +1,27 @@
+[gd_scene load_steps=5 format=3 uid="uid://rjy3skkrbgma"]
+
+[ext_resource type="Texture2D" uid="uid://1ugg66bw4erc" path="res://assets/gradient.png" id="1_d170h"]
+[ext_resource type="SpriteFrames" uid="uid://1pxkf0jq8fyl" path="res://assets/dwarf_sprite_frames.tres" id="1_ms7vq"]
+[ext_resource type="Script" uid="uid://cmcygcrc8o3af" path="res://src/Dwarf.gd" id="1_po7l6"]
+[ext_resource type="Script" uid="uid://sfmxn54qwmtl" path="res://src/components/MiningComponent.gd" id="3_ms7vq"]
+
+[node name="Dwarf" type="Node2D"]
+z_index = 5
+script = ExtResource("1_po7l6")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(5, 5)
+sprite_frames = ExtResource("1_ms7vq")
+frame_progress = 0.9780393
+
+[node name="PointLight2D" type="PointLight2D" parent="."]
+visible = false
+z_index = 1
+shadow_enabled = true
+shadow_filter_smooth = 64.0
+texture = ExtResource("1_d170h")
+texture_scale = 1.4
+
+[node name="MiningComponent" type="Node2D" parent="."]
+script = ExtResource("3_ms7vq")
+metadata/_custom_type_script = "uid://sfmxn54qwmtl"

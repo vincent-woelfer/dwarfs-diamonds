@@ -34,6 +34,12 @@ func _update_selected_cells() -> void:
 	# Selected Cell
 	curr_selected_cells = _sample_cells_at_mouse_pos(self.position)
 
+	# Emit signal if central cell (index 0) changed. Can also be null or changed from null
+	var prev_central_cell := prev_selected_cells[0] if !prev_selected_cells.is_empty() else null
+	var curr_central_cell := curr_selected_cells[0] if !curr_selected_cells.is_empty() else null
+	if prev_central_cell != curr_central_cell:
+		EventBus.Signal_MouseHoveredCellChanged.emit(curr_central_cell)
+
 	# Deselect previous
 	for cell in prev_selected_cells:
 		if cell not in curr_selected_cells:
@@ -88,6 +94,7 @@ func _actions() -> void:
 
 ## Sample cells at mouse position. Guaranteed to not be null
 # TODO Can later be expanded to a radius or area or pattern
+# The Cell directly under the mouse MUST BE at index 0!
 func _sample_cells_at_mouse_pos(world_pos: Vector2) -> Array[Cell]:
 	var cells: Array[Cell] = []
 

@@ -34,8 +34,10 @@ func is_currently_mining() -> bool:
 func _ready() -> void:
 	pass
 
-func _process(delta: float) -> void:
+
+func _physics_process(delta: float) -> void:
 	for mining_cell in _currently_mining_cells:
+		# Was cell destroyed by other means?
 		if not mining_cell.is_solid:
 			_currently_mining_cells.erase(mining_cell)
 			Signal_OnMiningCompleted.emit(mining_cell.grid_pos)
@@ -45,5 +47,6 @@ func _process(delta: float) -> void:
 		mining_cell.mining_process += _mine_speed * delta
 		if mining_cell.mining_process >= 1.0:
 			mining_cell.destroy()
+
 			_currently_mining_cells.erase(mining_cell)
 			Signal_OnMiningCompleted.emit(mining_cell.grid_pos)

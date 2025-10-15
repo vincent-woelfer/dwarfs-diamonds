@@ -148,6 +148,10 @@ func _ready() -> void:
 	add_child(audio_player)
 	audio_player.stream = audio_destroy
 	audio_player.autoplay = false
+
+
+func _to_string() -> String:
+	return "Cell(pos=%s, type=%s)" % [grid_pos, Enum.to_str(Enum.CellType, type)]
 	
 
 ########################################################################

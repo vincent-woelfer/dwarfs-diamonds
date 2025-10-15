@@ -19,7 +19,7 @@ var status: Job.Status
 
 var cell: Cell
 
-var workable_from_cells: Array[Cell] = []
+var workable_from_grid_poses: Array[Vector2i] = []
 
 
 func _init(type_: Job.Type, cell_: Cell) -> void:
@@ -29,29 +29,28 @@ func _init(type_: Job.Type, cell_: Cell) -> void:
 	self.cell = cell_
 
 	self.status = Job.Status.BLOCKED
-	
+
 	update_workable_from_cells()
 
 
 func update_workable_from_cells() -> void:
+	# TODO add more job types
 	if type == Job.Type.MINE:
-		workable_from_cells = []
+		workable_from_grid_poses = []
 		for n_offset: Vector2i in Util.neighbours_cardinal:
-			var n_cell := cell.get_neighbour(n_offset)
+			var n_cell: Cell = cell.get_neighbour(n_offset)
 
 			# Requires neighbouring cell to be free and standable
 			if n_cell == null or n_cell.is_solid:
 				continue
 			
 			if n_cell.is_standable():
-				workable_from_cells.append(n_cell)
+				workable_from_grid_poses.append(n_cell.grid_pos)
 	
 	# Update Status
 	if status != Status.IN_PROCESS:
-		if workable_from_cells.size() == 0:
+		if workable_from_grid_poses.is_empty():
 			status = Status.BLOCKED
 		else:
 			status = Status.READY
 
-	# else:
-	# 	workable_from_cells = []

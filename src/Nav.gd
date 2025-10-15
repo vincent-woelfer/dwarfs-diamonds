@@ -19,20 +19,46 @@ func queue_update_cell(grid_pos: Vector2i) -> void:
 		_cell_connections_to_update.append_bidirectional(grid_pos, neighbor_pos)
 
 
-func find_path(start: Vector2i, goal: Vector2i) -> PackedVector2Array:
-	if not _astar:
-		return []
-
+## Returns null if no path found
+func find_path(start: Vector2i, goal: Vector2i) -> Path:
 	var from_id: int = Util.hash(start)
 	var to_id: int = Util.hash(goal)
 
 	# Check if both points are in astar and not disabled
-	var both_valid := _astar.has_point(from_id) and _astar.has_point(to_id) and _astar.is_point_disabled(from_id) == false and _astar.is_point_disabled(to_id) == false
-	if not both_valid:
-		return []
+	if not (_is_id_enabled(from_id) and _is_id_enabled(to_id)):
+		return null
 
-	var path_points: PackedVector2Array = _astar.get_point_path(from_id, to_id, false)
-	return path_points
+	var path_grid_points: PackedVector2Array = _astar.get_point_path(from_id, to_id, false)
+	if path_grid_points.is_empty():
+		return null
+
+	return Path.new(path_grid_points)
+
+
+func find_path_to_one_of(start: Vector2i, goals: Array[Vector2i]) -> Path:
+	if goals.is_empty():
+		return null
+
+	var from_id: int = Util.hash(start)
+	if not _is_id_enabled(from_id):
+		return null
+
+	var shortest_path: Path = null
+	for goal in goals:
+		var to_id: int = Util.hash(goal)
+		if not _is_id_enabled(to_id):
+			continue
+
+		var path_grid_points: PackedVector2Array = _astar.get_point_path(from_id, to_id, false)
+		if path_grid_points.is_empty():
+			continue
+
+		var new_path := Path.new(path_grid_points)
+		if shortest_path == null or new_path.get_length() < shortest_path.get_length():
+			shortest_path = new_path
+
+	return shortest_path
+
 
 ########################################################################
 # PRIVATE METHODS
@@ -46,9 +72,6 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if not _astar:
-		return
-
 	_update_cell_connections()
 	
 
@@ -182,6 +205,11 @@ func _generate_nav_grid() -> void:
 
 	# Call update once
 	_update_cell_connections()
+
+
+## Helper functions
+func _is_id_enabled(id: int) -> bool:
+	return _astar.has_point(id) and _astar.is_point_disabled(id) == false
 
 
 ########################################################################

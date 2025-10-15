@@ -1,32 +1,36 @@
 class_name Path
 extends Node2D
 
+## Construct once and reuse. Dont assign new points.
+## Only drawn if added to scene tree, but normal usage is to not do so.
 
-var points_grid_space: PackedVector2Array = []
-
-# Debug Visualization
-var color := Color.GREEN
-var width := 6.0
-
-
-func _init(points_grid_space_: PackedVector2Array = []) -> void:
-	self.points_grid_space = points_grid_space_
+var _points_grid_space: Array[Vector2i]
+var _points_world_space: PackedVector2Array
 
 
-func _ready() -> void:
+func _init(points_grid_space_: Array[Vector2i] = []) -> void:
+	self.top_level = true
 	self.z_index = 5
 	self.visibility_layer = Util.LAYER_1
 	self.light_mask = 0
 
+	self._points_grid_space = points_grid_space_
+	self._points_world_space = Util.grid_space_to_world_space_cell_center_array(_points_grid_space)
+
+## For no just returns number of points
+func get_length() -> float:
+	return _points_grid_space.size()
+
+
+########################################################################
+# DEBUG DRAWING
+########################################################################
+# Only drawn if added to scene tree
+var color := Color.ORANGE
+var width := 5.0
 
 func _draw() -> void:
-	if points_grid_space.size() < 2:
+	if _points_grid_space.size() < 2:
 		return
 
-	# Convert points_grid_space from grid_space to world_space and offset to be centered on cell
-	var points_world_space := Util.grid_space_to_world_space_cell_center_array(points_grid_space)
-	draw_polyline(points_world_space, color, width)
-
-
-func _process(_delta: float) -> void:
-	queue_redraw()
+	draw_polyline(_points_world_space, color, width)

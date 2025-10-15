@@ -2,6 +2,7 @@ class_name Level
 extends Node2D
 
 var wandering_light_scene := preload('res://scenes/WanderingLight.tscn')
+var dwarf_scene := preload('res://scenes/Dwarf.tscn')
 
 var cells: Array[Array] = []
 
@@ -46,6 +47,13 @@ func _ready() -> void:
 	# 	light_pos *= Global.CELL_SIZE
 	# 	light.global_position = light_pos
 	# 	add_child(light)
+
+
+	# DWARF
+	var dwarf_grid_pos := Vector2i(3, 3)
+	var dwarf: Dwarf = dwarf_scene.instantiate()
+	dwarf.grid_pos = dwarf_grid_pos
+	add_child(dwarf)
 
 
 func _generate_grid() -> void:

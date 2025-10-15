@@ -28,6 +28,22 @@ func remove_mining_job_for_cell(cell: Cell) -> void:
 			return
 
 
+func get_new_job_for_worker(start_pos: Vector2i) -> JobWithPath:
+	# Filter for ready jobs
+	var ready_jobs: Array[Job] = _jobs.filter(func(j: Job) -> bool:
+		return j.status == Job.Status.READY
+	)
+
+	# Find job with shortest path
+	var best_job_with_path: JobWithPath = null
+	for job in ready_jobs:
+		var path: Path = Global.level.nav.find_path_to_one_of(start_pos, job.workable_from_grid_poses)
+		if path != null:
+			if best_job_with_path == null or path.get_length() < best_job_with_path.path.get_length():
+				best_job_with_path = JobWithPath.new(job, path)
+			
+	return best_job_with_path
+
 ########################################################################
 # PRIVATE METHODS
 ########################################################################
