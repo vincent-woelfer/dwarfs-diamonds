@@ -67,7 +67,12 @@ func _on_window_size_changed() -> void:
 ########################################################################
 # GLOBAL GAME ACTIONS
 ########################################################################
-# These are called from various places and instead of signals they coordinate the various steps on action contains
+# These are called from various places to trigger actions involving multiple steps.
+# Instead of signals they coordinate the order of steps directly.
+# This is to avoid complex signal chains and ordering issues.
+# 
+# If the order doesnt matter and its only simple notifications, use signals instead.
+########################################################################
 
 func action_mark_cell_for_mining(cell: Cell, is_marked_for_mining: bool) -> void:
 	var changed := cell.set_marked_for_mining(is_marked_for_mining)
@@ -75,7 +80,7 @@ func action_mark_cell_for_mining(cell: Cell, is_marked_for_mining: bool) -> void
 		return
 
 	# Add or remove mining job
-	if is_marked_for_mining:
+	if cell.is_marked_for_mining:
 		level.job_manager.add_job(Job.new(Job.Type.MINE, cell))
 	else:
 		level.job_manager.remove_mining_job_for_cell(cell)

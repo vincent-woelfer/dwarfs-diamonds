@@ -36,7 +36,7 @@ func _init(type_: Job.Type, cell_: Cell) -> void:
 	update_status(true)
 
 
-func start_working(dwarf: Dwarf) -> void:
+func assign_dwarf(dwarf: Dwarf) -> void:
 	assert(dwarf != null)
 
 	# Job must be READY or IN_PROCESS with assigned dwarfs
@@ -46,7 +46,7 @@ func start_working(dwarf: Dwarf) -> void:
 	Util.array_append_unique_not_null(assigned_dwarfs, dwarf)
 
 
-func abort_working(dwarf: Dwarf) -> void:
+func unassign_dwarf(dwarf: Dwarf) -> void:
 	assert(dwarf != null)
 	assert(status == Job.Status.IN_PROCESS)
 
@@ -62,19 +62,6 @@ func delete() -> void:
 	for dwarf in assigned_dwarfs:
 		dwarf.job_with_path = null
 		dwarf._transition_to_state(Dwarf.Status.IDLE)
-
-
-# TODO 
-func finish() -> void:
-	# Only IN_PROCESS jobs can be finished
-	assert(status == Job.Status.IN_PROCESS)
-
-	# TODO do the actual job work (e.g. change cell state for mining/building)
-
-	# Notify all assigned dwarfs that job is done
-	# for dwarf in assigned_dwarfs:
-	# 	dwarf.job_with_path = null
-	# 	dwarf._transition_to_state(Dwarf.Status.IDLE)
 
 
 func update_workable_from_cells() -> void:

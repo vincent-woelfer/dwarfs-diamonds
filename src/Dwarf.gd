@@ -44,7 +44,7 @@ func _tick_idle(delta: float) -> void:
 	if new_job_with_path != null:
 		job_with_path = new_job_with_path
 
-		new_job_with_path.job.start_working(self)
+		new_job_with_path.job.assign_dwarf(self)
 		_transition_to_state(Status.MOVING)
 
 		# Draw path by adding to scene tree
@@ -79,7 +79,7 @@ func _on_nav_updated() -> void:
 			add_child(job_with_path.path)
 		else:
 			print("%s lost path to job at cell %s" % [self, job_with_path.job.target_cell])
-			job_with_path.job.abort_working(self)
+			job_with_path.job.unassign_dwarf(self)
 			job_with_path = null
 			_transition_to_state(Status.IDLE)
 

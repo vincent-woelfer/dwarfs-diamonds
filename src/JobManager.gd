@@ -10,10 +10,11 @@ var _jobs: Array[Job] = []
 func add_job(job: Job) -> void:
 	assert(job != null)
 
+	# Prevent duplicate mining jobs for same cell
 	if job.type == Job.Type.MINE:
 		for existing_job in _jobs:
 			if existing_job.type == Job.Type.MINE and existing_job.target_cell == job.target_cell:
-				print("JobManager: Not adding duplicate mining job for cell ", job.target_cell.grid_pos)
+				assert(false, "JobManager: Not adding duplicate mining job for cell " % job.target_cell.grid_pos)
 				return
 
 	_jobs.append(job)
