@@ -67,7 +67,12 @@ func _generate_grid() -> void:
 			row.append(null)
 		cells.append(row)
 
+	var noise_scale := 15.0
+
 	var texture: NoiseTexture2D = NoiseTexture2D.new()
+	texture.width = ceil(Global.LEVEL_WIDTH * noise_scale)
+	texture.height = ceil(Global.LEVEL_HEIGHT * noise_scale)
+	
 	var fast_noise_lite := FastNoiseLite.new()
 	fast_noise_lite.seed = 57
 	texture.noise = fast_noise_lite
@@ -78,8 +83,7 @@ func _generate_grid() -> void:
 		for y in range(Global.LEVEL_HEIGHT):
 			var type: Enum.CellType = [Enum.CellType.A, Enum.CellType.B, Enum.CellType.C].pick_random()
 
-			# Is Solid
-			var noise_scale := 15.0
+			# Is Solid			
 			var threshold_above_is_solid := 0.35
 			var is_solid: bool = image.get_pixel(roundi(x * noise_scale), roundi(y * noise_scale)).r > threshold_above_is_solid
 			if y <= Global.SKY_HEIGHT:
