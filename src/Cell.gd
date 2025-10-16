@@ -8,8 +8,6 @@ var visual: CellVisuals
 
 # Audio
 var audio_player: AudioStreamPlayer2D
-var audio_destroy: AudioStreamMP3 = preload("res://assets/audio/dirt_block_break.mp3")
-
 
 # GROUND TRUTH BOOL STATUS FLAGS
 var is_solid: bool
@@ -25,13 +23,16 @@ func is_passable() -> bool:
 
 
 # Standable = solid ground or ladder. Can stand on it. Also requires passable
-func is_standable() -> bool:
+func is_standable(ignore_ladders: bool = false) -> bool:
 	if not is_passable():
 		return false
 
 	var n_bot := get_neighbour(Vector2i(0, 1))
 
-	return (has_ladder) or (n_bot and n_bot.is_solid)
+	if ignore_ladders:
+		return n_bot and n_bot.is_solid
+	else:
+		return (has_ladder) or (n_bot and n_bot.is_solid)
 
 ########################################################################
 # OTHER FLAGS
@@ -65,11 +66,7 @@ func destroy() -> void:
 	if grid_pos.y <= Global.SKY_HEIGHT:
 		type = Enum.CellType.SKY
 
-	# Call global action to trigger all steps
-	Global.action_mark_cell_for_mining(self, false)
-
 	queue_nav_update()
-
 	audio_player.play()
 
 
@@ -139,8 +136,7 @@ func _ready() -> void:
 
 	audio_player = AudioStreamPlayer2D.new()
 	add_child(audio_player)
-	audio_player.stream = audio_destroy
-	audio_player.autoplay = false
+	audio_player.stream = Audio.sounds.get("cell_on_destroy")
 
 
 func _to_string() -> String:

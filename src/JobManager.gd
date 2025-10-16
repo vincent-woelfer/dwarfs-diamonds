@@ -74,9 +74,12 @@ func _on_nav_updated() -> void:
 ########################################################################
 var debug_show := true
 # Colors must have one channel at 1.0 so PostProcessShader can ignore them
-const debug_color_blocked := Color.RED
-const debug_color_ready := Color.GREEN
-const debug_color_in_progress := Color.BLUE
+
+const debug_status_colors := {
+	Job.Status.BLOCKED: Color.RED,
+	Job.Status.READY: Color.GREEN,
+	Job.Status.IN_PROCESS: Color.BLUE,
+}
 
 const debug_size_point := 7.0
 
@@ -95,15 +98,7 @@ func _draw() -> void:
 	var num_already_drawn_per_cell: Dictionary[Vector2i, int] = {}
 
 	for job in _jobs:
-		var color_actual: Color
-		match job.status:
-			Job.Status.BLOCKED:
-				color_actual = debug_color_blocked
-			Job.Status.READY:
-				color_actual = debug_color_ready
-			Job.Status.IN_PROCESS:
-				color_actual = debug_color_in_progress
-
+		var color_actual: Color = debug_status_colors.get(job.status, Colors.DEFAULT)
 		var cell: Cell = job.target_cell
 
 		var draw_world_pos := Util.grid_space_to_world_space_cell_center(cell.grid_pos)

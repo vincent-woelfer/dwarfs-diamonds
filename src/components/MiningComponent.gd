@@ -47,7 +47,7 @@ func _physics_process(delta: float) -> void:
 		# Actual Mining
 		mining_cell.mining_process += _mine_speed * delta
 		if mining_cell.mining_process >= 1.0:
-			mining_cell.destroy()
+			Actions.destroy_cell(mining_cell)
 
 			_currently_mining_cells.erase(mining_cell)
 			Signal_OnMiningCompleted.emit(mining_cell.grid_pos)

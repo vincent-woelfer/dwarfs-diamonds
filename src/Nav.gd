@@ -216,12 +216,17 @@ func _is_id_enabled(id: int) -> bool:
 # DEBUG DRAWING
 ########################################################################
 var debug_show := true
-const debug_color_point_passable := Color(1.0, 0.6, 0.0, 0.6)
-const debug_color_point_standable := Color(1.0, 0.6, 0.0, 1.0)
-const debug_color_point_disabled := Color(1.0, 0.6, 0.0, 0.03)
 
-const debug_color_connection_unidir := Color(1.0, 1.0, 0.0, 0.6)
-const debug_color_connection_bidir := Color(1.0, 1.0, 0.0, 1.0)
+const debug_colors := {
+	# Points
+	"point_passable": Color(1.0, 0.6, 0.0, 0.6),
+	"point_standable": Color(1.0, 0.6, 0.0, 1.0),
+	"point_disabled": Color(1.0, 0.6, 0.0, 0.03),
+
+	# Connections
+	"connection_unidir": Color(1.0, 1.0, 0.0, 0.6),
+	"connection_bidir": Color(1.0, 1.0, 0.0, 1.0),
+}
 
 const debug_size_point := 6.0
 const debug_size_connection := 3.0
@@ -246,7 +251,7 @@ func _draw() -> void:
 
 			var conn_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(conn_id)) + debug_point_offset
 			var bidirectional := _astar.are_points_connected(id, conn_id, false) and _astar.are_points_connected(conn_id, id, false)
-			var color_actual := debug_color_connection_bidir if bidirectional else debug_color_connection_unidir
+			var color_actual: Color = debug_colors.get("connection_bidir" if bidirectional else "connection_unidir", Colors.DEFAULT)
 			var size_actual := debug_size_connection * (2.0 if bidirectional else 1.0)
 
 			draw_line(draw_world_pos, conn_pos, color_actual, size_actual)
@@ -259,11 +264,11 @@ func _draw() -> void:
 
 		var color_actual: Color
 		if _astar.is_point_disabled(id):
-			color_actual = debug_color_point_disabled
+			color_actual = debug_colors.get("point_disabled", Colors.DEFAULT)
 		elif cell.is_standable():
-			color_actual = debug_color_point_standable
+			color_actual = debug_colors.get("point_standable", Colors.DEFAULT)
 		else:
-			color_actual = debug_color_point_passable
+			color_actual = debug_colors.get("point_passable", Colors.DEFAULT)
 
 		# Draw point
 		draw_circle(draw_world_pos, debug_size_point, color_actual)
