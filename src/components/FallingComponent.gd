@@ -3,20 +3,23 @@ extends Node2D
 
 # Signals
 signal Signal_OnStartedFalling()
-signal Signal_OnLanded()
+signal Signal_OnLanded(fall_height_cells: int)
 
 # Constants
-const falling_acceleration: float = 500.0 # pixels per second squared
-const max_falling_speed: float = 1000.0 # pixels per second
+const falling_acceleration: float = 600.0 # pixels per second squared
+const max_falling_speed: float = 2000.0 # pixels per second
 const landing_threshold_y: float = 1.0 # pixels
+const starting_speed: float = 200.0 # pixels per second
 
 @onready var parent: Node2D = get_parent()
 
 # Current state
 var _ignore_ladders: bool = false
+var _ignore_ladders_when_falling: bool = true
 
 var _is_falling: bool = false
 var _curr_falling_speed: float = 0.0
+var _fall_start_y: int
 
 
 func _physics_process(delta: float) -> void:
@@ -34,7 +37,7 @@ func is_falling() -> bool:
 ## Returns true if state changed (started or stopped falling)
 func _update_on_ground_check() -> void:
     var cell_curr := Global.level.get_cell_at_world_pos(global_position)
-    var can_stand_in_current_cell := cell_curr.is_standable(_ignore_ladders)
+    var can_stand_in_current_cell := cell_curr.is_standable(_get_ignore_ladders())
 
     # Currently standing on solid ground or ladder
     if not _is_falling:
@@ -44,7 +47,8 @@ func _update_on_ground_check() -> void:
         else:
             # Start falling
             _is_falling = true
-            _curr_falling_speed = 0.0
+            _curr_falling_speed = starting_speed
+            _fall_start_y = cell_curr.grid_pos.y
             Signal_OnStartedFalling.emit()
             return
 
@@ -54,10 +58,14 @@ func _update_on_ground_check() -> void:
         if can_stand_in_current_cell and global_position.y >= (y_cell_center - landing_threshold_y):
             # Landed
             _is_falling = false
-            _curr_falling_speed = 0.0
             parent.global_position.y = y_cell_center
-            Signal_OnLanded.emit()
+            var fall_height_cells: int = abs(_fall_start_y - cell_curr.grid_pos.y)
+            Signal_OnLanded.emit(fall_height_cells)
             return
         else:
             # Still falling
             return
+
+
+func _get_ignore_ladders() -> bool:
+    return _ignore_ladders if !_is_falling else _ignore_ladders_when_falling

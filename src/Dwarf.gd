@@ -83,13 +83,14 @@ func _tick_moving(delta: float) -> void:
 
 
 # TODO REWORK THIS
+# THis doesnt work because process triggers this every frame and a new waiting thread gets spawned every frame, all releasing at once
 func _tick_mining(delta: float) -> void:
 	# TODO is this the righ way to do things?
 	await mining_comp.Signal_OnMiningCompleted
 
 	# Finished mining
 	# TODO print doesnt work, job is already deleted because the cell is not solid anymore
-	# print("%s finished mining" % [self])
+	print("%s finished mining" % [self])
 	# job_with_path.job.delete()
 	job_with_path = null
 
@@ -107,16 +108,17 @@ func _on_started_falling() -> void:
 	_transition_to_state(Status.FALLING)
 
 
-func _on_landed() -> void:
-	audio_player.stream = Audio.sounds.get("dwarf_on_landing")
-	audio_player.play()
+func _on_landed(fall_height_cells: int) -> void:
+	if fall_height_cells > 1:
+		audio_player.stream = Audio.sounds.get("dwarf_on_landing")
+		audio_player.play()
 
 	_transition_to_state(Status.IDLE)
 
 
 func _on_nav_updated() -> void:
 	# If nav updated while moving -> recalculate path for job or abort if not valid
-	if job_with_path != null:
+	if job_with_path and job_with_path.path != null:
 		job_with_path.path.queue_free()
 		
 		# Force job to update workable cells first
