@@ -5,7 +5,7 @@ extends Node2D
 signal Signal_OnStartedFalling()
 signal Signal_OnLanded(fall_height_cells: int)
 
-# Constants
+# Constants - all in world space (pixels)
 const falling_acceleration: float = 600.0 # pixels per second squared
 const max_falling_speed: float = 2000.0 # pixels per second
 const landing_threshold_y: float = 1.0 # pixels
