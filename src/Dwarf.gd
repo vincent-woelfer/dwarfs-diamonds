@@ -82,18 +82,15 @@ func _tick_moving(delta: float) -> void:
 		mining_comp.start_mining(job_with_path.job.target_cell)
 
 
-# TODO REWORK THIS
-# THis doesnt work because process triggers this every frame and a new waiting thread gets spawned every frame, all releasing at once
+# TODO Doesnt really work because the cell gets destroyed immediately -> deletes job -> on_job_deleted gets called before this ever runs
 func _tick_mining(delta: float) -> void:
-	# TODO is this the righ way to do things?
-	await mining_comp.Signal_OnMiningCompleted
-
+	if mining_comp.is_currently_mining():
+		return
+		
 	# Finished mining
-	# TODO print doesnt work, job is already deleted because the cell is not solid anymore
 	print("%s finished mining" % [self])
-	# job_with_path.job.delete()
-	job_with_path = null
 
+	job_with_path.job.complete(self)
 	_transition_to_state(Status.IDLE)
 
 
@@ -114,6 +111,22 @@ func _on_landed(fall_height_cells: int) -> void:
 		audio_player.play()
 
 	_transition_to_state(Status.IDLE)
+
+
+## Called externally when job is deleted - not for the dwarf calling job.complete
+func on_job_deleted() -> void:
+	if job_with_path == null:
+		return
+
+	print("%s's job was deleted" % [self])
+
+	# Delete own reference
+	if job_with_path.path != null:
+		job_with_path.path.queue_free()
+	job_with_path = null
+
+	if _status != Status.FALLING:
+		_transition_to_state(Status.IDLE)
 
 
 func _on_nav_updated() -> void:

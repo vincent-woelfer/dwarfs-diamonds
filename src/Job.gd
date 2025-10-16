@@ -58,11 +58,22 @@ func unassign_dwarf(dwarf: Dwarf) -> void:
 		update_status(true)
 
 
-# TODO used for deleting and completing, not nice. Maybe global action ???
+## Dont use for finishing jobs
 func delete() -> void:
 	for dwarf in assigned_dwarfs:
-		dwarf.job_with_path = null
-		dwarf._transition_to_state(Dwarf.Status.IDLE)
+		dwarf.on_job_deleted()
+
+
+func complete(dwarf: Dwarf) -> void:
+	assert(dwarf != null)
+	assert(status == Job.Status.IN_PROCESS)
+	assert(assigned_dwarfs.has(dwarf))
+
+	# Unassign dwarf but dont change job status yet
+	assigned_dwarfs.erase(dwarf)
+
+	# Delete for other dwarfs
+	delete()
 
 
 func update_workable_from_cells() -> void:
