@@ -3,7 +3,7 @@ extends Node2D
 
 
 ## Emitted when a cell was completely mined
-signal Signal_OnMiningCompleted(grid_pos: Vector2i)
+signal Signal_OnMiningCompleted(mined_cell: Cell)
 
 # per second
 @export var mine_speed: float = 0.5
@@ -12,9 +12,9 @@ signal Signal_OnMiningCompleted(grid_pos: Vector2i)
 var _currently_mining_cells: Array[Cell] = []
 
 
-########################################################################
+########################################################################################################################
 # PUBLIC METHODS
-########################################################################
+########################################################################################################################
 func start_mining(cell: Cell) -> void:
 	if cell in _currently_mining_cells or cell == null or not cell.is_solid:
 		return
@@ -33,22 +33,33 @@ func stop_mining(cell: Cell) -> void:
 func is_currently_mining() -> bool:
 	return not _currently_mining_cells.is_empty()
 
-########################################################################
+
+########################################################################################################################
 # PRIVATE METHODS
-########################################################################
+########################################################################################################################
+func _ready() -> void:
+	EventBus.Signal_CellMiningCompleted.connect(_on_cell_mining_completed)
+
+
+## Called by Signal_CellMiningCompleted for EVERY mined cell in the game
+func _on_cell_mining_completed(mined_cell: Cell) -> void:
+	# Check if this component was mining that cell
+	if mined_cell in _currently_mining_cells:
+		Signal_OnMiningCompleted.emit(mined_cell)
+
+	_currently_mining_cells.erase(mined_cell)
+
+
 func _physics_process(delta: float) -> void:
 	for mining_cell in _currently_mining_cells:
-		# Was cell destroyed by other means?
+		# Was cell destroyed by other means? This should NOT happen
 		if not mining_cell.is_solid:
+			assert(false, "MiningComponent: Cell %s being mined but is no longer solid!" % mining_cell.grid_pos)
 			_currently_mining_cells.erase(mining_cell)
-			Signal_OnMiningCompleted.emit(mining_cell.grid_pos)
 			continue
 
 		# Actual Mining
 		mining_cell.mining_process += mine_speed * delta
 		if mining_cell.mining_process >= 1.0:
-			# Doesnt work because the cell gets destroyed immediately -> deletes job -> on_job_deleted on dwarf gets called before this ever runs
+			# This in turn emits Signal_CellMiningCompleted which this and all other MiningComponents listen to
 			Actions.destroy_cell(mining_cell)
-
-			_currently_mining_cells.erase(mining_cell)
-			Signal_OnMiningCompleted.emit(mining_cell.grid_pos)

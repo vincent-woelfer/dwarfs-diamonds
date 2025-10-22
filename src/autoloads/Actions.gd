@@ -2,18 +2,22 @@
 extends Node2D
 
 
-########################################################################
+########################################################################################################################
 # GLOBAL GAME ACTIONS
-########################################################################
+########################################################################################################################
 # These are called from various places to trigger actions involving multiple steps.
 # Instead of signals they coordinate the order of steps directly.
 # This is to avoid complex signal chains and ordering issues.
 # 
 # If the order doesnt matter and its only simple notifications, use signals instead.
-########################################################################
+########################################################################################################################
 
+# Normally called by MiningComponent
 func destroy_cell(cell: Cell) -> void:
 	cell.destroy()
+
+	# Signal MiningComponets that mining was completed
+	EventBus.Signal_CellMiningCompleted.emit(cell)
 
 	# Call global action to trigger all steps
 	Actions.mark_cell_for_mining(cell, false)

@@ -69,7 +69,7 @@ func complete(dwarf: Dwarf) -> void:
 	assert(status == Job.Status.IN_PROCESS)
 	assert(assigned_dwarfs.has(dwarf))
 
-	# Unassign dwarf but dont change job status yet
+	# Unassign dwarf but dont change job status yet (so dont call unassign_dwarf)
 	assigned_dwarfs.erase(dwarf)
 
 	# Delete for other dwarfs

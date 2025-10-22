@@ -11,7 +11,7 @@ signal Signal_NavUpdated() # Emitted when the nav grid has been updated
 # This is only for the one "central" cell
 signal Signal_MouseHoveredCellChanged(hovered_cell: Cell)
 
-signal Signal_Cell
+signal Signal_CellMiningCompleted(mined_cell: Cell)
 
 
 ###################################

@@ -27,6 +27,7 @@ func _ready() -> void:
 	global_position = Util.grid_space_to_world_space_cell_center(grid_pos)
 
 	EventBus.Signal_NavUpdated.connect(_on_nav_updated)
+	mining_comp.Signal_OnMiningCompleted.connect(_on_mining_completed)
 
 
 # TODO implement state machine properly
@@ -82,16 +83,25 @@ func _tick_moving(delta: float) -> void:
 		mining_comp.start_mining(job_with_path.job.target_cell)
 
 
-# TODO Doesnt really work because the cell gets destroyed immediately -> deletes job -> on_job_deleted gets called before this ever runs
 func _tick_mining(delta: float) -> void:
-	if mining_comp.is_currently_mining():
-		return
-		
-	# Finished mining
-	print("%s finished mining" % [self])
+	# Mining is handled in MiningComponent
+	pass
 
+
+func _on_mining_completed(mined_cell: Cell) -> void:
+	print("%s completed mining job at %s" % [self, mined_cell.grid_pos])
+
+	# Complete job
 	job_with_path.job.complete(self)
-	_transition_to_state(Status.IDLE)
+
+	# Clear job reference
+	if job_with_path.path != null:
+		job_with_path.path.queue_free()
+	job_with_path = null
+
+	# Transition back to idle but dont override falling state
+	if _status != Status.FALLING:
+		_transition_to_state(Status.IDLE)
 
 
 func _on_started_falling() -> void:
@@ -125,6 +135,7 @@ func on_job_deleted() -> void:
 		job_with_path.path.queue_free()
 	job_with_path = null
 
+	# Transition back to idle but dont override falling state
 	if _status != Status.FALLING:
 		_transition_to_state(Status.IDLE)
 
@@ -153,9 +164,9 @@ func _to_string() -> String:
 	return "Dwarf(id=%d, pos=%s, status=%s)" % [dwarf_id, grid_pos, Enum.to_str(Status, _status)]
 
 
-########################################################################
+########################################################################################################################
 # DEBUG DRAWING
-########################################################################
+########################################################################################################################
 var debug_show := true
 
 const debug_status_colors := {
