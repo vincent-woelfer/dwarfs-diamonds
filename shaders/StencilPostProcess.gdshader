@@ -26,7 +26,83 @@ const vec4 selection_color = vec4(1.0, 1.0, 0.0, 0.2);
 const vec4 walkable_color = vec4(0.0, 0.0, 1.0, 0.05);
 
 
-const float is_solid_darken_factor = 0.35;
+const float is_solid_max_darken_factor = 0.15;
+const float is_solid_blur_radius = 350.0;
+const float is_solid_flat_offset = 0.05;
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+float sample_is_solid(vec2 uv) {
+    vec4 stencil_color = texture(STENCIL_TEXTURE, uv);
+    int stencil_r8 = int(round(stencil_color.r * 255.0));
+    bool is_solid             = (stencil_r8 & (1 << 1)) != 0;
+
+    // soild = dark = 0.0, not solid = bright = 1.0
+    return is_solid ? 0.0 : 1.0;
+}
+
+
+// HORIZONTAL GAUSSIAN BLUR
+float blur_is_solid_horizontal(vec2 uv, vec2 screen_pixel_size) {
+    float sigma = is_solid_blur_radius * 0.25; // controls blur softness
+    int radius = int(ceil(sigma * 2.0)); // how many pixels out to sample
+
+    float sum = 0.0;
+    float weight_sum = 0.0;
+
+    for (int i = -radius; i <= radius; i++) {
+        float w = exp(-0.5 * pow(float(i) / sigma, 2.0)); // Gaussian weight
+        vec2 offset = vec2(screen_pixel_size.x * float(i) * zoom, 0.0);
+        sum += sample_is_solid(uv + offset) * w;
+        weight_sum += w;
+    }
+
+    return sum / weight_sum;
+}
+
+// VERTICAL GAUSSIAN BLUR
+float blur_is_solid_vertical(vec2 uv, vec2 screen_pixel_size) {
+    float sigma = is_solid_blur_radius * 0.25;
+    int radius = int(ceil(sigma * 2.0));
+
+    float sum = 0.0;
+    float weight_sum = 0.0;
+
+    for (int i = -radius; i <= radius; i++) {
+        float w = exp(-0.5 * pow(float(i) / sigma, 2.0));
+        vec2 offset = vec2(0.0, screen_pixel_size.y * float(i) * zoom);
+        sum += sample_is_solid(uv + offset) * w;
+        weight_sum += w;
+    }
+
+    return sum / weight_sum;
+}
+
+float blur_is_solid(vec2 uv, vec2 screen_pixel_size) {
+    float horiz = blur_is_solid_horizontal(uv, screen_pixel_size);
+    float vert = blur_is_solid_vertical(uv, screen_pixel_size);
+    float blurred = (horiz + vert) * 0.5;
+    return blurred;
+}
+    
+
+
+// float blur_is_solid(vec2 uv, vec2 screen_pixel_size) {
+//     vec2 halfpixel = screen_pixel_size / 2.0;
+//     float z = is_solid_blur_radius * zoom;
+	
+//     float sum = 0.0;
+//     sum += sample_is_solid(uv + vec2(-halfpixel.x * 2.0, 0.0) * z);
+//     sum += sample_is_solid(uv + vec2(-halfpixel.x,  halfpixel.y) * z) * 2.0;
+//     sum += sample_is_solid(uv + vec2(0.0,          halfpixel.y * 2.0) * z);
+//     sum += sample_is_solid(uv + vec2(halfpixel.x,  halfpixel.y) * z) * 2.0;
+//     sum += sample_is_solid(uv + vec2(halfpixel.x * 2.0, 0.0) * z);
+//     sum += sample_is_solid(uv + vec2(halfpixel.x, -halfpixel.y) * z) * 2.0;
+//     sum += sample_is_solid(uv + vec2(0.0,         -halfpixel.y * 2.0) * z);
+//     sum += sample_is_solid(uv + vec2(-halfpixel.x, -halfpixel.y) * z) * 2.0;
+
+// 	return sum / 12.0;
+// }
 
 ////////////////////////////////////////////////////////////////////////////////////////
 void fragment() {
@@ -61,15 +137,27 @@ void fragment() {
     float aspect = SCREEN_PIXEL_SIZE.x / SCREEN_PIXEL_SIZE.y;
     vec2 uv_stripes = vec2(uv.x, uv.y * aspect) / zoom;
 
-    // Stripe math
+    // Stripes for "marked for mining" effect
     float w = cos(angle) * uv_stripes.x + sin(angle) * uv_stripes.y - speed * TIME;
     float stripe = floor(mod(w * divisions, stripe_bias));
   
+    ////////////////////////////////////////////////////////////////////////////////////////
+    // Start with screen color
     COLOR = screen_color;
 
-    // SOLID
-    if (is_solid) {        
-        COLOR.rgb *= is_solid_darken_factor;
+    // SOLID -> darken
+    if (is_solid) {   
+        // ORIGINAL:
+        // COLOR.rgb *= is_solid_max_darken_factor;
+
+        float darkness_factor = blur_is_solid(uv, SCREEN_PIXEL_SIZE);
+        darkness_factor -= is_solid_flat_offset;
+        darkness_factor = clamp(darkness_factor, 0.0, 1.0);
+        
+        darkness_factor = mix(is_solid_max_darken_factor, 1.0, darkness_factor);
+
+        COLOR.rgb *= darkness_factor;
+
     }
 
     // MINING
@@ -94,18 +182,17 @@ void fragment() {
     }
 
     // WALKABLE (for debugging)
-    if (is_walkable) {
-        COLOR = mix(COLOR, walkable_color, walkable_color.a);
-    }
+    // if (is_walkable) {
+    //     COLOR = mix(COLOR, walkable_color, walkable_color.a);
+    // }
 
     // DONT OVERWRITE IF ONE CHANNEL IS AT 100%
     if (screen_color.r >= 1.0 || screen_color.g >= 1.0 || screen_color.b >= 1.0) {
         COLOR = screen_color;
     }
 
-    
-
 
 }
+
 
 
