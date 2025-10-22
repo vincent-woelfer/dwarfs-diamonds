@@ -26,7 +26,8 @@ const vec4 selection_color = vec4(1.0, 1.0, 0.0, 0.2);
 const vec4 walkable_color = vec4(0.0, 0.0, 1.0, 0.05);
 
 
-const float is_solid_max_darken_factor = 0.15;
+// const float is_solid_max_darken_factor = 0.2;
+const float is_solid_max_darken_factor = 0.25;
 const float is_solid_blur_radius = 350.0;
 const float is_solid_flat_offset = 0.05;
 
@@ -86,24 +87,6 @@ float blur_is_solid(vec2 uv, vec2 screen_pixel_size) {
 }
     
 
-
-// float blur_is_solid(vec2 uv, vec2 screen_pixel_size) {
-//     vec2 halfpixel = screen_pixel_size / 2.0;
-//     float z = is_solid_blur_radius * zoom;
-	
-//     float sum = 0.0;
-//     sum += sample_is_solid(uv + vec2(-halfpixel.x * 2.0, 0.0) * z);
-//     sum += sample_is_solid(uv + vec2(-halfpixel.x,  halfpixel.y) * z) * 2.0;
-//     sum += sample_is_solid(uv + vec2(0.0,          halfpixel.y * 2.0) * z);
-//     sum += sample_is_solid(uv + vec2(halfpixel.x,  halfpixel.y) * z) * 2.0;
-//     sum += sample_is_solid(uv + vec2(halfpixel.x * 2.0, 0.0) * z);
-//     sum += sample_is_solid(uv + vec2(halfpixel.x, -halfpixel.y) * z) * 2.0;
-//     sum += sample_is_solid(uv + vec2(0.0,         -halfpixel.y * 2.0) * z);
-//     sum += sample_is_solid(uv + vec2(-halfpixel.x, -halfpixel.y) * z) * 2.0;
-
-// 	return sum / 12.0;
-// }
-
 ////////////////////////////////////////////////////////////////////////////////////////
 void fragment() {
     // Get UV in world space
@@ -148,16 +131,13 @@ void fragment() {
     // SOLID -> darken
     if (is_solid) {   
         // ORIGINAL:
-        // COLOR.rgb *= is_solid_max_darken_factor;
+        COLOR.rgb *= is_solid_max_darken_factor;
 
-        float darkness_factor = blur_is_solid(uv, SCREEN_PIXEL_SIZE);
-        darkness_factor -= is_solid_flat_offset;
-        darkness_factor = clamp(darkness_factor, 0.0, 1.0);
-        
-        darkness_factor = mix(is_solid_max_darken_factor, 1.0, darkness_factor);
-
-        COLOR.rgb *= darkness_factor;
-
+        // float darkness_factor = blur_is_solid(uv, SCREEN_PIXEL_SIZE);
+        // darkness_factor -= is_solid_flat_offset;
+        // darkness_factor = clamp(darkness_factor, 0.0, 1.0);
+        // darkness_factor = mix(is_solid_max_darken_factor, 1.0, darkness_factor);
+        // COLOR.rgb *= darkness_factor;
     }
 
     // MINING
