@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3 uid="uid://d3x634elrvv2b"]
+
+[ext_resource type="Texture2D" uid="uid://1ugg66bw4erc" path="res://assets/gradient.png" id="1_fu1vb"]
+[ext_resource type="Script" uid="uid://cyubjvdr14qwd" path="res://src/deco/DecoTorch.gd" id="1_g3xi5"]
+[ext_resource type="SpriteFrames" uid="uid://bm6t0ves04cib" path="res://assets/sprites/torch-8bit_sprite_frames.tres" id="2_vn3ob"]
+
+[node name="DecoTorch" type="Node2D"]
+z_index = 1
+script = ExtResource("1_g3xi5")
+
+[node name="PointLight2D" type="PointLight2D" parent="."]
+z_index = 1
+position = Vector2(0, -40)
+color = Color(0.9882353, 0.8039216, 0.43137255, 1)
+energy = 0.3
+shadow_enabled = true
+shadow_filter_smooth = 64.0
+texture = ExtResource("1_fu1vb")
+texture_scale = 0.5
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -30)
+scale = Vector2(4, 4)
+sprite_frames = ExtResource("2_vn3ob")
+animation = &"idle"

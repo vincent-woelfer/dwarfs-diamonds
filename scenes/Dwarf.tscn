@@ -11,17 +11,18 @@ z_index = 5
 script = ExtResource("1_po7l6")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+light_mask = 0
 scale = Vector2(5, 5)
 sprite_frames = ExtResource("1_ms7vq")
 frame_progress = 0.9780393
 
 [node name="PointLight2D" type="PointLight2D" parent="."]
-visible = false
-z_index = 1
+z_index = 2
+color = Color(0.9882353, 0.8039216, 0.43137255, 1)
+energy = 0.7
 shadow_enabled = true
 shadow_filter_smooth = 64.0
 texture = ExtResource("1_d170h")
-texture_scale = 1.4
 
 [node name="MiningComponent" type="Node2D" parent="."]
 script = ExtResource("3_ms7vq")

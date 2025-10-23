@@ -47,6 +47,10 @@ static func rand_from_coords(pos: Vector2, z: int = 0) -> float:
 	n = n & 0x7fffffff
 	return float(n % 10001) / 10000.0
 
+static func randi_from_coords(pos: Vector2, min_inclusive: int, max_inclusive: int, z: int = 0) -> int:
+	var r: float = rand_from_coords(pos, z)
+	return min_inclusive + roundi(r * (max_inclusive - min_inclusive))
+
 
 static func grid_space_to_world_space_cell_center(grid_pos: Vector2i) -> Vector2:
 	return ((grid_pos as Vector2) + Vector2(0.5, 0.5)) * Global.CELL_SIZE_VEC

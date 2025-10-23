@@ -6,12 +6,16 @@ var type: Enum.CellType
 var grid_pos: Vector2i
 var visual: CellVisuals
 
+var deco_elements: Array[DecoTorch] = []
+
 # Audio
 var audio_player: AudioStreamPlayer2D
 
 # GROUND TRUTH BOOL STATUS FLAGS
 var is_solid: bool
 var has_ladder: bool
+
+var torch_scene := preload('res://scenes/deco/deco_torch.tscn')
 
 ########################################################################################################################
 # Derived Status Flags
@@ -108,6 +112,17 @@ func set_marked_for_mining(should_mine: bool) -> bool:
 	is_marked_for_mining = should_mine
 	return true
 
+
+## For now aleays torch
+func add_deco_element() -> void:
+	if not deco_elements.is_empty():
+		return
+
+	var new_deco: DecoTorch = torch_scene.instantiate()
+	new_deco.place_in_cell(self)
+
+	deco_elements.append(new_deco)
+	add_child(new_deco)
 
 ########################################################################################################################
 # PRIVATE METHODS

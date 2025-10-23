@@ -9,6 +9,10 @@ var cells: Array[Array] = []
 var nav: Nav
 var job_manager: JobManager
 
+var darkness: CanvasModulate
+var darkness_factor: float = 0.7
+var sun: DirectionalLight2D
+
 func _ready() -> void:
 	# GRID
 	_generate_grid()
@@ -25,20 +29,21 @@ func _ready() -> void:
 	job_manager = JobManager.new()
 	add_child(job_manager)
 
-	# Sunlight from straight above
-	# var sun := DirectionalLight2D.new()
-	# sun.rotation_degrees = -5.0
-	# sun.color = Color(1.0, 0.93, 0.88)
-	# sun.energy = 3.0
-	# sun.shadow_enabled = true
-	# add_child(sun)
-
 	# Darkness
-	# var darkness := CanvasModulate.new()
-	# # var d := 0.8
-	# var d := 1.0
-	# darkness.color = Color(d, d, d, 1.0)
-	# add_child(darkness)
+	darkness = CanvasModulate.new()
+	darkness.color = Color(darkness_factor, darkness_factor, darkness_factor, 1.0)
+	add_child(darkness)
+
+	# Sunlight from straight above
+	sun = DirectionalLight2D.new()
+	sun.rotation_degrees = -5.0
+	sun.color = Color(1.0, 0.93, 0.88)
+	sun.energy = 1.5
+	sun.shadow_enabled = true
+	add_child(sun)
+
+	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
+
 
 	# Wandering Lights
 	# for i in range(16):
@@ -55,6 +60,17 @@ func _ready() -> void:
 	dwarf.grid_pos = dwarf_grid_pos
 	add_child(dwarf)
 
+
+func _dev_toogle_light(is_light_on: bool) -> void:
+	if is_light_on:
+		# WITH LIGHTING / DARKNESS		
+		darkness.visible = true
+		sun.enabled = true
+	else:
+		# NO LIGHTING / DARKNESS
+		darkness.visible = false
+		sun.enabled = false
+		
 
 func _generate_grid() -> void:
 	HexLog.print_banner_with_text("Generating Grid")
@@ -95,6 +111,29 @@ func _generate_grid() -> void:
 			add_child(cell)
 			cells[x][y] = cell
 
+
+## Dertinistic torch placement
+func should_contain_torch(grid_pos: Vector2i) -> bool:
+	# Simple rule: place torch every 5 cells in x and y, avoid sky area
+	if grid_pos.y <= Global.SKY_HEIGHT + 2:
+		return false
+
+	var percentage_with_torch := 0.7
+	var random_disable := Util.rand_from_coords(grid_pos, 10) > percentage_with_torch
+	if random_disable:
+		return false
+
+	var grid_spacing := 3
+	var rand_offset := Vector2i(
+		Util.randi_from_coords(grid_pos, -1, 1, 11),
+		Util.randi_from_coords(grid_pos, -1, 1, 12),
+	)
+	
+	var sample_pos := grid_pos + rand_offset
+	if sample_pos.x % grid_spacing == 0 and sample_pos.y % grid_spacing == 0:
+		return true
+
+	return true
 
 ########################################################################################################################
 # Helper functions

@@ -29,6 +29,8 @@ func _ready() -> void:
 	EventBus.Signal_NavUpdated.connect(_on_nav_updated)
 	mining_comp.Signal_OnMiningCompleted.connect(_on_mining_completed)
 
+	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
+
 
 # TODO implement state machine properly
 func _physics_process(delta: float) -> void:
@@ -67,11 +69,24 @@ func _tick_idle(delta: float) -> void:
 
 
 func _tick_moving(delta: float) -> void:
-	global_position = job_with_path.path.follow_path(global_position, speed * delta)
+	# Follow path
+	var new_pos: Vector2 = job_with_path.path.follow_path(global_position, speed * delta)
+	var move_vector: Vector2 = new_pos - global_position
+	global_position = new_pos
+
+	var old_grid_pos: Vector2i = grid_pos
 	grid_pos = Global.level.get_cell_at_world_pos(global_position).grid_pos
 
+	if old_grid_pos != grid_pos:
+		_on_enter_new_cell(old_grid_pos)
+
+	# Turn sprite
+	if move_vector.x != 0.0:
+		animated_sprite.flip_h = move_vector.x < 0.0
+
+
+	# Reached job
 	if job_with_path.path.reached_end():
-		# Reached job
 		job_with_path.path.queue_free()
 		job_with_path.path = null
 
@@ -81,6 +96,15 @@ func _tick_moving(delta: float) -> void:
 
 		_transition_to_state(Status.MINING)
 		mining_comp.start_mining(job_with_path.job.target_cell)
+
+
+func _on_enter_new_cell(old_grid_pos: Vector2i) -> void:
+	# Check for torch placement
+	if Global.level.should_contain_torch(grid_pos):
+		print("%s placing torch at %s" % [self, grid_pos])
+		var cell: Cell = Global.level.get_cell(grid_pos)
+		if cell:
+			cell.add_deco_element()
 
 
 func _tick_mining(delta: float) -> void:
@@ -190,3 +214,7 @@ func _draw() -> void:
 	var color_actual: Color = debug_status_colors.get(_status, Colors.DEFAULT)
 	var text: String = Enum.to_str(Dwarf.Status, _status)
 	draw_string(debug_font, debug_offset, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, color_actual)
+
+
+func _dev_toogle_light(is_light_on: bool) -> void:
+	light.enabled = is_light_on
