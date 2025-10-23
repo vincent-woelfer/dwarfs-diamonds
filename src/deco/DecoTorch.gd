@@ -22,7 +22,7 @@ func place_in_cell(cell: Cell) -> void:
     self.position.x = Global.CELL_SIZE / 2.0
 
     # On floor
-    self.position.y = Global.CELL_SIZE
+    self.position.y = Global.CELL_SIZE / 2.0
 
 
 func _dev_toogle_light(is_light_on: bool) -> void:

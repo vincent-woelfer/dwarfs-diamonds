@@ -44,6 +44,19 @@ func _ready() -> void:
 
 	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
 
+	# Torches
+	for x in range(Global.LEVEL_WIDTH):
+		for y in range(Global.LEVEL_HEIGHT):
+			var grid_pos := Vector2i(x, y)
+			var cell: Cell = get_cell(grid_pos)
+			if cell == null:
+				continue
+
+			var percentage_with_torch := 0.1
+			var place_torch := Util.rand_from_coords(grid_pos, 1) < percentage_with_torch
+			if not cell.is_solid and place_torch and should_contain_torch(grid_pos):
+				cell.add_deco_element()
+
 
 	# Wandering Lights
 	# for i in range(16):
@@ -128,7 +141,7 @@ func should_contain_torch(grid_pos: Vector2i) -> bool:
 		Util.randi_from_coords(grid_pos, -1, 1, 11),
 		Util.randi_from_coords(grid_pos, -1, 1, 12),
 	)
-	
+
 	var sample_pos := grid_pos + rand_offset
 	if sample_pos.x % grid_spacing == 0 and sample_pos.y % grid_spacing == 0:
 		return true
