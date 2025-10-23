@@ -18,6 +18,8 @@ var _status: Status
 
 var job_with_path: JobWithPath
 
+var num_torches: int = 5
+
 
 func _ready() -> void:
 	dwarf_id = next_dwarf_id
@@ -99,12 +101,15 @@ func _tick_moving(delta: float) -> void:
 
 
 func _on_enter_new_cell(old_grid_pos: Vector2i) -> void:
+	var cell: Cell = Global.level.get_cell(grid_pos)
+	if cell == null:
+		return
+
 	# Check for torch placement
-	if Global.level.should_contain_torch(grid_pos):
+	if num_torches > 0 and cell.deco_elements.is_empty() and Global.level.should_contain_torch(grid_pos):
 		print("%s placing torch at %s" % [self, grid_pos])
-		var cell: Cell = Global.level.get_cell(grid_pos)
-		if cell:
-			cell.add_deco_element()
+		num_torches -= 1
+		cell.add_deco_element()
 
 
 func _tick_mining(delta: float) -> void:
