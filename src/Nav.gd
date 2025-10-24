@@ -221,15 +221,17 @@ const debug_colors := {
 	# Points
 	"point_passable": Color(1.0, 0.6, 0.0, 0.6),
 	"point_standable": Color(1.0, 0.6, 0.0, 1.0),
-	"point_disabled": Color(1.0, 0.6, 0.0, 0.03),
+	"point_disabled": Color(1.0, 0.6, 0.0, 0.0), # Transparent
 
 	# Connections
-	"connection_unidir": Color(1.0, 1.0, 0.0, 0.6),
-	"connection_bidir": Color(1.0, 1.0, 0.0, 1.0),
+	"connection_unidir": Color(1.0, 1.0, 0.0, 1.0),
+	"connection_bidir": Color(0.6, 1.0, 0.0, 1.0),
 }
 
 const debug_size_point := 6.0
-const debug_size_connection := 3.0
+const debug_width_connection := 4.0
+const debug_arrow_length := 16.0
+const debug_arrow_width := 12.0
 
 const debug_point_offset := Vector2(0.0, 0.3) * Global.CELL_SIZE_VEC
 
@@ -237,33 +239,43 @@ func _draw() -> void:
 	if not _astar or not debug_show:
 		return
 
-	# Connections - dont draw from disabled points
-	for id in _astar.get_point_ids():
-		if _astar.is_point_disabled(id):
+	# Connections - dont draw from disabled points.
+	# Connections are drawn twice for bidirectional ones, but whatever
+	for from_id in _astar.get_point_ids():
+		if _astar.is_point_disabled(from_id):
 			continue
 
-		var draw_world_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(id)) + debug_point_offset
+		var from_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(from_id)) + debug_point_offset
 		
-		# Draw connections - check if to point is disabled
-		for conn_id in _astar.get_point_connections(id):
-			if _astar.is_point_disabled(conn_id):
+		# Draw connections - but only if to-point is not disabled
+		for to_id in _astar.get_point_connections(from_id):
+			if _astar.is_point_disabled(to_id):
 				continue
 
-			var conn_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(conn_id)) + debug_point_offset
-			var bidirectional := _astar.are_points_connected(id, conn_id, false) and _astar.are_points_connected(conn_id, id, false)
+			var to_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(to_id)) + debug_point_offset
+			var towards_to: bool = _astar.are_points_connected(from_id, to_id, false)
+			var towards_from: bool = _astar.are_points_connected(to_id, from_id, false)
+			var bidirectional := towards_from and towards_to
 			var color_actual: Color = debug_colors.get("connection_bidir" if bidirectional else "connection_unidir", Colors.DEFAULT)
-			var size_actual := debug_size_connection * (2.0 if bidirectional else 1.0)
 
-			draw_line(draw_world_pos, conn_pos, color_actual, size_actual)
+			# Smaller for unidirectional
+			var size_actual := debug_width_connection * (1.5 if bidirectional else 1.0)
 
+			draw_line(from_pos, to_pos, color_actual, size_actual)
+
+			# Directional arrows - towards from_pos
+			if towards_to:
+				_draw_arrow(from_pos, to_pos, color_actual)
+			if towards_from:
+				_draw_arrow(to_pos, from_pos, color_actual)
 
 	# Points on top to ensure visibility
-	for id in _astar.get_point_ids():
-		var draw_world_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(id)) + debug_point_offset
-		var cell: Cell = Global.level.get_cell(Util.unhash(id))
+	for from_id in _astar.get_point_ids():
+		var point_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(from_id)) + debug_point_offset
+		var cell: Cell = Global.level.get_cell(Util.unhash(from_id))
 
 		var color_actual: Color
-		if _astar.is_point_disabled(id):
+		if _astar.is_point_disabled(from_id):
 			color_actual = debug_colors.get("point_disabled", Colors.DEFAULT)
 		elif cell.is_standable():
 			color_actual = debug_colors.get("point_standable", Colors.DEFAULT)
@@ -271,7 +283,17 @@ func _draw() -> void:
 			color_actual = debug_colors.get("point_passable", Colors.DEFAULT)
 
 		# Draw point
-		draw_circle(draw_world_pos, debug_size_point, color_actual)
+		draw_circle(point_pos, debug_size_point, color_actual)
+
+
+func _draw_arrow(from_pos: Vector2, to_pos: Vector2, color: Color) -> void:
+	var dir_vector := (to_pos - from_pos).normalized()
+	var perp_vector := Vector2(-dir_vector.y, dir_vector.x)
+
+	var arrowtip_point := to_pos - dir_vector * debug_size_point
+	var left_point := arrowtip_point - dir_vector * debug_arrow_length + perp_vector * debug_arrow_width
+	var right_point := arrowtip_point - dir_vector * debug_arrow_length - perp_vector * debug_arrow_width
+	draw_colored_polygon([arrowtip_point, left_point, right_point], color)
 
 
 func _input(event: InputEvent) -> void:

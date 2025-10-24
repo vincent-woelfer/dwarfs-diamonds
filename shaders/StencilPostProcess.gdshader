@@ -27,7 +27,7 @@ const vec4 walkable_color = vec4(0.0, 0.0, 1.0, 0.05);
 
 
 // const float is_solid_max_darken_factor = 0.2;
-const float is_solid_max_darken_factor = 0.25;
+const float is_solid_max_darken_factor = 0.4;
 const float is_solid_blur_radius = 350.0;
 const float is_solid_flat_offset = 0.05;
 

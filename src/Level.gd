@@ -10,7 +10,7 @@ var nav: Nav
 var job_manager: JobManager
 
 var darkness: CanvasModulate
-var darkness_factor: float = 0.7
+var darkness_factor: float = 0.4
 var sun: DirectionalLight2D
 
 func _ready() -> void:
@@ -44,7 +44,7 @@ func _ready() -> void:
 
 	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
 
-	# Torches
+	# Pre-place Torches
 	for x in range(Global.LEVEL_WIDTH):
 		for y in range(Global.LEVEL_HEIGHT):
 			var grid_pos := Vector2i(x, y)
@@ -52,19 +52,10 @@ func _ready() -> void:
 			if cell == null:
 				continue
 
-			var percentage_with_torch := 0.1
-			var place_torch := Util.rand_from_coords(grid_pos, 1) < percentage_with_torch
+			var percentage_with_preplaced_torch := 0.2
+			var place_torch := Util.rand_from_coords(grid_pos, 1) < percentage_with_preplaced_torch
 			if not cell.is_solid and place_torch and should_contain_torch(grid_pos):
 				cell.add_deco_element()
-
-
-	# Wandering Lights
-	# for i in range(16):
-	# 	var light: WanderingLight = wandering_light_scene.instantiate()
-	# 	var light_pos := Vector2(randi_range(1, Global.LEVEL_WIDTH - 1), randi_range(1, Global.LEVEL_HEIGHT - 1))
-	# 	light_pos *= Global.CELL_SIZE
-	# 	light.global_position = light_pos
-	# 	add_child(light)
 
 
 	# DWARF
@@ -125,28 +116,31 @@ func _generate_grid() -> void:
 			cells[x][y] = cell
 
 
-## Dertinistic torch placement
+## Deterministic torch placement
 func should_contain_torch(grid_pos: Vector2i) -> bool:
 	# Simple rule: place torch every 5 cells in x and y, avoid sky area
 	if grid_pos.y <= Global.SKY_HEIGHT + 2:
 		return false
 
-	var percentage_with_torch := 0.7
+	var percentage_with_torch := 0.95
 	var random_disable := Util.rand_from_coords(grid_pos, 10) > percentage_with_torch
 	if random_disable:
 		return false
 
-	var grid_spacing := 3
-	var rand_offset := Vector2i(
-		Util.randi_from_coords(grid_pos, -1, 1, 11),
-		Util.randi_from_coords(grid_pos, -1, 1, 12),
-	)
+	var grid_spacing := Vector2i(3, 1)
 
-	var sample_pos := grid_pos + rand_offset
-	if sample_pos.x % grid_spacing == 0 and sample_pos.y % grid_spacing == 0:
+	# Random offset, only horizontal and same for entire row. x must be 1 otherwise its on map border
+	var rand_offset := Vector2i.ZERO
+	if Util.rand_from_coords(grid_pos, 11) < 0.2:
+		rand_offset.x = Util.randi_from_coords(Vector2i(1, grid_pos.y), 0, grid_spacing.x, 12)
+
+	var alternating_offset := Vector2i(roundi(grid_pos.y / (grid_spacing.y as float)), 0)
+
+	var sample_pos := grid_pos + rand_offset + alternating_offset
+	if sample_pos.x % grid_spacing.x == 0 and sample_pos.y % grid_spacing.y == 0:
 		return true
 
-	return true
+	return false
 
 ########################################################################################################################
 # Helper functions

@@ -20,6 +20,7 @@ func _ready() -> void:
 	add_child(sprite)
 
 	mining_comp = MiningComponent.new()
+	mining_comp.max_simultaneous_mining_cells = 100
 	add_child(mining_comp)
 
 
