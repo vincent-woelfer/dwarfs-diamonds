@@ -11,6 +11,8 @@ extends Node2D
 static var next_dwarf_id: int = 0
 var dwarf_id: int
 var speed := 250.0 # pixels per second
+
+# TODO move this property + logic to abstract parent class and reuse
 var grid_pos: Vector2i
 
 enum Status {IDLE, MOVING, MINING, FALLING}
@@ -26,7 +28,7 @@ func _ready() -> void:
 	next_dwarf_id += 1
 
 	_status = Status.IDLE
-	global_position = Util.grid_space_to_world_space_cell_center(grid_pos)
+	global_position = Global.level.get_cell(grid_pos).get_floor_point()
 
 	EventBus.Signal_NavUpdated.connect(_on_nav_updated)
 	mining_comp.Signal_OnMiningCompleted.connect(_on_mining_completed)
@@ -36,8 +38,8 @@ func _ready() -> void:
 
 # TODO implement state machine properly
 func _physics_process(delta: float) -> void:
-	# Update grid cell
-	grid_pos = Global.level.get_cell_at_world_pos(global_position).grid_pos
+	# Update grid cell before anything else
+	grid_pos = _get_new_grid_pos()
 
 	if _status == Status.IDLE:
 		_tick_idle(delta)
@@ -76,8 +78,9 @@ func _tick_moving(delta: float) -> void:
 	var move_vector: Vector2 = new_pos - global_position
 	global_position = new_pos
 
+	# Update grid cell
 	var old_grid_pos: Vector2i = grid_pos
-	grid_pos = Global.level.get_cell_at_world_pos(global_position).grid_pos
+	grid_pos = _get_new_grid_pos()
 
 	if old_grid_pos != grid_pos:
 		_on_enter_new_cell(old_grid_pos)
@@ -194,6 +197,10 @@ func _on_nav_updated() -> void:
 			job_with_path.job.unassign_dwarf(self)
 			job_with_path = null
 			_transition_to_state(Status.IDLE)
+
+
+func _get_new_grid_pos() -> Vector2i:
+	return Global.level.get_cell_at_world_pos(global_position + Global.VERT_OFFSET_SMALL).grid_pos
 
 
 func _to_string() -> String:

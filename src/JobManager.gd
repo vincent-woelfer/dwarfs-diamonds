@@ -40,7 +40,7 @@ func get_new_job_for_worker(start_pos: Vector2i) -> JobWithPath:
 	for job in ready_jobs:
 		var path: Path = Global.level.nav.find_path_to_one_of(start_pos, job.workable_from_grid_poses)
 		if path != null:
-			if best_job_with_path == null or path.get_length() < best_job_with_path.path.get_length():
+			if best_job_with_path == null or path.get_num_cells() < best_job_with_path.path.get_num_cells():
 				best_job_with_path = JobWithPath.new(job, path)
 			
 	return best_job_with_path
@@ -101,7 +101,7 @@ func _draw() -> void:
 		var color_actual: Color = debug_status_colors.get(job.status, Colors.DEFAULT)
 		var cell: Cell = job.target_cell
 
-		var draw_world_pos := Util.grid_space_to_world_space_cell_center(cell.grid_pos)
+		var draw_world_pos := Util.grid_to_world_cell_center(cell.grid_pos)
 		var offset_idx: int = num_already_drawn_per_cell.get(cell.grid_pos, 0)
 		num_already_drawn_per_cell[cell.grid_pos] = offset_idx + 1
 

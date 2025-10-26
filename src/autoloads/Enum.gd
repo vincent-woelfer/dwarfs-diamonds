@@ -23,3 +23,16 @@ enum ProcessPriority {
     CELL = 10,
     CELL_VISUAL = 11
 }
+
+
+# Index of poly points of cell
+enum PolyPoint {
+	TOP_LEFT = 0,
+	TOP = 1,
+	TOP_RIGHT = 2,
+	RIGHT = 3,
+	BOT_RIGHT = 4,
+	BOT = 5,
+	BOT_LEFT = 6,
+	LEFT = 7,
+}

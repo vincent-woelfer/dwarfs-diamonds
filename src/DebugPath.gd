@@ -40,5 +40,5 @@ func update() -> void:
 
 	path = nav.find_path(start_pos, end_pos)
 	if path:
-		path.color = Color.GREEN
+		path.debug_color = Color.GREEN
 		add_child(path)

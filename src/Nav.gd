@@ -54,7 +54,7 @@ func find_path_to_one_of(start: Vector2i, goals: Array[Vector2i]) -> Path:
 			continue
 
 		var new_path := Path.new(path_grid_points)
-		if shortest_path == null or new_path.get_length() < shortest_path.get_length():
+		if shortest_path == null or new_path.get_num_cells() < shortest_path.get_num_cells():
 			shortest_path = new_path
 
 	return shortest_path
@@ -159,16 +159,15 @@ func _should_connect_diagonal_neighbours(from: Cell, to: Cell) -> bool:
 	if (not from.is_standable()) or (not to.is_standable()):
 		return false
 
-	# We have to connecting/diagonal cells:
+	# We have two connecting/diagonal cells:
 	# 1. The lower connecting/diagonal cell must be solid
 	# 2. The upper connecting/diagonal cell must be passable
 	# This ensures that we can walk diagonally up and down slopes
-
 	var lower_cell := Util.get_lower_cell(from, to)
 	var upper_cell := Util.get_upper_cell(from, to)
 
-	var lower_conn_cell: Cell = upper_cell.get_neighbour(Vector2i(0, 1))
-	var upper_conn_cell: Cell = lower_cell.get_neighbour(Vector2i(0, -1))
+	var lower_conn_cell: Cell = upper_cell.get_neighbour(Global.VEC_DOWN)
+	var upper_conn_cell: Cell = lower_cell.get_neighbour(Global.VEC_UP)
 
 	# Should always be valid
 	assert(lower_conn_cell != null)
@@ -245,14 +244,14 @@ func _draw() -> void:
 		if _astar.is_point_disabled(from_id):
 			continue
 
-		var from_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(from_id)) + debug_point_offset
+		var from_pos := Util.grid_to_world_cell_center(_astar.get_point_position(from_id)) + debug_point_offset
 		
 		# Draw connections - but only if to-point is not disabled
 		for to_id in _astar.get_point_connections(from_id):
 			if _astar.is_point_disabled(to_id):
 				continue
 
-			var to_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(to_id)) + debug_point_offset
+			var to_pos := Util.grid_to_world_cell_center(_astar.get_point_position(to_id)) + debug_point_offset
 			var towards_to: bool = _astar.are_points_connected(from_id, to_id, false)
 			var towards_from: bool = _astar.are_points_connected(to_id, from_id, false)
 			var bidirectional := towards_from and towards_to
@@ -271,7 +270,7 @@ func _draw() -> void:
 
 	# Points on top to ensure visibility
 	for from_id in _astar.get_point_ids():
-		var point_pos := Util.grid_space_to_world_space_cell_center(_astar.get_point_position(from_id)) + debug_point_offset
+		var point_pos := Util.grid_to_world_cell_center(_astar.get_point_position(from_id)) + debug_point_offset
 		var cell: Cell = Global.level.get_cell(Util.unhash(from_id))
 
 		var color_actual: Color

@@ -12,12 +12,15 @@ script = ExtResource("1_po7l6")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 light_mask = 0
+texture_filter = 1
+position = Vector2(0, -64.99999)
 scale = Vector2(5, 5)
 sprite_frames = ExtResource("1_ms7vq")
 frame_progress = 0.9780393
 
 [node name="PointLight2D" type="PointLight2D" parent="."]
 z_index = 2
+position = Vector2(0, -65)
 color = Color(0.9882353, 0.8039216, 0.43137255, 1)
 energy = 0.7
 shadow_enabled = true

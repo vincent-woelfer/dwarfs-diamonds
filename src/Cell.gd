@@ -31,7 +31,7 @@ func is_standable(ignore_ladders: bool = false) -> bool:
 	if not is_passable():
 		return false
 
-	var n_bot := get_neighbour(Vector2i(0, 1))
+	var n_bot := get_neighbour(Global.VEC_DOWN)
 
 	if ignore_ladders:
 		return n_bot and n_bot.is_solid
@@ -123,6 +123,14 @@ func add_deco_element() -> void:
 
 	deco_elements.append(new_deco)
 	add_child(new_deco)
+
+
+## Returns a single poly point in world-space absolute
+func poly_point(point: Enum.PolyPoint) -> Vector2:
+	return visual.get_poly_point(point) + global_position
+
+func get_floor_point() -> Vector2:
+	return poly_point(Enum.PolyPoint.BOT)
 
 ########################################################################################################################
 # PRIVATE METHODS

@@ -52,14 +52,14 @@ static func randi_from_coords(pos: Vector2, min_inclusive: int, max_inclusive: i
 	return min_inclusive + roundi(r * (max_inclusive - min_inclusive))
 
 
-static func grid_space_to_world_space_cell_center(grid_pos: Vector2i) -> Vector2:
+static func grid_to_world_cell_center(grid_pos: Vector2i) -> Vector2:
 	return ((grid_pos as Vector2) + Vector2(0.5, 0.5)) * Global.CELL_SIZE_VEC
 
 
-static func grid_space_to_world_space_cell_center_array(grid_poses: Array[Vector2i]) -> Array[Vector2]:
+static func grid_to_world_cell_center_array(grid_poses: Array[Vector2i]) -> Array[Vector2]:
 	var world_positions: Array[Vector2] = []
 	for gp in grid_poses:
-		world_positions.append(grid_space_to_world_space_cell_center(gp))
+		world_positions.append(grid_to_world_cell_center(gp))
 	return world_positions
 
 # NO world_space_to_grid_space -> Use Level.get_cell_at_world_pos
@@ -69,10 +69,10 @@ static func grid_space_to_world_space_cell_center_array(grid_poses: Array[Vector
 # Neighbours
 ########################################################################################################################
 static var neighbours_cardinal := [
-	Vector2i(-1, 0),
-	Vector2i(1, 0),
-	Vector2i(0, -1),
-	Vector2i(0, 1)
+	Global.VEC_LEFT,
+	Global.VEC_RIGHT,
+	Global.VEC_UP,
+	Global.VEC_DOWN,
 ]
 
 static var neighbours_diagonal := [

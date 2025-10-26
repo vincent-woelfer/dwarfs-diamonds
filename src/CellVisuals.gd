@@ -17,6 +17,7 @@ var ladder_sprite: Sprite2D
 var occluder: LightOccluder2D
 var occluder_poly: OccluderPolygon2D
 
+var poly_points: PackedVector2Array
 
 # Methods
 func _init(_parent_cell: Cell) -> void:
@@ -29,11 +30,11 @@ func _ready() -> void:
 	# Required for chilren to be able to use these layers
 	self.visibility_layer = Util.LAYER_1 | Util.LAYER_2
 
-	var poly := _get_cell_polygon()
+	poly_points = _get_cell_polygon()
 
 	# Background
 	background_poly = Polygon2D.new()
-	background_poly.polygon = poly
+	background_poly.polygon = poly_points
 	background_poly.visibility_layer = Util.LAYER_1
 	
 	if c.type == Enum.CellType.SKY:
@@ -52,7 +53,7 @@ func _ready() -> void:
 
 	# Stencil
 	stencil_poly = Polygon2D.new()
-	stencil_poly.polygon = poly
+	stencil_poly.polygon = poly_points
 	stencil_poly.color = Color(0.0, 0.0, 0.0, 0.0) if Engine.is_editor_hint() else Color(0.0, 0.0, 0.0, 1.0)
 	stencil_poly.visibility_layer = Util.LAYER_2
 	stencil_poly.material = unshaded_material
@@ -60,7 +61,7 @@ func _ready() -> void:
 
 	# Light Occluder
 	occluder_poly = OccluderPolygon2D.new()
-	occluder_poly.polygon = poly
+	occluder_poly.polygon = poly_points
 	occluder_poly.closed = true
 	occluder_poly.cull_mode = OccluderPolygon2D.CULL_DISABLED
 
@@ -89,7 +90,7 @@ func update() -> void:
 
 	_encode_stencil_buffer()
 
-	
+
 # Set Stencil Colors. Dont write to alpha, this is done only once to show/hide stencil in editor vs game
 func _encode_stencil_buffer() -> void:
 	# Encode flags in RED channel
@@ -139,3 +140,10 @@ func _get_cell_polygon() -> PackedVector2Array:
 
 	# Clockwise, starting from top-left
 	return PackedVector2Array([top_left, top, top_right, right, bot_right, bot, bot_left, left])
+
+
+## Returns a single poly point in world-space RELATIVE TO CELL
+func get_poly_point(point: Enum.PolyPoint) -> Vector2:
+	assert(poly_points.size() == 8)
+	assert(point >= 0 and point < poly_points.size())
+	return poly_points[point]
