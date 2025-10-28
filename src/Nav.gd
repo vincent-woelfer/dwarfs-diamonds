@@ -220,19 +220,21 @@ const debug_colors := {
 	# Points
 	"point_passable": Color(1.0, 0.6, 0.0, 0.6),
 	"point_standable": Color(1.0, 0.6, 0.0, 1.0),
-	"point_disabled": Color(1.0, 0.6, 0.0, 0.0), # Transparent
+	"point_disabled": Color(1.0, 0.0, 0.0, 0.0), # Transparent
 
 	# Connections
-	"connection_unidir": Color(1.0, 1.0, 0.0, 1.0),
-	"connection_bidir": Color(0.6, 1.0, 0.0, 1.0),
+	"connection_unidir": Color(1.0, 1.0, 0.0, 0.8),
+	"connection_bidir": Color(0.6, 1.0, 0.0, 0.8),
 }
 
-const debug_size_point := 6.0
-const debug_width_connection := 4.0
-const debug_arrow_length := 16.0
-const debug_arrow_width := 12.0
+const debug_size_point := 5.0
+const debug_width_connection_uni := 3.0
+const debug_width_connection_bi := 3.0
+const debug_arrow_length := 15.0
+const debug_arrow_width := 10.0
 
-const debug_point_offset := Vector2(0.0, 0.3) * Global.CELL_SIZE_VEC
+# Downward from cell-center
+const debug_point_offset := Vector2(0.0, 0.4) * Global.CELL_SIZE_VEC
 
 func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 	if not _astar:
@@ -258,7 +260,7 @@ func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 			var color_actual: Color = debug_colors.get("connection_bidir" if bidirectional else "connection_unidir", Colors.DEFAULT)
 
 			# Smaller for unidirectional
-			var size_actual := debug_width_connection * (1.5 if bidirectional else 1.0)
+			var size_actual := debug_width_connection_bi if bidirectional else debug_width_connection_uni
 
 			ui_layer.draw_line(from_pos, to_pos, color_actual, size_actual)
 
