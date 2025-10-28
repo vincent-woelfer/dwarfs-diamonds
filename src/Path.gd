@@ -12,14 +12,10 @@ var _floor_points_world_space: PackedVector2Array
 var _follow_next_index_floor: int = 0 # Capped at size (so after last point) == reached end
 var _follow_next_index_center: int = 0 # only used for debug drawing
 
+var debug_draw: bool = false
 
 # Normal case is > 2 points. 0 is an exception
 func _init(points_grid_space_: Array[Vector2i]) -> void:
-	self.top_level = true
-	self.z_index = 5
-	self.visibility_layer = Util.LAYER_1
-	self.light_mask = 0
-
 	self._points_grid_space = points_grid_space_
 	self._center_points_world_space = Util.grid_to_world_cell_center_array(_points_grid_space)
 	self._floor_points_world_space = _calculate_follow_points()
@@ -186,6 +182,9 @@ var debug_offset_follow_points := Vector2(0.0, -0.05) * Global.CELL_SIZE_VEC
 
 
 func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
+	if not debug_draw:
+		return
+
 	var completed_color: Color = debug_color
 	completed_color.a = 0.3
 

@@ -65,11 +65,15 @@ func _tick_idle(delta: float) -> void:
 
 		job_with_path.job.assign_dwarf(self)
 		job_with_path.path.update_following_index_to_closest(global_position)
-		_transition_to_state(Status.MOVING)
-
-		# Draw path by adding to scene tree
-		# add_child(job_with_path.path)
+		job_with_path.path.debug_draw = true
+		
 		print("%s started job %s at %s" % [self, Enum.to_str(Job.Type, job_with_path.job.type), job_with_path.job.target_cell])
+
+		_transition_to_state(Status.MOVING)
+	else:
+		# TODO HANGS HERE WHEN due to climbing current grid_cell is the diagonal one which is not a nav cell -> no possible job found
+		print("%s found no job, remains idle" % [self])
+		pass
 
 
 func _tick_moving(delta: float) -> void:
@@ -92,7 +96,7 @@ func _tick_moving(delta: float) -> void:
 
 	# Reached job
 	if job_with_path.path.reached_end():
-		job_with_path.path.queue_free()
+		job_with_path.path.free()
 		job_with_path.path = null
 
 		# Start working - depends on job type
@@ -133,7 +137,8 @@ func _on_mining_completed(mined_cell: Cell) -> void:
 
 		# Clear job reference
 		if job_with_path.path != null:
-			job_with_path.path.queue_free()
+			job_with_path.path.free()
+
 		job_with_path = null
 
 	# Transition back to idle but dont override falling state
@@ -145,7 +150,7 @@ func _on_started_falling() -> void:
 	if job_with_path != null:
 		# Abandon job
 		if job_with_path.path != null:
-			job_with_path.path.queue_free()
+			job_with_path.path.free()
 		job_with_path.job.unassign_dwarf(self)
 		job_with_path = null
 
@@ -172,7 +177,7 @@ func on_job_deleted() -> void:
 
 	# Delete own reference
 	if job_with_path.path != null:
-		job_with_path.path.queue_free()
+		job_with_path.path.free()
 	job_with_path = null
 
 	# Transition back to idle but dont override falling state
@@ -183,7 +188,8 @@ func on_job_deleted() -> void:
 func _on_nav_updated() -> void:
 	# If nav updated while moving -> recalculate path for job or abort if not valid
 	if job_with_path and job_with_path.path != null:
-		job_with_path.path.queue_free()
+		job_with_path.path.free()
+		job_with_path.path = null
 		
 		# Force job to update workable cells first
 		job_with_path.job.update_workable_from_cells()
@@ -192,7 +198,7 @@ func _on_nav_updated() -> void:
 		if new_path != null:
 			job_with_path.path = new_path
 			job_with_path.path.update_following_index_to_closest(global_position)
-			add_child(job_with_path.path)
+			job_with_path.path.debug_draw = true
 		else:
 			print("%s lost path to job at %s" % [self, job_with_path.job.target_cell])
 			job_with_path.job.unassign_dwarf(self)
