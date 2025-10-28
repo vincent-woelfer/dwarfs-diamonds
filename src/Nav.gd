@@ -96,7 +96,7 @@ func _update_cell_connections() -> void:
 		_update_cell_connection(cell_pair)
 
 	# Redraw for debug purposes
-	queue_redraw()
+	_debug_draw_proxy.queue_redraw()
 
 	var duration := Time.get_ticks_msec() - start_time
 	if duration > 1:
@@ -214,7 +214,7 @@ func _is_id_enabled(id: int) -> bool:
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
-var debug_show := true
+var _debug_draw_proxy := DebugDrawProxy.new(self)
 
 const debug_colors := {
 	# Points
@@ -234,8 +234,8 @@ const debug_arrow_width := 12.0
 
 const debug_point_offset := Vector2(0.0, 0.3) * Global.CELL_SIZE_VEC
 
-func _draw() -> void:
-	if not _astar or not debug_show:
+func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
+	if not _astar:
 		return
 
 	# Connections - dont draw from disabled points.
@@ -260,13 +260,13 @@ func _draw() -> void:
 			# Smaller for unidirectional
 			var size_actual := debug_width_connection * (1.5 if bidirectional else 1.0)
 
-			draw_line(from_pos, to_pos, color_actual, size_actual)
+			ui_layer.draw_line(from_pos, to_pos, color_actual, size_actual)
 
 			# Directional arrows - towards from_pos
 			if towards_to:
-				_draw_arrow(from_pos, to_pos, color_actual)
+				_draw_arrow(ui_layer, from_pos, to_pos, color_actual)
 			if towards_from:
-				_draw_arrow(to_pos, from_pos, color_actual)
+				_draw_arrow(ui_layer, to_pos, from_pos, color_actual)
 
 	# Points on top to ensure visibility
 	for from_id in _astar.get_point_ids():
@@ -282,20 +282,20 @@ func _draw() -> void:
 			color_actual = debug_colors.get("point_passable", Colors.DEFAULT)
 
 		# Draw point
-		draw_circle(point_pos, debug_size_point, color_actual)
+		ui_layer.draw_circle(point_pos, debug_size_point, color_actual)
 
 
-func _draw_arrow(from_pos: Vector2, to_pos: Vector2, color: Color) -> void:
+func _draw_arrow(ui_layer: CanvasItem, from_pos: Vector2, to_pos: Vector2, color: Color) -> void:
 	var dir_vector := (to_pos - from_pos).normalized()
 	var perp_vector := Vector2(-dir_vector.y, dir_vector.x)
 
 	var arrowtip_point := to_pos - dir_vector * debug_size_point
 	var left_point := arrowtip_point - dir_vector * debug_arrow_length + perp_vector * debug_arrow_width
 	var right_point := arrowtip_point - dir_vector * debug_arrow_length - perp_vector * debug_arrow_width
-	draw_colored_polygon([arrowtip_point, left_point, right_point], color)
+	ui_layer.draw_colored_polygon([arrowtip_point, left_point, right_point], color)
 
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("dev_toogle_nav_draw"):
-		debug_show = not debug_show
-		queue_redraw()
+		_debug_draw_proxy.visible = not _debug_draw_proxy.visible
+		_debug_draw_proxy.queue_redraw()

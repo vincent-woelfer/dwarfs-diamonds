@@ -31,6 +31,10 @@ const SKY_HEIGHT: int = 3
 @onready var camera: Camera = get_tree().root.get_node("root/Camera")
 @onready var level: Level = get_tree().root.get_node("root/Level")
 
+@onready var post_process_canvas_layer: PostProcessCanvasLayer = get_tree().root.get_node("root/PostProcessCanvasLayer-1")
+@onready var ui_canvas_layer: CanvasLayer = get_tree().root.get_node("root/UICanvasLayer-2")
+@onready var stencil_viewport: StencilViewport = get_tree().root.get_node("root/StencilViewport")
+
 
 func _ready() -> void:
 	# Hook into window mouse_size changes
@@ -62,10 +66,10 @@ func _on_window_size_changed() -> void:
 	print("Updated viewport (game-world) size to: ", size)
 
 	if not Engine.is_editor_hint():
-		var post_process_canvas_layer: PostProcessCanvasLayer = get_tree().root.get_node("root/PostProcessCanvasLayer-1")
 		if post_process_canvas_layer:
 			post_process_canvas_layer.update_size(size)
-
-		var stencil_viewport: StencilViewport = get_tree().root.get_node("root/StencilViewport")
+		
 		if stencil_viewport:
 			stencil_viewport.update_size(size)
+
+		# Add ui_canvas_layer ???

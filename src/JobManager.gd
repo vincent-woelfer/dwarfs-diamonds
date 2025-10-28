@@ -2,6 +2,7 @@ class_name JobManager
 extends Node2D
 
 var _jobs: Array[Job] = []
+var _debug_draw_proxy := DebugDrawProxy.new(self)
 
 
 ########################################################################################################################
@@ -58,7 +59,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	# To many places, just call every frame. This is because the jobs themselfs can also change
-	queue_redraw()
+	_debug_draw_proxy.queue_redraw()
 
 
 func _on_nav_updated() -> void:
@@ -72,9 +73,6 @@ func _on_nav_updated() -> void:
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
-var debug_show := true
-# Colors must have one channel at 1.0 so PostProcessShader can ignore them
-
 const debug_status_colors := {
 	Job.Status.BLOCKED: Color.RED,
 	Job.Status.READY: Color.GREEN,
@@ -89,12 +87,7 @@ const debug_offset_inc := Vector2(0.0, 0.12) * Global.CELL_SIZE_VEC
 var debug_font := ThemeDB.fallback_font
 var debug_font_size := 14
 
-func _draw() -> void:
-	if not debug_show:
-		return
-
-	debug_font = ThemeDB.fallback_font if debug_font == null else debug_font
-
+func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 	var num_already_drawn_per_cell: Dictionary[Vector2i, int] = {}
 
 	for job in _jobs:
@@ -108,7 +101,7 @@ func _draw() -> void:
 		var text: String = Enum.to_str(Job.Type, job.type) + " - " + Enum.to_str(Job.Status, job.status)
 		var pos := draw_world_pos + _debug_get_offset(offset_idx)
 
-		draw_string(debug_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, debug_font_size, color_actual)
+		ui_layer.draw_string(debug_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, debug_font_size, color_actual)
 
 
 func _debug_get_offset(idx: int) -> Vector2:
@@ -117,5 +110,5 @@ func _debug_get_offset(idx: int) -> Vector2:
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("dev_toogle_jobs_draw"):
-		debug_show = not debug_show
-		queue_redraw()
+		_debug_draw_proxy.visible = not _debug_draw_proxy.visible
+		_debug_draw_proxy.queue_redraw()

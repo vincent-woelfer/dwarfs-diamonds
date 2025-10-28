@@ -49,3 +49,7 @@ script = ExtResource("4_jh1ax")
 
 [node name="StencilColorRect" type="ColorRect" parent="PostProcessCanvasLayer-1"]
 material = SubResource("ShaderMaterial_sqa0i")
+
+[node name="UICanvasLayer-2" type="CanvasLayer" parent="."]
+layer = 2
+follow_viewport_enabled = true

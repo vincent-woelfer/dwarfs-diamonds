@@ -166,12 +166,6 @@ void fragment() {
     //     COLOR = mix(COLOR, walkable_color, walkable_color.a);
     // }
 
-    // DONT OVERWRITE IF ONE CHANNEL IS AT 100%
-    if (screen_color.r >= 1.0 || screen_color.g >= 1.0 || screen_color.b >= 1.0) {
-        COLOR = screen_color;
-    }
-
-
 }
 
 

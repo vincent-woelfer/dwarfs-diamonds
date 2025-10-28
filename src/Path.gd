@@ -45,7 +45,7 @@ func update_following_index_to_closest(current_world_pos: Vector2) -> void:
 			_increment_follow_index()
 			break
 
-	queue_redraw()
+	_debug_draw_proxy.queue_redraw()
 
 func _increment_follow_index() -> void:
 	# Increment with cap
@@ -80,7 +80,7 @@ func follow_path(current_pos: Vector2, distance: float) -> Vector2:
 		final_pos = next_waypoint
 		distance -= dist_to_next
 		_increment_follow_index()
-		queue_redraw()
+		_debug_draw_proxy.queue_redraw()
 
 	return final_pos
 
@@ -176,13 +176,16 @@ func _calculate_follow_points() -> PackedVector2Array:
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
+var _debug_draw_proxy := DebugDrawProxy.new(self)
+
 # Only drawn if added to scene tree
 var debug_color := Color.ORANGE
 var debug_width := 5.0
 var debug_draw_follow_points := true
+var debug_offset_follow_points := Vector2(0.0, -0.05) * Global.CELL_SIZE_VEC
 
 
-func _draw() -> void:
+func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 	var completed_color: Color = debug_color
 	completed_color.a = 0.3
 
@@ -192,12 +195,19 @@ func _draw() -> void:
 	if debug_draw_follow_points:
 		completed_points = _floor_points_world_space.slice(0, _follow_next_index_floor + 1)
 		remaining_points = _floor_points_world_space.slice(_follow_next_index_floor)
+
+		# Slightly offset to be above ground
+		for i in range(completed_points.size()):
+			completed_points[i] += debug_offset_follow_points
+		for i in range(remaining_points.size()):
+			remaining_points[i] += debug_offset_follow_points
+		
 	else:
 		completed_points = _center_points_world_space.slice(0, _follow_next_index_center + 1)
 		remaining_points = _center_points_world_space.slice(_follow_next_index_center)
 
 	# Finally draw
 	if completed_points.size() >= 2:
-		draw_polyline(completed_points, completed_color, debug_width)
+		ui_layer.draw_polyline(completed_points, completed_color, debug_width)
 	if remaining_points.size() >= 2:
-		draw_polyline(remaining_points, debug_color, debug_width)
+		ui_layer.draw_polyline(remaining_points, debug_color, debug_width)

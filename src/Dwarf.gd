@@ -1,12 +1,12 @@
 class_name Dwarf
 extends Node2D
 
+# Scene Components
 @onready var light: PointLight2D = $PointLight2D
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var mining_comp: MiningComponent = $MiningComponent
 @onready var falling_comp: FallingComponent = $FallingComponent
 @onready var audio_player: AudioStreamPlayer2D = $AudioStreamPlayer2D
-
 
 static var next_dwarf_id: int = 0
 var dwarf_id: int
@@ -53,7 +53,7 @@ func _physics_process(delta: float) -> void:
 		
 func _transition_to_state(new_status: Status) -> void:
 	_status = new_status
-	queue_redraw()
+	_debug_draw_proxy.queue_redraw()
 	
 
 func _tick_idle(delta: float) -> void:
@@ -68,7 +68,7 @@ func _tick_idle(delta: float) -> void:
 		_transition_to_state(Status.MOVING)
 
 		# Draw path by adding to scene tree
-		add_child(job_with_path.path)
+		# add_child(job_with_path.path)
 		print("%s started job %s at %s" % [self, Enum.to_str(Job.Type, job_with_path.job.type), job_with_path.job.target_cell])
 
 
@@ -128,12 +128,13 @@ func _on_mining_completed(mined_cell: Cell) -> void:
 	print("%s completed mining job at %s" % [self, mined_cell.grid_pos])
 
 	# Complete job
-	job_with_path.job.complete(self)
+	if job_with_path != null:
+		job_with_path.job.complete(self)
 
-	# Clear job reference
-	if job_with_path.path != null:
-		job_with_path.path.queue_free()
-	job_with_path = null
+		# Clear job reference
+		if job_with_path.path != null:
+			job_with_path.path.queue_free()
+		job_with_path = null
 
 	# Transition back to idle but dont override falling state
 	if _status != Status.FALLING:
@@ -210,7 +211,7 @@ func _to_string() -> String:
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
-var debug_show := true
+var _debug_draw_proxy := DebugDrawProxy.new(self)
 
 const debug_status_colors := {
 	Status.IDLE: Color.WHITE,
@@ -219,20 +220,17 @@ const debug_status_colors := {
 	Status.FALLING: Color(1.0, 0.0, 1.0),
 }
 
-const debug_offset := Vector2(-0.4, -0.4) * Global.CELL_SIZE_VEC
-const debug_label_width := 0.8 * Global.CELL_SIZE
+const debug_label_width := 0.9 * Global.CELL_SIZE
+const debug_offset := Vector2(0.0, -0.8) * Global.CELL_SIZE_VEC + Vector2(-debug_label_width / 2.0, 0.0)
 
 var debug_font := ThemeDB.fallback_font
 var debug_font_size := 22
 
 
-func _draw() -> void:
-	if not debug_show:
-		return
-
+func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 	var color_actual: Color = debug_status_colors.get(_status, Colors.DEFAULT)
 	var text: String = Enum.to_str(Dwarf.Status, _status)
-	draw_string(debug_font, debug_offset, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, color_actual)
+	ui_layer.draw_string(debug_font, debug_offset, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, color_actual)
 
 
 func _dev_toogle_light(is_light_on: bool) -> void:
