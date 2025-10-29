@@ -11,6 +11,7 @@ signal Signal_MovementDirectionChanged(new_dir: Vector2)
 
 ################ Definitions ################
 enum State {NOT_MOVING, FOLLOWING_PATH, FALLING}
+var sm: StateMachine
 
 ################ Configuration ################
 var movement_capabilities: MovementCapabilities = MovementCapabilities.new()
@@ -22,7 +23,6 @@ const starting_speed: float = 200.0 # pixels per second
 const movement_speed = 250.0 # pixels per second
 
 ################ Current Internal State ################
-var state: State
 var path: Path
 
 var curr_speed: float = 0.0
@@ -37,10 +37,10 @@ var fall_start_y: int
 # PUBLIC
 ########################################################################################################################
 func is_falling() -> bool:
-	return state == State.FALLING
+	return sm.state == State.FALLING
 
 func assign_path(new_path: Path) -> void:
-	if new_path == null or state == State.FALLING:
+	if new_path == null or sm.state == State.FALLING:
 		return
 
 	# Hide path, even if reference still stored elsewhere
@@ -49,7 +49,7 @@ func assign_path(new_path: Path) -> void:
 
 	path = new_path
 	path.start_following_from_pos(parent.global_position, true)
-	_transition_to_state(State.FOLLOWING_PATH)
+	sm.transition_to(State.FOLLOWING_PATH)
 
 func abort_path() -> void:
 	# Hide path, even if reference still stored elsewhere
@@ -58,53 +58,55 @@ func abort_path() -> void:
 		
 	path = null
 
-	if state == State.FOLLOWING_PATH:
-		_transition_to_state(State.NOT_MOVING)
+	if sm.state == State.FOLLOWING_PATH:
+		sm.transition_to(State.NOT_MOVING)
 
 ########################################################################################################################
 # PRIVATE
 ########################################################################################################################
 
 func _ready() -> void:
-	_transition_to_state(State.NOT_MOVING)
+	sm = StateMachine.new(self, State)
+	sm.transition_to(State.NOT_MOVING)
 
 
 func _physics_process(delta: float) -> void:
+	# Do this in all states
 	_update_on_ground_check()
 
-	# Tick falling
-	if state == State.FALLING:
-		curr_falling_speed = min(curr_falling_speed + falling_acceleration * delta, max_falling_speed)
-		parent.global_position.y += curr_falling_speed * delta
+	sm.physics_process(delta)
 
-		# Sample grid pos
-		parent.update_grid_pos(parent.sample_grid_pos())
 
-	elif state == State.FOLLOWING_PATH:
-		# Check if we have a path
-		if path == null:
-			_transition_to_state(State.NOT_MOVING)
-			return
+func _physics_process_falling(delta: float) -> void:
+	curr_falling_speed = min(curr_falling_speed + falling_acceleration * delta, max_falling_speed)
+	parent.global_position.y += curr_falling_speed * delta
 
-		# Check which speed to use
-		curr_speed = movement_speed
+	# Sample grid pos
+	parent.update_grid_pos(parent.sample_grid_pos())
 
-		# Follow path
-		parent.global_position = path.follow_path(curr_speed * delta)
-		parent.update_grid_pos(path.get_curr_grid_pos())
 
-		# Direction for flipping sprite
-		var movement_dir: Vector2 = path.get_next_grid_pos() - parent.grid_pos
-		Signal_MovementDirectionChanged.emit(movement_dir)
+func _physics_process_following_path(delta: float) -> void:
+	# Check if we have a path
+	if path == null:
+		sm.transition_to(State.NOT_MOVING)
+		return
 
-		# Check if we reached the end of the path
-		if path.reached_end():
-			Signal_OnFinishedPath.emit()
-			_transition_to_state(State.NOT_MOVING)
+	# Check which speed to use
+	curr_speed = movement_speed
+
+	# Follow path
+	parent.global_position = path.follow_path(curr_speed * delta)
+	parent.update_grid_pos(path.get_curr_grid_pos())
+
+	# Direction for flipping sprite
+	var movement_dir: Vector2 = path.get_next_grid_pos() - parent.grid_pos
+	Signal_MovementDirectionChanged.emit(movement_dir)
+
+	# Check if we reached the end of the path
+	if path.reached_end():
+		Signal_OnFinishedPath.emit()
+		sm.transition_to(State.NOT_MOVING)
 		
-	elif state == State.NOT_MOVING:
-		pass
-
 
 # Check if we should start/stop falling
 func _update_on_ground_check() -> void:
@@ -120,7 +122,7 @@ func _update_on_ground_check() -> void:
 			# Nothing to do            
 			return
 		else:
-			_transition_to_state(State.FALLING)
+			sm.transition_to(State.FALLING)
 			return
 
 	# Currently falling -> require cell to land on but also position inside of current cell to be on floor
@@ -129,36 +131,29 @@ func _update_on_ground_check() -> void:
 		if can_stand_in_current_cell and global_position.y >= y_cell_floor:
 			# Snap position to floor
 			parent.global_position.y = y_cell_floor
-			_transition_to_state(State.NOT_MOVING)
+			sm.transition_to(State.NOT_MOVING)
 			return
 		else:
 			# Still falling
 			return
 
 
-func _transition_to_state(new_state: State) -> void:
-	if new_state == state:
-		return
+func _enter_falling() -> void:
+	curr_falling_speed = starting_speed
+	fall_start_y = parent.grid_pos.y
+	Signal_OnStartedFalling.emit()
 
-	var prev_state: State = state
-	state = new_state
 
-	# Start falling
-	if prev_state != State.FALLING and new_state == State.FALLING:
-		curr_falling_speed = starting_speed
-		fall_start_y = parent.grid_pos.y
-		Signal_OnStartedFalling.emit()
+func _exit_falling() -> void:
+	var fall_height_cells: int = abs(fall_start_y - parent.grid_pos.y)
+	Signal_OnLanded.emit(fall_height_cells)
 
-	# Landed
-	elif prev_state == State.FALLING and new_state == State.NOT_MOVING:
-		var fall_height_cells: int = abs(fall_start_y - parent.grid_pos.y)
-		Signal_OnLanded.emit(fall_height_cells)
 
-	elif new_state == State.NOT_MOVING:
-		# Stopped moving
-		if path:
-			path.debug_draw = false
-		path = null
+func _enter_not_moving() -> void:
+	# Stopped moving
+	if path:
+		path.debug_draw = false
+	path = null
 
 
 func _get_can_use_ladders() -> bool:

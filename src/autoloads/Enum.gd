@@ -2,10 +2,16 @@
 extends Node
 
 func to_str(enum_dict: Dictionary, value: int) -> String:
-    for n: String in enum_dict:
-        if enum_dict[n] == value:
-            return n
-    return "Unknown"
+	for n: String in enum_dict:
+		if enum_dict[n] == value:
+			return n
+	return "Unknown"
+
+func to_string_array(enum_dict: Dictionary) -> Array[String]:
+	var names: Array[String] = []
+	for n: String in enum_dict:
+		names.append(n)
+	return names
 
 # Type of cell
 enum CellType {
@@ -17,11 +23,11 @@ enum CellType {
 }
 
 enum ProcessPriority {
-    DEFAULT = 0,
-    NAV = 1,
+	DEFAULT = 0,
+	NAV = 1,
 	JOBS = 2,
-    CELL = 10,
-    CELL_VISUAL = 11
+	CELL = 10,
+	CELL_VISUAL = 11
 }
 
 

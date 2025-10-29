@@ -11,21 +11,24 @@ extends GridObject2D
 static var next_dwarf_id: int = 0
 var dwarf_id: int
 
-enum State {IDLE, MOVING, MINING, FALLING}
-var _state: State
-
 var job_with_path: JobWithPath
 
 var num_torches: int = 50
+
+
+enum State {IDLE, MOVING, MINING, FALLING}
+var sm: StateMachine
 
 func setup(grid_pos_: Vector2i, sample_offset_: Vector2 = Global.VERT_OFFSET_SMALL) -> void:
 	super.setup(grid_pos_, sample_offset_)
 
 func _ready() -> void:
+	sm = StateMachine.new(self, State)
+	sm.transition_to(State.IDLE)
+
 	dwarf_id = next_dwarf_id
 	next_dwarf_id += 1
 
-	_state = State.IDLE
 	global_position = Global.level.get_cell(grid_pos).get_floor_point()
 
 	# SIGNALS
@@ -40,24 +43,11 @@ func _ready() -> void:
 	movement_comp.Signal_OnLanded.connect(_on_landed)
 
 
-# TODO implement state machine properly
 func _physics_process(delta: float) -> void:
-	if _state == State.IDLE:
-		_tick_idle(delta)
-	elif _state == State.MOVING:
-		pass
-	elif _state == State.MINING:
-		_tick_mining(delta)
-	elif _state == State.FALLING:
-		pass
+	sm.physics_process(delta)
 
 
-func _transition_to_state(new_state: State) -> void:
-	_state = new_state
-	_debug_draw_proxy.queue_redraw()
-	
-
-func _tick_idle(delta: float) -> void:
+func _physics_process_idle(delta: float) -> void:
 	# Try to get a new job
 	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_worker(grid_pos)
 
@@ -66,7 +56,7 @@ func _tick_idle(delta: float) -> void:
 
 		job_with_path.job.assign_dwarf(self)
 		movement_comp.assign_path(job_with_path.path)
-		_transition_to_state(State.MOVING)
+		sm.transition_to(State.MOVING)
 
 		print("%s started job %s at %s" % [self, Enum.to_str(Job.Type, job_with_path.job.type), job_with_path.job.target_cell])
 
@@ -84,8 +74,7 @@ func _on_finished_path() -> void:
 	# TODO other job types
 	print("%s reached %s and starts mining" % [self, job_with_path.job.target_cell])
 
-	_transition_to_state(State.MINING)
-	mining_comp.start_mining(job_with_path.job.target_cell)
+	sm.transition_to(State.MINING)
 
 
 func _on_new_cell_entered(new_cell: Cell) -> void:
@@ -94,7 +83,7 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 
 	# Place Torch
 	# -> Only place if idle or walking
-	if _state != State.IDLE and _state != State.MOVING:
+	if sm.state != State.IDLE and sm.state != State.MOVING:
 		return
 
 	# Check for torch placement
@@ -103,6 +92,9 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 		num_torches -= 1
 		new_cell.add_deco_element()
 
+
+func _enter_mining() -> void:
+	mining_comp.start_mining(job_with_path.job.target_cell)
 
 func _tick_mining(delta: float) -> void:
 	# Mining is handled in MiningComponent
@@ -128,8 +120,8 @@ func _on_mining_completed(mined_cell: Cell) -> void:
 		job_with_path = null
 
 	# Transition back to idle but dont override falling state
-	if _state != State.FALLING:
-		_transition_to_state(State.IDLE)
+	if sm.state != State.FALLING:
+		sm.transition_to(State.IDLE)
 
 
 func _on_started_falling() -> void:
@@ -140,7 +132,7 @@ func _on_started_falling() -> void:
 		job_with_path.job.unassign_dwarf(self)
 		job_with_path = null
 
-	_transition_to_state(State.FALLING)
+	sm.transition_to(State.FALLING)
 
 
 func _on_landed(fall_height_cells: int) -> void:
@@ -152,7 +144,7 @@ func _on_landed(fall_height_cells: int) -> void:
 		die()
 		return
 
-	_transition_to_state(State.IDLE)
+	sm.transition_to(State.IDLE)
 
 	# Simulate entering cell anew with idle (to place torches)
 	_on_new_cell_entered(curr_cell)
@@ -172,8 +164,8 @@ func on_job_deleted() -> void:
 	job_with_path = null
 
 	# Transition back to idle but dont override falling state
-	if _state != State.FALLING:
-		_transition_to_state(State.IDLE)
+	if sm.state != State.FALLING:
+		sm.transition_to(State.IDLE)
 
 
 func _on_nav_updated() -> void:
@@ -194,11 +186,11 @@ func _on_nav_updated() -> void:
 			job_with_path.job.unassign_dwarf(self)
 			movement_comp.abort_path()
 			job_with_path = null
-			_transition_to_state(State.IDLE)
+			sm.transition_to(State.IDLE)
 
 
 func _to_string() -> String:
-	return "Dwarf(id=%d, pos=%s, state=%s)" % [dwarf_id, grid_pos, Enum.to_str(State, _state)]
+	return "Dwarf(id=%d, pos=%s, state=%s)" % [dwarf_id, grid_pos, Enum.to_str(State, sm.state)]
 
 
 func die() -> void:
@@ -237,8 +229,8 @@ var debug_font_size := 22
 
 
 func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
-	var color_actual: Color = debug_state_colors.get(_state, Colors.DEFAULT)
-	var text: String = Enum.to_str(Dwarf.State, _state)
+	var color_actual: Color = debug_state_colors.get(sm.state, Colors.DEFAULT)
+	var text: String = Enum.to_str(Dwarf.State, sm.state)
 	ui_layer.draw_string(debug_font, debug_offset, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, color_actual)
 
 
