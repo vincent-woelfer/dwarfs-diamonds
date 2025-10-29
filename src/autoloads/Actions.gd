@@ -1,6 +1,7 @@
 # No class_name here, the name of the singleton is set in the autoload
 extends Node2D
 
+var rubble_scene := preload('res://scenes/Rubble.tscn')
 
 ########################################################################################################################
 # GLOBAL GAME ACTIONS
@@ -21,6 +22,12 @@ func destroy_cell(cell: Cell) -> void:
 
 	# Call global action to trigger all steps
 	Actions.mark_cell_for_mining(cell, false)
+
+	# Spawn Rubble
+	var rubble: Rubble = rubble_scene.instantiate()
+	rubble.setup(cell.grid_pos)
+	# TODO add to correct scene root
+	get_parent().add_child(rubble)
 
 
 func mark_cell_for_mining(cell: Cell, is_marked_for_mining: bool) -> void:

@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3 uid="uid://d2vaim21rg5dc"]
+
+[ext_resource type="Script" uid="uid://c7wsd7s4pb5n8" path="res://src/Rubble.gd" id="1_dy5u4"]
+[ext_resource type="Texture2D" uid="uid://cr4mqv8fdinsj" path="res://assets/sprites/sack.png" id="2_dy5u4"]
+[ext_resource type="Script" uid="uid://12nby18asb05" path="res://src/components/MovementComponent.gd" id="5_ogmlh"]
+
+[node name="Rubble" type="Node2D"]
+z_index = 5
+script = ExtResource("1_dy5u4")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -30)
+scale = Vector2(0.08, 0.08)
+texture = ExtResource("2_dy5u4")
+
+[node name="MovementComponent" type="Node2D" parent="."]
+script = ExtResource("5_ogmlh")
