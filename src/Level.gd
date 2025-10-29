@@ -3,8 +3,13 @@ extends Node2D
 
 var wandering_light_scene := preload('res://scenes/WanderingLight.tscn')
 var dwarf_scene := preload('res://scenes/Dwarf.tscn')
+var rubble_scene := preload('res://scenes/Rubble.tscn')
 
 var cells: Array[Array] = []
+
+var dwarfs: Array[Dwarf] = []
+
+var rubbles: Array[Rubble] = []
 
 var nav: Nav
 var job_manager: JobManager
@@ -59,10 +64,28 @@ func _ready() -> void:
 
 
 	# DWARF
-	var dwarf_grid_pos := Vector2i(3, 3)
+	spawn_dwarf(Vector2i(3, 2))
+
+func spawn_dwarf(grid_pos: Vector2i) -> void:
+	var cell := get_cell(grid_pos)
+	if cell == null or not cell.is_passable():
+		return
+
 	var dwarf: Dwarf = dwarf_scene.instantiate()
-	dwarf.setup(dwarf_grid_pos)
+	dwarf.setup(grid_pos)
 	add_child(dwarf)
+	dwarfs.append(dwarf)
+
+
+func spawn_rubble(grid_pos: Vector2i) -> void:
+	var cell := get_cell(grid_pos)
+	if cell == null or not cell.is_passable():
+		return
+
+	var new_rubble: Rubble = rubble_scene.instantiate()
+	new_rubble.setup(grid_pos)
+	add_child(new_rubble)
+	rubbles.append(new_rubble)
 
 
 func _dev_toogle_light(is_light_on: bool) -> void:

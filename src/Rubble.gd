@@ -12,6 +12,9 @@ func setup(grid_pos_: Vector2i, sample_offset_: Vector2 = Global.VERT_OFFSET_SMA
 func _ready() -> void:
 	global_position = Global.level.get_cell(grid_pos).get_floor_point()
 
+	movement_comp.movement_capabilities.can_use_ladders = false
+	movement_comp.movement_capabilities.can_use_ladders_when_falling = false
+
 	# SIGNALS
 	# EventBus.Signal_NavUpdated.connect(_on_nav_updated)
 

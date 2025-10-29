@@ -148,6 +148,10 @@ func _on_landed(fall_height_cells: int) -> void:
 		audio_player.stream = Audio.sounds.get("dwarf_on_landing")
 		audio_player.play()
 
+	if fall_height_cells > 5:
+		die()
+		return
+
 	_transition_to_state(State.IDLE)
 
 	# Simulate entering cell anew with idle (to place torches)
@@ -196,6 +200,22 @@ func _on_nav_updated() -> void:
 func _to_string() -> String:
 	return "Dwarf(id=%d, pos=%s, state=%s)" % [dwarf_id, grid_pos, Enum.to_str(State, _state)]
 
+
+func die() -> void:
+	print("%s has died!" % [self])
+	
+	if job_with_path != null:
+		# Abandon job
+		if job_with_path.path != null:
+			job_with_path.path.free()
+		job_with_path.job.unassign_dwarf(self)
+		job_with_path = null
+
+	audio_player.stream = Audio.sounds.get("dwarf_on_landing")
+	audio_player.pitch_scale = 0.4
+	audio_player.play()
+
+	queue_free()
 
 ########################################################################################################################
 # DEBUG DRAWING
