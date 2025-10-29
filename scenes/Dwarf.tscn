@@ -4,7 +4,7 @@
 [ext_resource type="SpriteFrames" uid="uid://1pxkf0jq8fyl" path="res://assets/dwarf_sprite_frames.tres" id="1_ms7vq"]
 [ext_resource type="Script" uid="uid://cmcygcrc8o3af" path="res://src/Dwarf.gd" id="1_po7l6"]
 [ext_resource type="Script" uid="uid://sfmxn54qwmtl" path="res://src/components/MiningComponent.gd" id="3_ms7vq"]
-[ext_resource type="Script" uid="uid://dmxyb57voo4xx" path="res://src/components/FallingComponent.gd" id="5_o7n6f"]
+[ext_resource type="Script" uid="uid://12nby18asb05" path="res://src/components/MovementComponent.gd" id="5_o7n6f"]
 
 [node name="Dwarf" type="Node2D"]
 z_index = 5
@@ -32,11 +32,7 @@ texture = ExtResource("1_d170h")
 script = ExtResource("3_ms7vq")
 metadata/_custom_type_script = "uid://sfmxn54qwmtl"
 
-[node name="FallingComponent" type="Node2D" parent="."]
+[node name="MovementComponent" type="Node2D" parent="."]
 script = ExtResource("5_o7n6f")
-metadata/_custom_type_script = "uid://dmxyb57voo4xx"
 
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
-
-[connection signal="Signal_OnLanded" from="FallingComponent" to="." method="_on_landed"]
-[connection signal="Signal_OnStartedFalling" from="FallingComponent" to="." method="_on_started_falling"]

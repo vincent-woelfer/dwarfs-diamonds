@@ -61,7 +61,7 @@ func _ready() -> void:
 	# DWARF
 	var dwarf_grid_pos := Vector2i(3, 3)
 	var dwarf: Dwarf = dwarf_scene.instantiate()
-	dwarf.grid_pos = dwarf_grid_pos
+	dwarf.setup(dwarf_grid_pos)
 	add_child(dwarf)
 
 

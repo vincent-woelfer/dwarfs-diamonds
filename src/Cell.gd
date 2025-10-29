@@ -18,7 +18,7 @@ var has_ladder: bool
 var torch_scene := preload('res://scenes/deco/deco_torch.tscn')
 
 ########################################################################################################################
-# Derived Status Flags
+# Derived State Flags
 ########################################################################################################################
 # Passable = not solid and not other obstacle. Does not require ladder or similar.
 # Basically means "free air"
@@ -27,16 +27,16 @@ func is_passable() -> bool:
 
 
 # Standable = solid ground or ladder. Can stand on it. Also requires passable
-func is_standable(ignore_ladders: bool = false) -> bool:
+func is_standable(can_use_ladders: bool = true) -> bool:
 	if not is_passable():
 		return false
 
 	var n_bot := get_neighbour(Global.VEC_DOWN)
 
-	if ignore_ladders:
-		return n_bot and n_bot.is_solid
-	else:
+	if can_use_ladders:
 		return (has_ladder) or (n_bot and n_bot.is_solid)
+	else:
+		return n_bot and n_bot.is_solid
 
 ########################################################################################################################
 # OTHER FLAGS

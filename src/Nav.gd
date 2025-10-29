@@ -54,7 +54,7 @@ func find_path_to_one_of(start: Vector2i, goals: Array[Vector2i]) -> Path:
 			continue
 
 		var new_path := Path.new(path_grid_points)
-		if shortest_path == null or new_path.get_num_cells() < shortest_path.get_num_cells():
+		if shortest_path == null or new_path.get_length_grid_space() < shortest_path.get_length_grid_space():
 			shortest_path = new_path
 
 	return shortest_path

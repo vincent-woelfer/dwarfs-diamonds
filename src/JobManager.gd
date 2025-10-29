@@ -33,7 +33,7 @@ func remove_mining_job_for_cell(cell: Cell) -> void:
 func get_new_job_for_worker(start_pos: Vector2i) -> JobWithPath:
 	# Filter for ready jobs
 	var ready_jobs: Array[Job] = _jobs.filter(func(j: Job) -> bool:
-		return j.status == Job.Status.READY
+		return j.state == Job.State.READY
 	)
 
 	# Find job with shortest path
@@ -41,7 +41,7 @@ func get_new_job_for_worker(start_pos: Vector2i) -> JobWithPath:
 	for job in ready_jobs:
 		var path: Path = Global.level.nav.find_path_to_one_of(start_pos, job.workable_from_grid_poses)
 		if path != null:
-			if best_job_with_path == null or path.get_num_cells() < best_job_with_path.path.get_num_cells():
+			if best_job_with_path == null or path.get_length_grid_space() < best_job_with_path.path.get_length_grid_space():
 				best_job_with_path = JobWithPath.new(job, path)
 			
 	return best_job_with_path
@@ -65,18 +65,18 @@ func _process(delta: float) -> void:
 func _on_nav_updated() -> void:
 	# Update all jobs not in progress
 	for job in _jobs:
-		if job.status != Job.Status.IN_PROCESS:
+		if job.state != Job.State.IN_PROCESS:
 			job.update_workable_from_cells()
-			job.update_status()
+			job.update_state()
 
 	
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
-const debug_status_colors := {
-	Job.Status.BLOCKED: Color.RED,
-	Job.Status.READY: Color.GREEN,
-	Job.Status.IN_PROCESS: Color.BLUE,
+const debug_state_colors := {
+	Job.State.BLOCKED: Color.RED,
+	Job.State.READY: Color.GREEN,
+	Job.State.IN_PROCESS: Color.BLUE,
 }
 
 const debug_size_point := 7.0
@@ -91,14 +91,14 @@ func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 	var num_already_drawn_per_cell: Dictionary[Vector2i, int] = {}
 
 	for job in _jobs:
-		var color_actual: Color = debug_status_colors.get(job.status, Colors.DEFAULT)
+		var color_actual: Color = debug_state_colors.get(job.state, Colors.DEFAULT)
 		var cell: Cell = job.target_cell
 
 		var draw_world_pos := Util.grid_to_world_cell_center(cell.grid_pos)
 		var offset_idx: int = num_already_drawn_per_cell.get(cell.grid_pos, 0)
 		num_already_drawn_per_cell[cell.grid_pos] = offset_idx + 1
 
-		var text: String = Enum.to_str(Job.Type, job.type) + " - " + Enum.to_str(Job.Status, job.status)
+		var text: String = Enum.to_str(Job.Type, job.type) + " - " + Enum.to_str(Job.State, job.state)
 		var pos := draw_world_pos + _debug_get_offset(offset_idx)
 
 		ui_layer.draw_string(debug_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, debug_font_size, color_actual)

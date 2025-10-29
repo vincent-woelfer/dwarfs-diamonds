@@ -7,7 +7,7 @@ enum Type {
 	CARRY,
 }
 
-enum Status {
+enum State {
 	BLOCKED,
 	READY,
 	IN_PROCESS,
@@ -15,7 +15,7 @@ enum Status {
 
 
 var type: Job.Type
-var status: Job.Status
+var state: Job.State
 
 # "Center"-Cell of this job (e.g. the cell to be mined)
 var target_cell: Cell
@@ -33,29 +33,29 @@ func _init(type_: Job.Type, cell_: Cell) -> void:
 	self.target_cell = cell_
 
 	update_workable_from_cells()
-	update_status(true)
+	update_state(true)
 
 
 func assign_dwarf(dwarf: Dwarf) -> void:
 	assert(dwarf != null)
 
 	# Job must be READY or IN_PROCESS with assigned dwarfs
-	assert(status == Job.Status.READY or (status == Job.Status.IN_PROCESS and !assigned_dwarfs.is_empty()))
+	assert(state == Job.State.READY or (state == Job.State.IN_PROCESS and !assigned_dwarfs.is_empty()))
 	
-	status = Job.Status.IN_PROCESS
+	state = Job.State.IN_PROCESS
 	Util.array_append_unique_not_null(assigned_dwarfs, dwarf)
 
 
 func unassign_dwarf(dwarf: Dwarf) -> void:
 	assert(dwarf != null)
-	assert(status == Job.Status.IN_PROCESS)
+	assert(state == Job.State.IN_PROCESS)
 
 	assigned_dwarfs.erase(dwarf)
 
 	if assigned_dwarfs.is_empty():
 		# Set back to READY or BLOCKED depending on workable cells
 		update_workable_from_cells()
-		update_status(true)
+		update_state(true)
 
 
 ## Dont use for finishing jobs
@@ -66,10 +66,10 @@ func delete() -> void:
 
 func complete(dwarf: Dwarf) -> void:
 	assert(dwarf != null)
-	assert(status == Job.Status.IN_PROCESS)
+	assert(state == Job.State.IN_PROCESS)
 	assert(assigned_dwarfs.has(dwarf))
 
-	# Unassign dwarf but dont change job status yet (so dont call unassign_dwarf)
+	# Unassign dwarf but dont change job state yet (so dont call unassign_dwarf)
 	assigned_dwarfs.erase(dwarf)
 
 	# Delete for other dwarfs
@@ -93,10 +93,10 @@ func update_workable_from_cells() -> void:
 
 
 # TODO maybe change to two bools: blocked/ready and in_process/unassigned
-func update_status(force_update: bool = false) -> void:
+func update_state(force_update: bool = false) -> void:
 	# Only update if not in progress or forced
-	if status != Status.IN_PROCESS or force_update:
+	if state != State.IN_PROCESS or force_update:
 		if workable_from_grid_poses.is_empty():
-			status = Status.BLOCKED
+			state = State.BLOCKED
 		else:
-			status = Status.READY
+			state = State.READY

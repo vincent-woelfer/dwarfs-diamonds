@@ -2,73 +2,77 @@ class_name Path
 extends Node2D
 
 ## Construct once and reuse only for following. Dont assign new points.
-## Only drawn if added to scene tree, but normal usage is to not do so.
 
-var _points_grid_space: Array[Vector2i]
-var _center_points_world_space: PackedVector2Array
-var _floor_points_world_space: PackedVector2Array
+########################################################################################################################
+# PATH DATA
+########################################################################################################################
 
-# Only works for one follower at a time
-var _follow_next_index_floor: int = 0 # Capped at size (so after last point) == reached end
-var _follow_next_index_center: int = 0 # Used mostly for debug drawing and for get_next_cell
+# Grid positions of cells in path. Size = n
+var _grid_points: Array[Vector2i]
+# Cell-Center positions in world_space of cells in path. Size = n
+var _center_points: PackedVector2Array
+# Points on cell floor / cell-wall for diagonal movement. Size = m >= n, depending on path shape
+var _floor_points: PackedVector2Array
 
-var debug_draw: bool = false
+# Mapping from floor-point-index to grid-point-index. Size = m
+# So _map[_next_floor_idx] gives the grid-point-index of the cell containing that floor-point
+var _floor_to_grid_point_map: Array[int]
+
+# Current following indices
+# Used mostly for debug drawing and for get_next_cell
+var _next_center_idx: int = 0
+# Capped at size (so after last point) == reached end
+var _next_floor_idx: int = 0
+
+var _curr_pos: Vector2 = Vector2.INF
 
 # Normal case is > 2 points. 0 is an exception
-func _init(points_grid_space_: Array[Vector2i]) -> void:
-	self._points_grid_space = points_grid_space_
-	self._center_points_world_space = Util.grid_to_world_cell_center_array(_points_grid_space)
-	self._floor_points_world_space = _calculate_follow_points()
+func _init(grid_points_: Array[Vector2i]) -> void:
+	self._grid_points = grid_points_
+	self._center_points = Util.grid_to_world_cell_center_array(_grid_points)
+	_calculate_floor_points()
 
-
-## For now just returns number of points
-func get_num_cells() -> float:
-	return _points_grid_space.size()
-
+########################################################################################################################
+# PUBLIC
+########################################################################################################################
 
 ## Call when starting to follow path to start from closest point
-func update_following_index_to_closest(current_world_pos: Vector2) -> void:
-	if _floor_points_world_space.size() == 0:
-		_follow_next_index_center = 0
-		_follow_next_index_floor = 0
+func start_following_from_pos(start_pos: Vector2, debug_draw_: bool = true) -> void:
+	_curr_pos = start_pos
+
+	# Enable debug drawing
+	if debug_draw_:
+		debug_draw = true
+		_debug_draw_proxy.queue_redraw()
+
+	if _floor_points.size() == 0:
+		_next_center_idx = 0
+		_next_floor_idx = 0
 		return
 
-	# Start following from closest point to here
-	for i in range(_floor_points_world_space.size() - 1):
-		var a := _floor_points_world_space[i]
-		var b := _floor_points_world_space[i + 1]
-		if Util.is_point_near_line_segment(current_world_pos, a, b):
-			_increment_follow_index()
+	# Start following from closest floor point
+	for i in range(_floor_points.size() - 1):
+		var a := _floor_points[i]
+		var b := _floor_points[i + 1]
+
+		# If close to segment, start from next point
+		if Util.is_point_near_line_segment(start_pos, a, b):
+			_update_next_indices(i + 1)
 			break
 
-	_debug_draw_proxy.queue_redraw()
 
-
-## Updates _follow_next_index_center to the cell containing the next floor point.
-## This means this switches shortly before exiting the current cell.
-func _increment_follow_index() -> void:
-	# Increment with cap
-	_follow_next_index_floor = min(_follow_next_index_floor + 1, _floor_points_world_space.size())
-
-	# Update cell-center index
-	var valid_floor_points_index: int = min(_follow_next_index_floor, _floor_points_world_space.size() - 1)
-	var floor_point_world_space: Vector2 = _floor_points_world_space[valid_floor_points_index]
-	var grid_pos: Vector2i = Global.level.get_cell_at_world_pos(floor_point_world_space + Global.VERT_OFFSET_SMALL).grid_pos
-
-	# Find grid_space index, cell-center index is the same
-	_follow_next_index_center = _points_grid_space.find(grid_pos)
-
-
-## Returns new position in world space after following path for distance.
+## Returns new position in world space after following path for distance from current_pos.
 ## Updates internal state to continue from there.
 ## Should be called exactly once per physics frame.
+## Allows to call get_curr_cell and get_next_cell after moving.
 ## current_pos in world space
-func follow_path(current_pos: Vector2, distance: float) -> Vector2:
-	var final_pos: Vector2 = current_pos
+func follow_path(distance: float) -> Vector2:
+	assert(_curr_pos != Vector2.INF) # Make sure start_following_from_pos was called
+	var final_pos: Vector2 = _curr_pos
 
-	while _follow_next_index_floor < _floor_points_world_space.size():
-		var next_waypoint: Vector2 = _floor_points_world_space[_follow_next_index_floor]
-		var vec_to_next: Vector2 = next_waypoint - current_pos
+	while _next_floor_idx < _floor_points.size():
+		var next_waypoint: Vector2 = _floor_points[_next_floor_idx]
+		var vec_to_next: Vector2 = next_waypoint - _curr_pos
 		var dist_to_next: float = vec_to_next.length()
 		var dir_to_next: Vector2 = vec_to_next.normalized()
 
@@ -80,57 +84,125 @@ func follow_path(current_pos: Vector2, distance: float) -> Vector2:
 		# New waypoint reached, continue to next
 		final_pos = next_waypoint
 		distance -= dist_to_next
-		_increment_follow_index()
+		_update_next_indices(_next_floor_idx + 1)
 		_debug_draw_proxy.queue_redraw()
 
+	_curr_pos = final_pos
 	return final_pos
 
 
-## Returns the next cell to be entered, or null if at end
-func get_next_cell() -> Cell:
-	if _follow_next_index_center >= _points_grid_space.size():
-		return null
+## Returns the current cell the following parent is in.
+## This is limited to the grid_cells of the path (relevant for diagonal movement)
+func get_curr_grid_pos() -> Vector2i:
+	return _grid_points[_get_curr_grid_pos_index()]
 
-	var next_grid_pos: Vector2i = _points_grid_space[_follow_next_index_center]
-	return Global.level.get_cell(next_grid_pos)
+
+## Returns the next _cell to be entered
+func get_next_grid_pos() -> Vector2i:
+	var curr_grid_pos_index := _get_curr_grid_pos_index()
+	var next_grid_pos_index: int = min(curr_grid_pos_index + 1, _grid_points.size() - 1)
+	return _grid_points[next_grid_pos_index]
 
 
 func reached_end() -> bool:
-	assert(_follow_next_index_floor <= _floor_points_world_space.size())
-	return _follow_next_index_floor == _floor_points_world_space.size()
+	assert(_next_floor_idx <= _floor_points.size())
+	return _next_floor_idx == _floor_points.size()
 
 
-## Calculates follow points connecting floor-points of cells
-func _calculate_follow_points() -> PackedVector2Array:
-	if _points_grid_space.size() == 0:
-		return PackedVector2Array()
+## For now just returns number of points
+func get_num_cells() -> int:
+	return _grid_points.size()
 
-	var follow_points: PackedVector2Array = PackedVector2Array()
+
+## Returns length of path in grid space (cells), accounting for diagonal movement
+func get_length_grid_space() -> float:
+	var length: float = 0.0
+	for i in range(_grid_points.size() - 1):
+		length += (_grid_points[i + 1] - _grid_points[i]).length()
+	return length
+
+
+########################################################################################################################
+# INTERNAL API
+########################################################################################################################
+
+## Returns the current cell the following parent is in (by index)
+## This is limited to the grid_cells of the path (relevant for diagonal movement)
+func _get_curr_grid_pos_index() -> int:
+	assert(_curr_pos != Vector2.INF) # Make sure start_following_from_pos was called
+
+	# Decide whether _curr_pos already is in _next_center_idx or the previous one
+	var sampled_grid_pos := Global.level.get_cell_at_world_pos(_curr_pos).grid_pos
+	var curr_grid_pos_index: int
+
+	# After end of path -> last cell
+	if reached_end():
+		curr_grid_pos_index = _grid_points.size() - 1
+	# In next cell
+	elif sampled_grid_pos == _grid_points[_next_center_idx]:
+		curr_grid_pos_index = _next_center_idx
+	# Previous cell
+	else:
+		var prev_center_idx: int = max(_next_center_idx - 1, 0)
+		curr_grid_pos_index = prev_center_idx
+
+	return curr_grid_pos_index
+
+## Updates _next_center_idx to the cell containing the next floor point.
+## This means this switches shortly before exiting the current cell.
+func _update_next_indices(new_next_floor: int) -> void:
+	# Increment with cap
+	_next_floor_idx = min(new_next_floor, _floor_points.size()) # can be size -> this means reached end
+	if _next_floor_idx == _floor_points.size():
+		_next_center_idx = _grid_points.size()
+	else:
+		_next_center_idx = _floor_to_grid_point_map[_next_floor_idx]
+
+## Calculates floor-points based on _grid_points.
+## Also fills _floor_to_grid_point_map.
+func _calculate_floor_points() -> void:
+	if _grid_points.size() == 0:
+		_floor_points = PackedVector2Array()
+		return
+
+	# New _floor_points array
+	var p: PackedVector2Array = PackedVector2Array()
+	var map: Array[int] = []
 
 	# We go through pairs and connect from ground-center to ground-center.
 	# We always assume from-center is already in follow_points, thats why we add it for the inital cell before the loop
-	follow_points.append(Global.level.get_cell(_points_grid_space[0]).get_floor_point())
+	p.append(Global.level.get_cell(_grid_points[0]).get_floor_point())
+	map.append(0)
 	
-	for i in range(_points_grid_space.size() - 1):
-		var from: Cell = Global.level.get_cell(_points_grid_space[i])
-		var to: Cell = Global.level.get_cell(_points_grid_space[i + 1])
+	for i in range(_grid_points.size() - 1):
+		var from_idx := i
+		var to_idx := i + 1
+		var from: Cell = Global.level.get_cell(_grid_points[from_idx])
+		var to: Cell = Global.level.get_cell(_grid_points[to_idx])
 		
 		if Util.are_cardinal_neighbours(from.grid_pos, to.grid_pos):
 			if from.grid_pos.x == to.grid_pos.x:
 				# Vertical -> connect directly, only floor-center of to cell
-				follow_points.append(to.poly_point(Enum.PolyPoint.BOT))
+				p.append(to.poly_point(Enum.PolyPoint.BOT))
+				map.append(to_idx)
 			else:
 				# Horizontal -> connect directly, exit-floor-point of from + enter-floor-point + center of to
 				if from.grid_pos.x < to.grid_pos.x:
 					# to the right
-					follow_points.append(from.poly_point(Enum.PolyPoint.BOT_RIGHT))
-					follow_points.append(to.poly_point(Enum.PolyPoint.BOT_LEFT))
-					follow_points.append(to.poly_point(Enum.PolyPoint.BOT))
+					p.append(from.poly_point(Enum.PolyPoint.BOT_RIGHT))
+					p.append(to.poly_point(Enum.PolyPoint.BOT_LEFT))
+					p.append(to.poly_point(Enum.PolyPoint.BOT))
 				else:
 					# to the left
-					follow_points.append(from.poly_point(Enum.PolyPoint.BOT_LEFT))
-					follow_points.append(to.poly_point(Enum.PolyPoint.BOT_RIGHT))
-					follow_points.append(to.poly_point(Enum.PolyPoint.BOT))
+					p.append(from.poly_point(Enum.PolyPoint.BOT_LEFT))
+					p.append(to.poly_point(Enum.PolyPoint.BOT_RIGHT))
+					p.append(to.poly_point(Enum.PolyPoint.BOT))
+				
+				# Mapping is the same in both cases
+				map.append(from_idx)
+				map.append(to_idx)
+				map.append(to_idx)
+					
 		else:
 			# Diagonal -> we offset the wall-points inward a bit to avoid clipping into walls
 			const dwarf_width: Vector2 = Vector2(Global.CELL_SIZE * 0.3, 0.0)
@@ -139,51 +211,71 @@ func _calculate_follow_points() -> PackedVector2Array:
 			var to_the_right: bool = from.grid_pos.x < to.grid_pos.x
 			var upwards: bool = from.grid_pos.y > to.grid_pos.y
 
-			if to_the_right and upwards:
-				# in front of wall
-				follow_points.append(from.poly_point(Enum.PolyPoint.BOT_RIGHT) - dwarf_width)
-				follow_points.append(from.poly_point(Enum.PolyPoint.RIGHT) - dwarf_width)
-				follow_points.append(from.poly_point(Enum.PolyPoint.TOP_RIGHT) - dwarf_width)
-				# on top of to-cell
-				follow_points.append(to.poly_point(Enum.PolyPoint.BOT_LEFT))
-				follow_points.append(to.poly_point(Enum.PolyPoint.BOT))
+			if upwards:
+				if to_the_right:
+					# in front of wall
+					p.append(from.poly_point(Enum.PolyPoint.BOT_RIGHT) - dwarf_width)
+					p.append(from.poly_point(Enum.PolyPoint.RIGHT) - dwarf_width)
+					p.append(from.poly_point(Enum.PolyPoint.TOP_RIGHT) - dwarf_width)
+					# on top of to-cell
+					p.append(to.poly_point(Enum.PolyPoint.BOT_LEFT))
+					p.append(to.poly_point(Enum.PolyPoint.BOT))
 
-			if to_the_right and not upwards:
-				# on top of from-cell
-				follow_points.append(from.poly_point(Enum.PolyPoint.BOT_RIGHT))
-				# in front of wall
-				follow_points.append(to.poly_point(Enum.PolyPoint.TOP_LEFT) + dwarf_width)
-				follow_points.append(to.poly_point(Enum.PolyPoint.LEFT) + dwarf_width)
-				# on top of to-cell
-				follow_points.append(to.poly_point(Enum.PolyPoint.BOT_LEFT) + dwarf_width)
-				follow_points.append(to.poly_point(Enum.PolyPoint.BOT))
+				elif not to_the_right:
+					# in front of wall
+					p.append(from.poly_point(Enum.PolyPoint.BOT_LEFT) + dwarf_width)
+					p.append(from.poly_point(Enum.PolyPoint.LEFT) + dwarf_width)
+					p.append(from.poly_point(Enum.PolyPoint.TOP_LEFT) + dwarf_width)
+					# on top of to-cell
+					p.append(to.poly_point(Enum.PolyPoint.BOT_RIGHT))
+					p.append(to.poly_point(Enum.PolyPoint.BOT))
+				
+				# Mapping is the same in both cases
+				map.append(from_idx)
+				map.append(from_idx)
+				map.append(from_idx)
+				map.append(to_idx)
+				map.append(to_idx)
 
-			if not to_the_right and upwards:
-				# in front of wall
-				follow_points.append(from.poly_point(Enum.PolyPoint.BOT_LEFT) + dwarf_width)
-				follow_points.append(from.poly_point(Enum.PolyPoint.LEFT) + dwarf_width)
-				follow_points.append(from.poly_point(Enum.PolyPoint.TOP_LEFT) + dwarf_width)
-				# on top of to-cell
-				follow_points.append(to.poly_point(Enum.PolyPoint.BOT_RIGHT))
-				follow_points.append(to.poly_point(Enum.PolyPoint.BOT))
+			elif not upwards:
+				if to_the_right:
+					# on top of from-cell
+					p.append(from.poly_point(Enum.PolyPoint.BOT_RIGHT))
+					# in front of wall
+					p.append(to.poly_point(Enum.PolyPoint.TOP_LEFT) + dwarf_width)
+					p.append(to.poly_point(Enum.PolyPoint.LEFT) + dwarf_width)
+					# on top of to-cell
+					p.append(to.poly_point(Enum.PolyPoint.BOT_LEFT) + dwarf_width)
+					p.append(to.poly_point(Enum.PolyPoint.BOT))
 
-			if not to_the_right and not upwards:
-				# on top of from-cell
-				follow_points.append(from.poly_point(Enum.PolyPoint.BOT_LEFT))
-				# in front of wall
-				follow_points.append(to.poly_point(Enum.PolyPoint.TOP_RIGHT) - dwarf_width)
-				follow_points.append(to.poly_point(Enum.PolyPoint.RIGHT) - dwarf_width)
-				# on top of to-cell
-				follow_points.append(to.poly_point(Enum.PolyPoint.BOT_RIGHT) - dwarf_width)
-				follow_points.append(to.poly_point(Enum.PolyPoint.BOT))
+				elif not to_the_right:
+					# on top of from-cell
+					p.append(from.poly_point(Enum.PolyPoint.BOT_LEFT))
+					# in front of wall
+					p.append(to.poly_point(Enum.PolyPoint.TOP_RIGHT) - dwarf_width)
+					p.append(to.poly_point(Enum.PolyPoint.RIGHT) - dwarf_width)
+					# on top of to-cell
+					p.append(to.poly_point(Enum.PolyPoint.BOT_RIGHT) - dwarf_width)
+					p.append(to.poly_point(Enum.PolyPoint.BOT))
+				
+				# Mapping is the same in both cases
+				map.append(from_idx)
+				map.append(to_idx)
+				map.append(to_idx)
+				map.append(to_idx)
+				map.append(to_idx)
 
 
-	return follow_points
+	assert(p.size() == map.size())
+
+	_floor_points = p
+	_floor_to_grid_point_map = map
 
 	
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
+var debug_draw: bool = false
 var _debug_draw_proxy := DebugDrawProxy.new(self)
 
 # Only drawn if added to scene tree
@@ -204,8 +296,8 @@ func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 	var remaining_points: PackedVector2Array
 
 	if debug_draw_follow_points:
-		completed_points = _floor_points_world_space.slice(0, _follow_next_index_floor + 1)
-		remaining_points = _floor_points_world_space.slice(_follow_next_index_floor)
+		completed_points = _floor_points.slice(0, _next_floor_idx + 1)
+		remaining_points = _floor_points.slice(_next_floor_idx)
 
 		# Slightly offset to be above ground
 		for i in range(completed_points.size()):
@@ -214,8 +306,8 @@ func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 			remaining_points[i] += debug_offset_follow_points
 		
 	else:
-		completed_points = _center_points_world_space.slice(0, _follow_next_index_center + 1)
-		remaining_points = _center_points_world_space.slice(_follow_next_index_center)
+		completed_points = _center_points.slice(0, _next_center_idx + 1)
+		remaining_points = _center_points.slice(_next_center_idx)
 
 	# Finally draw
 	if completed_points.size() >= 2:

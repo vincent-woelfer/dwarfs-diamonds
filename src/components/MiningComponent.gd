@@ -2,7 +2,7 @@ class_name MiningComponent
 extends Node2D
 
 
-## Emitted when a cell was completely mined
+## Emitted when a cell was completely mined by this component
 signal Signal_OnMiningCompleted(mined_cell: Cell)
 
 # per second
@@ -38,6 +38,7 @@ func is_currently_mining() -> bool:
 # PRIVATE METHODS
 ########################################################################################################################
 func _ready() -> void:
+	# SIGNALS
 	EventBus.Signal_CellMiningCompleted.connect(_on_cell_mining_completed)
 
 
