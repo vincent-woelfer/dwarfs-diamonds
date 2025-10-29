@@ -1,5 +1,5 @@
 class_name Dwarf
-extends Node2D
+extends GridObject2D
 
 # Scene Components
 @onready var light: PointLight2D = $PointLight2D
@@ -12,15 +12,16 @@ static var next_dwarf_id: int = 0
 var dwarf_id: int
 var speed := 250.0 # pixels per second
 
-# TODO move this property + logic to abstract parent class and reuse
-var grid_pos: Vector2i
-
 enum Status {IDLE, MOVING, MINING, FALLING}
 var _status: Status
 
 var job_with_path: JobWithPath
 
 var num_torches: int = 50
+
+
+func _init(grid_pos_: Vector2i) -> void:
+	super (grid_pos_)
 
 
 func _ready() -> void:
@@ -39,7 +40,7 @@ func _ready() -> void:
 # TODO implement state machine properly
 func _physics_process(delta: float) -> void:
 	# Update grid cell before anything else
-	grid_pos = _get_new_grid_pos()
+	_sample_grid_pos()
 
 	if _status == Status.IDLE:
 		_tick_idle(delta)
@@ -82,17 +83,12 @@ func _tick_moving(delta: float) -> void:
 	var move_vector: Vector2 = new_pos - global_position
 	global_position = new_pos
 
-	# Update grid cell
-	var old_grid_pos: Vector2i = grid_pos
-	grid_pos = _get_new_grid_pos()
-
-	if old_grid_pos != grid_pos:
-		_on_enter_new_cell(old_grid_pos)
+	# TODO remove, dont sample while moving, get cell from path
+	_sample_grid_pos()
 
 	# Turn sprite
 	if move_vector.x != 0.0:
 		animated_sprite.flip_h = move_vector.x < 0.0
-
 
 	# Reached job
 	if job_with_path.path.reached_end():
@@ -107,20 +103,21 @@ func _tick_moving(delta: float) -> void:
 		mining_comp.start_mining(job_with_path.job.target_cell)
 
 
-func _on_enter_new_cell(old_grid_pos: Vector2i) -> void:
-	var cell: Cell = Global.level.get_cell(grid_pos)
-	if cell == null:
+func _on_enter_new_grid_pos() -> void:
+	var new_cell: Cell = Global.level.get_cell(grid_pos)
+	if new_cell == null:
 		return
 
-	# Only place if idle or walking
+	# Place Torch
+	# -> Only place if idle or walking
 	if _status != Status.IDLE and _status != Status.MOVING:
 		return
 
 	# Check for torch placement
-	if num_torches > 0 and cell.deco_elements.is_empty() and Global.level.should_contain_torch(grid_pos):
+	if num_torches > 0 and new_cell.deco_elements.is_empty() and Global.level.should_contain_torch(grid_pos):
 		print("%s placing torch at %s" % [self, grid_pos])
 		num_torches -= 1
-		cell.add_deco_element()
+		new_cell.add_deco_element()
 
 
 func _tick_mining(delta: float) -> void:
@@ -156,9 +153,6 @@ func _on_started_falling() -> void:
 
 	_transition_to_state(Status.FALLING)
 
-	# Simulate entering cell anew with idle
-	_on_enter_new_cell(grid_pos - Vector2i(0, 1))
-
 
 func _on_landed(fall_height_cells: int) -> void:
 	if fall_height_cells > 1:
@@ -166,6 +160,9 @@ func _on_landed(fall_height_cells: int) -> void:
 		audio_player.play()
 
 	_transition_to_state(Status.IDLE)
+
+	# Simulate entering cell anew with idle (to place torches)
+	_on_enter_new_grid_pos()
 
 
 ## Called externally when job is deleted - not for the dwarf calling job.complete
@@ -204,10 +201,6 @@ func _on_nav_updated() -> void:
 			job_with_path.job.unassign_dwarf(self)
 			job_with_path = null
 			_transition_to_state(Status.IDLE)
-
-
-func _get_new_grid_pos() -> Vector2i:
-	return Global.level.get_cell_at_world_pos(global_position + Global.VERT_OFFSET_SMALL).grid_pos
 
 
 func _to_string() -> String:

@@ -10,7 +10,7 @@ var _floor_points_world_space: PackedVector2Array
 
 # Only works for one follower at a time
 var _follow_next_index_floor: int = 0 # Capped at size (so after last point) == reached end
-var _follow_next_index_center: int = 0 # only used for debug drawing
+var _follow_next_index_center: int = 0 # Used mostly for debug drawing and for get_next_cell
 
 var debug_draw: bool = false
 
@@ -43,10 +43,14 @@ func update_following_index_to_closest(current_world_pos: Vector2) -> void:
 
 	_debug_draw_proxy.queue_redraw()
 
+
+## Updates _follow_next_index_center to the cell containing the next floor point.
+## This means this switches shortly before exiting the current cell.
 func _increment_follow_index() -> void:
 	# Increment with cap
 	_follow_next_index_floor = min(_follow_next_index_floor + 1, _floor_points_world_space.size())
 
+	# Update cell-center index
 	var valid_floor_points_index: int = min(_follow_next_index_floor, _floor_points_world_space.size() - 1)
 	var floor_point_world_space: Vector2 = _floor_points_world_space[valid_floor_points_index]
 	var grid_pos: Vector2i = Global.level.get_cell_at_world_pos(floor_point_world_space + Global.VERT_OFFSET_SMALL).grid_pos
@@ -55,8 +59,9 @@ func _increment_follow_index() -> void:
 	_follow_next_index_center = _points_grid_space.find(grid_pos)
 
 
-## Returns new position in world space after following path for distance
-## Updates internal state to continue from there
+## Returns new position in world space after following path for distance.
+## Updates internal state to continue from there.
+## Should be called exactly once per physics frame.
 ## current_pos in world space
 func follow_path(current_pos: Vector2, distance: float) -> Vector2:
 	var final_pos: Vector2 = current_pos
@@ -67,18 +72,27 @@ func follow_path(current_pos: Vector2, distance: float) -> Vector2:
 		var dist_to_next: float = vec_to_next.length()
 		var dir_to_next: Vector2 = vec_to_next.normalized()
 
-		# Distance covered -> break
+		# Distance covered and no new waypoint reached -> break
 		if distance < dist_to_next:
 			final_pos += dir_to_next * distance
 			break
 
-		# Waypoint reached, continue to next
+		# New waypoint reached, continue to next
 		final_pos = next_waypoint
 		distance -= dist_to_next
 		_increment_follow_index()
 		_debug_draw_proxy.queue_redraw()
 
 	return final_pos
+
+
+## Returns the next cell to be entered, or null if at end
+func get_next_cell() -> Cell:
+	if _follow_next_index_center >= _points_grid_space.size():
+		return null
+
+	var next_grid_pos: Vector2i = _points_grid_space[_follow_next_index_center]
+	return Global.level.get_cell(next_grid_pos)
 
 
 func reached_end() -> bool:
@@ -100,8 +114,6 @@ func _calculate_follow_points() -> PackedVector2Array:
 	for i in range(_points_grid_space.size() - 1):
 		var from: Cell = Global.level.get_cell(_points_grid_space[i])
 		var to: Cell = Global.level.get_cell(_points_grid_space[i + 1])
-		# var from_floor_points: PackedVector2Array = from.get_floor_points()
-		# var to_floor_points: PackedVector2Array = to.get_floor_points()
 		
 		if Util.are_cardinal_neighbours(from.grid_pos, to.grid_pos):
 			if from.grid_pos.x == to.grid_pos.x:
