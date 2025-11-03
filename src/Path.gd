@@ -46,8 +46,7 @@ func start_following_from_pos(start_pos: Vector2, debug_draw_: bool = true) -> v
 		_debug_draw_proxy.queue_redraw()
 
 	if _floor_points.size() == 0:
-		_next_center_idx = 0
-		_next_floor_idx = 0
+		_update_next_indices(0)
 		return
 
 	# Start following from closest floor point
@@ -58,7 +57,10 @@ func start_following_from_pos(start_pos: Vector2, debug_draw_: bool = true) -> v
 		# If close to segment, start from next point
 		if Util.is_point_near_line_segment(start_pos, a, b):
 			_update_next_indices(i + 1)
-			break
+			return
+	
+	# If we reached here, we are past all segments -> start at beginning
+	_update_next_indices(0)
 
 
 ## Returns new position in world space after following path for distance from current_pos.
@@ -153,7 +155,10 @@ func _get_curr_grid_pos_index() -> int:
 func _update_next_indices(new_next_floor: int) -> void:
 	# Increment with cap
 	_next_floor_idx = min(new_next_floor, _floor_points.size()) # can be size -> this means reached end
-	if _next_floor_idx == _floor_points.size():
+
+	# Update center idx accordingly
+	var is_last_foor_point: bool = _next_floor_idx == _floor_points.size()
+	if is_last_foor_point:
 		_next_center_idx = _grid_points.size()
 	else:
 		_next_center_idx = _floor_to_grid_point_map[_next_floor_idx]

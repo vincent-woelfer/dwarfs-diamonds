@@ -12,11 +12,10 @@ script = ExtResource("1_g3xi5")
 z_index = 1
 position = Vector2(0, -40)
 color = Color(0.9882353, 0.8039216, 0.43137255, 1)
-energy = 0.3
+energy = 0.5
 shadow_enabled = true
 shadow_filter_smooth = 64.0
 texture = ExtResource("1_fu1vb")
-texture_scale = 0.5
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 texture_filter = 1

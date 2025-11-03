@@ -1,14 +1,14 @@
 class_name DecoTorch
-extends Node2D
+extends GridObject2D
 
 @onready var light: Light2D = $PointLight2D
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var sprite_sheet: SpriteFrames = animated_sprite.sprite_frames as SpriteFrames
 
-var grid_pos: Vector2i
-
 # Hardcoded torch sizes from sprite sheet
-var torch_sizes: Array[float] = [1.0, 0.6, 0.8, 1.2]
+const torch_sizes: Array[float] = [1.0, 0.6, 0.8, 1.2]
+const animation_name: String = "idle"
+
 
 var default_light_energy: float
 
@@ -19,15 +19,20 @@ func _ready() -> void:
 
     animated_sprite.frame_changed.connect(_on_new_frame)
 
-    animated_sprite.flip_h = (randf() < 0.5) as bool
-    animated_sprite.play()
-
     # Read defaults
     default_light_energy = light.energy
 
+    # Randomize flip & speed
+    animated_sprite.flip_h = (randf() < 0.5) as bool
+    animated_sprite.speed_scale = randf_range(0.8, 1.2)
+
+    # Start animation
+    animated_sprite.play(animation_name)
+    animated_sprite.set_frame_and_progress(randi_range(0, torch_sizes.size() - 1), randf())
+
     
 func place_in_cell(cell: Cell) -> void:
-    self.grid_pos = cell.grid_pos
+    super.setup(cell.grid_pos, Vector2.ZERO)
 
     # Left/right random offset
     # self.position.x = randf_range(0.2, 0.8) * Global.CELL_SIZE
@@ -38,12 +43,15 @@ func place_in_cell(cell: Cell) -> void:
 
 
 func _on_new_frame() -> void:
-    var frame_index: int = animated_sprite.frame % animated_sprite.sprite_frames.get_frame_count("idle")
+    var frame_index: int = animated_sprite.frame % animated_sprite.sprite_frames.get_frame_count(animation_name)
     var factor: float = torch_sizes[frame_index]
     var curr_energy: float = light.energy
     var target_energy: float = default_light_energy * factor
 
-    var time_for_one_frame: float = sprite_sheet.get_frame_duration("idle", frame_index) / (sprite_sheet.get_animation_speed("idle") * abs(animated_sprite.get_playing_speed()))
+    # Calculate time for one frame based on animation speed
+    var frame_duration: float = sprite_sheet.get_frame_duration(animation_name, frame_index)
+    var anim_speed: float = sprite_sheet.get_animation_speed(animation_name) * abs(animated_sprite.get_playing_speed())
+    var time_for_one_frame: float = frame_duration / anim_speed
 
     # Tween to new energy in half the time. So 1/2 tween, 1/2 hold
     var tween := create_tween()

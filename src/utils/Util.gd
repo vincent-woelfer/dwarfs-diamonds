@@ -139,7 +139,7 @@ static func lerp_towards_f(curr: float, goal: float, speed: float, delta: float)
 ########################################################################################################################
 static func is_point_near_line_segment(p: Vector2, a: Vector2, b: Vector2) -> bool:
 	# Rather large epsilon because this is in world space units
-	const epsilon: float = 2.0
+	const epsilon: float = Global.CELL_SIZE * 0.1
 	var ab: Vector2 = b - a
 	var ap: Vector2 = p - a
 	var ab_len: float = ab.length()

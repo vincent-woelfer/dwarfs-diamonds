@@ -61,7 +61,8 @@ func _physics_process_idle(delta: float) -> void:
 		print("%s started job %s at %s" % [self, Enum.to_str(Job.Type, job_with_path.job.type), job_with_path.job.target_cell])
 
 	else:
-		print("%s found no job, remains idle" % [self])
+		# TODO hangs here if between cells :( ^
+		HexLog.print_throttled("%s found no job, remains idle" % [self])
 		pass
 
 
@@ -163,6 +164,10 @@ func on_job_deleted() -> void:
 		job_with_path.path.free()
 	job_with_path = null
 
+	# Abort mining
+	if sm.state == State.MINING:
+		mining_comp.stop_mining()
+
 	# Transition back to idle but dont override falling state
 	if sm.state != State.FALLING:
 		sm.transition_to(State.IDLE)
@@ -189,10 +194,6 @@ func _on_nav_updated() -> void:
 			sm.transition_to(State.IDLE)
 
 
-func _to_string() -> String:
-	return "Dwarf(id=%d, pos=%s, state=%s)" % [dwarf_id, grid_pos, Enum.to_str(State, sm.state)]
-
-
 func _enter_dying() -> void:
 	print("%s has died!" % [self])
 	
@@ -216,6 +217,10 @@ func _physics_process_dying(delta: float) -> void:
 	# Wait for sound to finish then free. Dont use await as this is called in physics process
 	if not audio_player.playing:
 		queue_free()
+
+
+func _to_string() -> String:
+	return "Dwarf-%d (%s | pos: %s)" % [dwarf_id, Enum.to_str(State, sm.state), grid_pos]
 
 ########################################################################################################################
 # DEBUG DRAWING

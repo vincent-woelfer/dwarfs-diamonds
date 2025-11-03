@@ -25,9 +25,12 @@ func start_mining(cell: Cell) -> void:
 	_currently_mining_cells.append(cell)
 
 
-func stop_mining(cell: Cell) -> void:
+func stop_mining_cell(cell: Cell) -> void:
 	if cell in _currently_mining_cells:
 		_currently_mining_cells.erase(cell)
+
+func stop_mining() -> void:
+	_currently_mining_cells.clear()
 
 
 func is_currently_mining() -> bool:
