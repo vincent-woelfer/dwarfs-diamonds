@@ -61,8 +61,7 @@ func _physics_process_idle(delta: float) -> void:
 		print("%s started job %s at %s" % [self, Enum.to_str(Job.Type, job_with_path.job.type), job_with_path.job.target_cell])
 
 	else:
-		# TODO HANGS HERE WHEN due to climbing current grid_cell is the diagonal one which is not a nav cell -> no possible job found
-		# print("%s found no job, remains idle" % [self])
+		print("%s found no job, remains idle" % [self])
 		pass
 
 
@@ -138,6 +137,7 @@ func _on_started_falling() -> void:
 func _on_landed(fall_height_cells: int) -> void:
 	if fall_height_cells > 1:
 		audio_player.stream = Audio.sounds.get("dwarf_on_landing")
+		audio_player.pitch_scale = 1.2
 		audio_player.play()
 
 	if fall_height_cells > 5:
@@ -204,8 +204,10 @@ func die() -> void:
 		job_with_path = null
 
 	audio_player.stream = Audio.sounds.get("dwarf_on_landing")
-	audio_player.pitch_scale = 0.4
+	audio_player.pitch_scale = 1.8
 	audio_player.play()
+
+	await audio_player.finished
 
 	queue_free()
 
