@@ -6,7 +6,7 @@ var c: Cell
 
 # Material
 var unshaded_material: CanvasItemMaterial = preload("res://assets/materials/unshaded_material.tres")
-var ladder: CompressedTexture2D = preload("res://assets/ladder.png")
+var ladder: CompressedTexture2D = preload("res://assets/sprites/ladder.png")
 
 var background_poly: Polygon2D
 var stencil_poly: Polygon2D

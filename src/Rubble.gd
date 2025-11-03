@@ -11,6 +11,7 @@ func setup(grid_pos_: Vector2i, sample_offset_: Vector2 = Global.VERT_OFFSET_SMA
 
 func _ready() -> void:
 	global_position = Global.level.get_cell(grid_pos).get_floor_point()
+	global_position.y -= Global.CELL_SIZE * 0.3 # Let rubble fall on spawn
 
 	movement_comp.movement_capabilities.can_use_ladders = false
 	movement_comp.movement_capabilities.can_use_ladders_when_falling = false
@@ -21,6 +22,9 @@ func _ready() -> void:
 	movement_comp.Signal_MovementDirectionChanged.connect(_on_movement_direction_changed)
 	movement_comp.Signal_OnStartedFalling.connect(_on_started_falling)
 	movement_comp.Signal_OnLanded.connect(_on_landed)
+
+	# Start falling	immediately
+	movement_comp.sm.transition_to(MovementComponent.State.FALLING)
 
 func _on_movement_direction_changed(new_dir: Vector2) -> void:
 	pass

@@ -38,6 +38,7 @@ func set_state_exitable(state_value: int, exitable: bool) -> void:
 
     state_exitable[state_value] = exitable
 
+
 func transition_to(next_state: int) -> void:
     if not _is_state_valid(next_state):
         push_error("Invalid state %d!" % next_state)

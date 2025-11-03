@@ -183,6 +183,7 @@ func _on_nav_updated() -> void:
 		job_with_path.job.update_workable_from_cells()
 		var new_path: Path = Global.level.nav.find_path_to_one_of(grid_pos, job_with_path.job.workable_from_grid_poses)
 
+		# TODO if falling assign_path fails and we are not actually following a path
 		if new_path != null:
 			job_with_path.path = new_path
 			movement_comp.assign_path(job_with_path.path)

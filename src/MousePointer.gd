@@ -10,6 +10,8 @@ var prev_selected_cells: Array[Cell] = []
 
 var mining_comp: MiningComponent
 
+var selection_pattern: GridPattern
+
 func _ready() -> void:
 	sprite = Polygon2D.new()
 	sprite.polygon = PackedVector2Array([Vector2(0, 0), Vector2(size, 0), Vector2(size, size), Vector2(0, size)])
@@ -22,6 +24,8 @@ func _ready() -> void:
 	mining_comp = MiningComponent.new()
 	mining_comp.max_simultaneous_mining_cells = 100
 	add_child(mining_comp)
+
+	selection_pattern = GridPattern.new([Vector2i.ZERO])
 
 
 func _process(delta: float) -> void:
@@ -94,16 +98,25 @@ func _actions() -> void:
 
 
 ## Sample cells at mouse position. Guaranteed to not be null
-# TODO Can later be expanded to a radius or area or pattern
 # The Cell directly under the mouse MUST BE at index 0!
 func _sample_cells_at_mouse_pos(world_pos: Vector2) -> Array[Cell]:
-	var cells: Array[Cell] = []
+	var selected_cells: Array[Cell] = []
 
+	# Central cell
 	var cell := Global.level.get_cell_at_world_pos(world_pos)
-	Util.array_append_unique_not_null(cells, cell)
+	Util.array_append_unique_not_null(selected_cells, cell)
+
+	# Apply pattern
+	for offset: Vector2i in selection_pattern.get_local_positions():
+		if offset == Vector2i.ZERO:
+			continue
+
+		cell = Global.level.get_cell_at_world_pos(world_pos + (offset as Vector2) * Global.CELL_SIZE)
+		Util.array_append_unique_not_null(selected_cells, cell)
+
 
 	# for x in range(2):
 		# var cell := level.get_cell_at_world_pos(world_pos + Vector2(x, 0) * Global.CELL_SIZE)
 		# Util.array_add_unique_not_null(cells, cell)
 
-	return cells
+	return selected_cells

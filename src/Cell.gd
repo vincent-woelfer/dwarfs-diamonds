@@ -15,7 +15,7 @@ var audio_player: AudioStreamPlayer2D
 var is_solid: bool
 var has_ladder: bool
 
-var torch_scene := preload('res://scenes/deco/deco_torch.tscn')
+var torch_scene := preload('res://scenes/deco/DecoTorch.tscn')
 
 ########################################################################################################################
 # Derived State Flags

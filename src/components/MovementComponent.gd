@@ -39,9 +39,9 @@ var fall_start_y: int
 func is_falling() -> bool:
 	return sm.state == State.FALLING
 
-func assign_path(new_path: Path) -> void:
+func assign_path(new_path: Path) -> bool:
 	if new_path == null or sm.state == State.FALLING:
-		return
+		return false
 
 	# Hide path, even if reference still stored elsewhere
 	if path:
@@ -50,6 +50,7 @@ func assign_path(new_path: Path) -> void:
 	path = new_path
 	path.start_following_from_pos(parent.global_position, true)
 	sm.transition_to(State.FOLLOWING_PATH)
+	return true
 
 func abort_path() -> void:
 	# Hide path, even if reference still stored elsewhere

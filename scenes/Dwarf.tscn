@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://rjy3skkrbgma"]
 
-[ext_resource type="Texture2D" uid="uid://1ugg66bw4erc" path="res://assets/gradient.png" id="1_d170h"]
-[ext_resource type="SpriteFrames" uid="uid://1pxkf0jq8fyl" path="res://assets/dwarf_sprite_frames.tres" id="1_ms7vq"]
+[ext_resource type="Texture2D" uid="uid://1ugg66bw4erc" path="res://assets/sprites/gradient.png" id="1_d170h"]
+[ext_resource type="SpriteFrames" uid="uid://1pxkf0jq8fyl" path="res://assets/sprites/dwarf_sprite_frames.tres" id="1_ms7vq"]
 [ext_resource type="Script" uid="uid://cmcygcrc8o3af" path="res://src/Dwarf.gd" id="1_po7l6"]
 [ext_resource type="Script" uid="uid://sfmxn54qwmtl" path="res://src/components/MiningComponent.gd" id="3_ms7vq"]
 [ext_resource type="Script" uid="uid://12nby18asb05" path="res://src/components/MovementComponent.gd" id="5_o7n6f"]
