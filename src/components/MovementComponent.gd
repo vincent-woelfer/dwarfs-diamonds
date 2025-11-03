@@ -66,8 +66,7 @@ func abort_path() -> void:
 ########################################################################################################################
 
 func _ready() -> void:
-	sm = StateMachine.new(self, State)
-	sm.transition_to(State.NOT_MOVING)
+	sm = StateMachine.new(self, State, State.NOT_MOVING)
 
 
 func _physics_process(delta: float) -> void:

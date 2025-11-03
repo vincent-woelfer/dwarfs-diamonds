@@ -16,15 +16,15 @@ var job_with_path: JobWithPath
 var num_torches: int = 50
 
 
-enum State {IDLE, MOVING, MINING, FALLING}
+enum State {IDLE, MOVING, MINING, FALLING, DYING}
 var sm: StateMachine
 
 func setup(grid_pos_: Vector2i, sample_offset_: Vector2 = Global.VERT_OFFSET_SMALL) -> void:
 	super.setup(grid_pos_, sample_offset_)
 
 func _ready() -> void:
-	sm = StateMachine.new(self, State)
-	sm.transition_to(State.IDLE)
+	sm = StateMachine.new(self, State, State.IDLE)
+	sm.set_state_exitable(State.DYING, false)
 
 	dwarf_id = next_dwarf_id
 	next_dwarf_id += 1
@@ -137,11 +137,11 @@ func _on_started_falling() -> void:
 func _on_landed(fall_height_cells: int) -> void:
 	if fall_height_cells > 1:
 		audio_player.stream = Audio.sounds.get("dwarf_on_landing")
-		audio_player.pitch_scale = 1.2
+		audio_player.pitch_scale = 1.4
 		audio_player.play()
 
 	if fall_height_cells > 5:
-		die()
+		sm.transition_to(State.DYING)
 		return
 
 	sm.transition_to(State.IDLE)
@@ -193,7 +193,7 @@ func _to_string() -> String:
 	return "Dwarf(id=%d, pos=%s, state=%s)" % [dwarf_id, grid_pos, Enum.to_str(State, sm.state)]
 
 
-func die() -> void:
+func _enter_dying() -> void:
 	print("%s has died!" % [self])
 	
 	if job_with_path != null:
@@ -203,13 +203,19 @@ func die() -> void:
 		job_with_path.job.unassign_dwarf(self)
 		job_with_path = null
 
+	# Hide player sprite + light
+	animated_sprite.visible = false
+	light.enabled = false
+
+	# Play death sound
 	audio_player.stream = Audio.sounds.get("dwarf_on_landing")
 	audio_player.pitch_scale = 1.8
 	audio_player.play()
 
-	await audio_player.finished
-
-	queue_free()
+func _physics_process_dying(delta: float) -> void:
+	# Wait for sound to finish then free. Dont use await as this is called in physics process
+	if not audio_player.playing:
+		queue_free()
 
 ########################################################################################################################
 # DEBUG DRAWING
@@ -221,6 +227,7 @@ const debug_state_colors := {
 	State.MOVING: Color(1.0, 1.0, 0.0),
 	State.MINING: Color(1.0, 0.0, 0.0),
 	State.FALLING: Color(1.0, 0.0, 1.0),
+	State.DYING: Color(0.0, 0.0, 0.0),
 }
 
 const debug_label_width := 0.9 * Global.CELL_SIZE

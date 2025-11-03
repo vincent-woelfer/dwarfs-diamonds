@@ -3,25 +3,55 @@ extends RefCounted
 
 signal Signal_StateChanged(prev_state: int, next_state: int)
 
-var state: int = -1
+## Current state
+var state: int
+
 var owner: Object
 var enum_type_name: String
 
+# List of state names corresponding to enum values. Index matches enum value.
 var state_names: Array[String]
 
-func _init(owner_: Object, enum_type_: Dictionary) -> void:
+# Store if state is exitable. Defaults to true
+var state_exitable: Array[bool]
+
+
+func _init(owner_: Object, enum_type_: Dictionary, initial_state: int) -> void:
+    assert(owner_ != null, "StateMachine owner cannot be null.")
+    assert(enum_type_ != null, "StateMachine enum type cannot be null.")
+    assert(initial_state in enum_type_.values(), "Initial state must be a valid enum value.")
+
     owner = owner_
+    state = initial_state
     state_names = Enum.to_string_array(enum_type_)
     assert(state_names.size() > 0, "Enum type must have at least one value.")
 
+    # Init exitable array, default to true
+    state_exitable.resize(state_names.size())
+    state_exitable.fill(true)
+
+
+func set_state_exitable(state_value: int, exitable: bool) -> void:
+    if not _is_state_valid(state_value):
+        push_error("Invalid state %d!" % state_value)
+        return
+
+    state_exitable[state_value] = exitable
 
 func transition_to(next_state: int) -> void:
+    if not _is_state_valid(next_state):
+        push_error("Invalid state %d!" % next_state)
+        return
+
     if next_state == state:
         return
 
+    if not state_exitable[state]:
+        push_error("Cannot exit state %s as it is marked non-exitable." % _state_to_name(state))
+        return
+
     var prev_state := state
-    if state != -1:
-        _call_state_func("_exit_", state)
+    _call_state_func("_exit_", state)
 
     state = next_state
     _call_state_func("_enter_", state)
@@ -35,16 +65,18 @@ func transition_to(next_state: int) -> void:
 
 
 func process(delta: float) -> void:
-    if state != -1:
-        _call_state_func("_process_", state, delta)
+    _call_state_func("_process_", state, delta)
 
 
 func physics_process(delta: float) -> void:
-    if state != -1:
-        _call_state_func("_physics_process_", state, delta)
+    _call_state_func("_physics_process_", state, delta)
 
 
 # --- Internal helpers ---
+func _is_state_valid(state_value: int) -> bool:
+    return state_value >= 0 and state_value < state_names.size()
+
+
 func _call_state_func(prefix: String, state_value: int, arg: Variant = null) -> void:
     var state_name := _state_to_name(state_value)
     var func_name := prefix + state_name
@@ -57,6 +89,6 @@ func _call_state_func(prefix: String, state_value: int, arg: Variant = null) -> 
 
 # Converts typed enum value to lowercase name (e.g. State.IDLE → "idle")
 func _state_to_name(state_value: int) -> String:
-    if state_value < 0 or state_value >= state_names.size():
+    if not _is_state_valid(state_value):
         return "unknown"
     return String(state_names[state_value]).to_lower()

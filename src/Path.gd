@@ -132,7 +132,7 @@ func _get_curr_grid_pos_index() -> int:
 	assert(_curr_pos != Vector2.INF) # Make sure start_following_from_pos was called
 
 	# Decide whether _curr_pos already is in _next_center_idx or the previous one
-	var sampled_grid_pos := Global.level.get_cell_at_world_pos(_curr_pos).grid_pos
+	var sampled_grid_pos := Global.level.get_cell_at_world_pos(_curr_pos + Global.VERT_OFFSET_SMALL).grid_pos
 	var curr_grid_pos_index: int
 
 	# After end of path -> last cell
