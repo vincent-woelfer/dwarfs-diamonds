@@ -61,20 +61,22 @@ func _physics_process(delta: float) -> void:
 
 func _physics_process_idle(delta: float) -> void:
 	# Try to get a new job
-	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_worker(grid_pos)
+	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_worker(self)
 
 	if new_job_with_path != null:
-		job_with_path = new_job_with_path
+		if movement_comp.assign_path(new_job_with_path.path):
+			job_with_path = new_job_with_path
+			job_with_path.job.assign_dwarf(self)
+			job_with_path.path.set_debug_draw_color(dwarf_color)
+			
+			sm.transition_to(State.MOVING)
+			print_rich("%s started %s" % [self, job_with_path.job])
 
-		job_with_path.job.assign_dwarf(self)
-		job_with_path.path.set_debug_draw_color(dwarf_color)
-		movement_comp.assign_path(job_with_path.path)
-		sm.transition_to(State.MOVING)
+		else:
+			print_rich("%s could not assign path to %s, remains idle" % [self, new_job_with_path.job])
 
-		print_rich("%s started job %s at %s" % [self, Enum.to_str(Job.Type, job_with_path.job.type), job_with_path.job.target_cell])
 
 	else:
-		# TODO hangs here if between cells :( ^
 		HexLog.print_throttled("%s found no job, remains idle" % [self])
 		pass
 
@@ -85,13 +87,12 @@ func _on_finished_path() -> void:
 
 	# Start working - depends on job type
 	# TODO other job types
-	print_rich("%s reached %s and starts mining" % [self, job_with_path.job.target_cell])
+	print_rich("%s reached %s and starts mining" % [self, job_with_path.job.center_cell])
 
 	sm.transition_to(State.MINING)
 
 
 func _on_new_cell_entered(new_cell: Cell) -> void:
-	# TODO vincent
 	if new_cell == null:
 		return
 
@@ -108,7 +109,7 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 
 
 func _enter_mining() -> void:
-	mining_comp.start_mining(job_with_path.job.target_cell)
+	mining_comp.start_mining(job_with_path.job.center_cell)
 
 func _tick_mining(delta: float) -> void:
 	# Mining is handled in MiningComponent
@@ -121,7 +122,7 @@ func _on_movement_direction_changed(new_dir: Vector2) -> void:
 
 
 func _on_mining_completed(mined_cell: Cell) -> void:
-	print_rich("%s completed mining job at %s" % [self, mined_cell.grid_pos])
+	print_rich("%s completed %s" % [self, job_with_path.job])
 
 	# Complete job
 	if job_with_path != null:
@@ -138,9 +139,10 @@ func _on_mining_completed(mined_cell: Cell) -> void:
 		sm.transition_to(State.IDLE)
 
 
+## Triggered by MovementComponent
 func _on_started_falling() -> void:
+	# Abandon job
 	if job_with_path != null:
-		# Abandon job
 		if job_with_path.path != null:
 			job_with_path.path.free()
 		job_with_path.job.unassign_dwarf(self)
@@ -148,7 +150,7 @@ func _on_started_falling() -> void:
 
 	sm.transition_to(State.FALLING)
 
-
+## Triggered by MovementComponent
 func _on_landed(fall_height_cells: int) -> void:
 	if fall_height_cells > 1:
 		audio_player.stream = Audio.sounds.get("dwarf_on_landing")
@@ -188,26 +190,33 @@ func on_job_deleted() -> void:
 
 
 func _on_nav_updated() -> void:
-	# If nav updated while moving -> recalculate path for job or abort if not valid
-	if job_with_path and job_with_path.path != null:
-		job_with_path.path.free()
-		job_with_path.path = null
-		
-		# Force job to update workable cells first
-		job_with_path.job.update_workable_from_cells()
-		var new_path: Path = Global.level.nav.find_path_to_one_of(grid_pos, job_with_path.job.workable_from_grid_poses)
+	# If nav updated while following a path -> recalculate path for job or abort if not valid
+	if job_with_path != null:
+		_validate_current_path()
 
-		# TODO if falling assign_path fails and we are not actually following a path
-		if new_path != null:
+
+func _validate_current_path() -> void:
+	if not job_with_path or not job_with_path.path:
+		return
+
+	job_with_path.path.free()
+	job_with_path.path = null
+	
+	# Force job to update workable cells first
+	job_with_path.job.update_workable_from_cells()
+	var new_path: Path = Global.level.nav.find_path_to_one_of(grid_pos, job_with_path.job.workable_from_poses)
+
+	if new_path != null:
+		if movement_comp.assign_path(job_with_path.path):
 			job_with_path.path = new_path
 			job_with_path.path.set_debug_draw_color(dwarf_color)
-			movement_comp.assign_path(job_with_path.path)
-		else:
-			print_rich("%s lost path to job at %s" % [self, job_with_path.job.target_cell])
-			job_with_path.job.unassign_dwarf(self)
-			movement_comp.abort_path()
-			job_with_path = null
-			sm.transition_to(State.IDLE)
+		
+	else:
+		print_rich("%s lost path to job at %s" % [self, job_with_path.job.center_cell])
+		job_with_path.job.unassign_dwarf(self)
+		movement_comp.abort_path()
+		job_with_path = null
+		sm.transition_to(State.IDLE)
 
 
 func _enter_dying() -> void:
@@ -238,8 +247,7 @@ func _physics_process_dying(delta: float) -> void:
 func _to_string() -> String:
 	# return "Dwarf-%d (%s | pos: %s)" % [dwarf_id, Enum.to_str(State, sm.state), grid_pos]
 	var print_color := dwarf_color.lightened(0.5)
-	var color_str := "[color=%s]" % [print_color.to_html(false)]
-	return color_str + "Dwarf-%d (%s | pos: %s)" % [dwarf_id, Enum.to_str(State, sm.state), grid_pos] + "[/color]"
+	return Util.color_string("Dwarf-%d (%s @ %s)" % [dwarf_id, Enum.to_str(State, sm.state), grid_pos], print_color)
 
 ########################################################################################################################
 # DEBUG DRAWING

@@ -6,11 +6,11 @@ extends Node2D
 signal Signal_OnMiningCompleted(mined_cell: Cell)
 
 # per second
-@export var mine_speed: float = 0.5
+static var default_mine_speed: float = 0.5
+@export var mine_speed: float = default_mine_speed
 @export var max_simultaneous_mining_cells: int = 1
 
 var _currently_mining_cells: Array[Cell] = []
-
 
 ########################################################################################################################
 # PUBLIC METHODS

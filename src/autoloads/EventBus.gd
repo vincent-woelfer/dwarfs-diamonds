@@ -25,7 +25,7 @@ var dev_light_on: bool = true
 func _ready() -> void:
 	pass
 	# Actual signal connection is done in the code catching the signal like this:
-	# EventBus.Signal_HexConstChanged.connect(generate_geometry)
+	# EventBus.Signal_XXX.connect(_on_Signal_XXX)
 
 	# Signal emitting is done like this:
 	# EventBus.Signal_XXX.emit(...)
@@ -45,5 +45,5 @@ func _input(event: InputEvent) -> void:
 # Event bus logging functions
 ###################################
 
-# func _on_Signal_WeatherChanged(new_weather: WeatherControl.WeatherType) -> void:
-# 	print("EventBus: Weather Changed to ", WeatherControl.WeatherType.keys()[new_weather])
+# func _on_Signal_XXX() -> void:
+# 	print(...)

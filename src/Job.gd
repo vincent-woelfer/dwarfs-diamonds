@@ -1,102 +1,173 @@
 class_name Job
 extends RefCounted
 
+########################################################################################################################
+# ENUM DEFINITIONS
+########################################################################################################################
 enum Type {
 	MINE,
-	BUILD,
+	BUILD_LADDER,
 	CARRY,
 }
 
-enum State {
-	BLOCKED,
-	READY,
-	IN_PROCESS,
-}
-
-
-var type: Job.Type
-var state: Job.State
+var job_type: Job.Type
 
 # "Center"-Cell of this job (e.g. the cell to be mined)
-var target_cell: Cell
+var center_cell: Cell
 
 # All cells from which this job can be worked on (e.g. for mining: all free neighbouring cells)
-var workable_from_grid_poses: Array[Vector2i] = []
+var workable_from_poses: Array[Vector2i] = []
 
+# Currently assigned dwarfs
 var assigned_dwarfs: Array[Dwarf] = []
 
 
-func _init(type_: Job.Type, cell_: Cell) -> void:
-	assert(cell_ != null)
+########################################################################################################################
+# PUBLIC METHODS
+########################################################################################################################
+func get_capacity() -> int:
+	if job_type == Job.Type.MINE:
+		return 2
+	elif job_type == Job.Type.BUILD_LADDER:
+		return 1
+	elif job_type == Job.Type.CARRY:
+		return 1
 
-	self.type = type_
-	self.target_cell = cell_
-
-	update_workable_from_cells()
-	update_state(true)
+	assert(false)
+	return 0
 
 
-func assign_dwarf(dwarf: Dwarf) -> void:
+func is_workable() -> bool:
+	if assigned_dwarfs.size() >= get_capacity():
+		return false
+
+	if workable_from_poses.is_empty():
+		return false
+
+	return true
+
+
+func assign_dwarf(dwarf: Dwarf) -> bool:
 	assert(dwarf != null)
 
-	# Job must be READY or IN_PROCESS with assigned dwarfs
-	assert(state == Job.State.READY or (state == Job.State.IN_PROCESS and !assigned_dwarfs.is_empty()))
-	
-	state = Job.State.IN_PROCESS
+	if dwarf in assigned_dwarfs:
+		return false
+
+	if assigned_dwarfs.size() >= get_capacity():
+		return false
+
 	Util.array_append_unique_not_null(assigned_dwarfs, dwarf)
+
+	return true
 
 
 func unassign_dwarf(dwarf: Dwarf) -> void:
 	assert(dwarf != null)
-	assert(state == Job.State.IN_PROCESS)
+	assert(assigned_dwarfs.has(dwarf))
 
 	assigned_dwarfs.erase(dwarf)
-
-	if assigned_dwarfs.is_empty():
-		# Set back to READY or BLOCKED depending on workable cells
-		update_workable_from_cells()
-		update_state(true)
 
 
 ## Dont use for finishing jobs
 func delete() -> void:
 	for dwarf in assigned_dwarfs:
 		dwarf.on_job_deleted()
+	assigned_dwarfs.clear()
 
 
 func complete(dwarf: Dwarf) -> void:
-	assert(dwarf != null)
-	assert(state == Job.State.IN_PROCESS)
-	assert(assigned_dwarfs.has(dwarf))
+	unassign_dwarf(dwarf)
 
-	# Unassign dwarf but dont change job state yet (so dont call unassign_dwarf)
-	assigned_dwarfs.erase(dwarf)
-
-	# Delete for other dwarfs
+	# Delete for other dwarfs TODO should we not call finish for them?
+	# TODO FIX THIS
 	delete()
 
 
 func update_workable_from_cells() -> void:
-	workable_from_grid_poses = []
+	workable_from_poses.clear()
 
 	# MINING
-	if type == Job.Type.MINE:
+	if job_type == Job.Type.MINE:
 		for n_offset: Vector2i in Util.neighbours_cardinal:
-			var n_cell: Cell = target_cell.get_neighbour(n_offset)
+			var n_cell: Cell = center_cell.get_neighbour(n_offset)
 
-			# Requires neighbouring target_cell to be free and standable
-			if n_cell == null or n_cell.is_solid:
+			if n_cell == null:
 				continue
 			
-			if n_cell.is_standable():
-				workable_from_grid_poses.append(n_cell.grid_pos)
+			if n_cell.is_standable(false):
+				workable_from_poses.append(n_cell.grid_pos)
 
 
-# TODO maybe change to two bools: blocked/ready and in_process/unassigned
-func update_state(force_update: bool = false) -> void:
-	# Only update if not in progress or forced
-	if state != State.IN_PROCESS or force_update:
-		if workable_from_grid_poses.is_empty():
-			state = State.BLOCKED
+## Estimates remaining time in seconds. For now only works when dwarf already arrived at job
+const MAX_REMAINING_TIME_ESTIMATE: float = 1000.0
+func estimate_remaining_time() -> float:
+	if assigned_dwarfs.is_empty():
+		return MAX_REMAINING_TIME_ESTIMATE
+
+	# Simple estimate based on job type
+	if job_type == Job.Type.MINE:
+		var remaining_time: float = MAX_REMAINING_TIME_ESTIMATE
+
+		for dwarf in assigned_dwarfs:
+			# If at least one dwarf is already mining -> use its speed
+			if dwarf.sm.state == Dwarf.State.MINING:
+				var remaining_process: float = 1.0 - center_cell.mining_process
+				var time := remaining_process / dwarf.mining_comp.mine_speed
+				remaining_time = min(remaining_time, time)
+
+			# Dwarf still walking to job
+			else:
+				if dwarf.job_with_path and dwarf.job_with_path.path:
+					# Estimate time based on path length and walking speed
+					var path_length: float = dwarf.job_with_path.path.get_remaining_length_world_space()
+					var time := path_length / dwarf.movement_comp.movement_speed
+					remaining_time = min(remaining_time, time + 5.0) # +5s buffer for starting mining
+
+		return remaining_time
+
+
+	# Other job types not implemented yet
+	return MAX_REMAINING_TIME_ESTIMATE
+
+
+########################################################################################################################
+# INTERNAL METHODS
+########################################################################################################################
+func _init(type_: Job.Type, cell_: Cell) -> void:
+	assert(cell_ != null)
+
+	self.job_type = type_
+	self.center_cell = cell_
+	self.assigned_dwarfs = []
+
+
+########################################################################################################################
+# DEBUG
+########################################################################################################################
+func get_debug_info() -> Array:
+	var info: Array
+	info.resize(3)
+
+	# Job Type
+	info[0] = Enum.to_str(Job.Type, job_type)
+
+	# "Status"
+	if workable_from_poses.is_empty():
+		info[1] = "BLOCKED"
+		info[2] = Color.RED
+	else:
+		if assigned_dwarfs.is_empty():
+			info[1] = "READY"
+			info[2] = Color.BLUE
 		else:
-			state = State.READY
+			info[1] = "IN_PROGESS (%d/%d)" % [assigned_dwarfs.size(), get_capacity()]
+			info[2] = Color.GREEN
+
+	return info
+
+
+func _to_string() -> String:
+	var info := get_debug_info()
+	var color: Color = info[2]
+	color = color.lightened(0.5)
+	return Util.color_string("Job(%s - %s @ %s)" % [info[0], info[1], center_cell.grid_pos], color)

@@ -2,8 +2,6 @@ class_name JobManager
 extends Node2D
 
 var _jobs: Array[Job] = []
-var _debug_draw_proxy := DebugDrawProxy.new(self)
-
 
 ########################################################################################################################
 # PUBLIC METHODS
@@ -12,10 +10,10 @@ func add_job(job: Job) -> void:
 	assert(job != null)
 
 	# Prevent duplicate mining jobs for same cell
-	if job.type == Job.Type.MINE:
+	if job.job_type == Job.Type.MINE:
 		for existing_job in _jobs:
-			if existing_job.type == Job.Type.MINE and existing_job.target_cell == job.target_cell:
-				assert(false, "JobManager: Not adding duplicate mining job for cell " % job.target_cell.grid_pos)
+			if existing_job.job_type == Job.Type.MINE and existing_job.center_cell == job.center_cell:
+				assert(false, "JobManager: Not adding duplicate mining job for cell " % job.center_cell)
 				return
 
 	_jobs.append(job)
@@ -24,27 +22,69 @@ func add_job(job: Job) -> void:
 # Called by Global Action if cell is no longer marked for mining
 func remove_mining_job_for_cell(cell: Cell) -> void:
 	for job in _jobs:
-		if job.type == Job.Type.MINE and job.target_cell == cell:
+		if job.job_type == Job.Type.MINE and job.center_cell == cell:
 			job.delete()
 			_jobs.erase(job)
 			return
 
 
-func get_new_job_for_worker(start_pos: Vector2i) -> JobWithPath:
-	# Filter for ready jobs
-	var ready_jobs: Array[Job] = _jobs.filter(func(j: Job) -> bool:
-		return j.state == Job.State.READY
-	)
+func get_new_job_for_worker(dwarf: Dwarf) -> JobWithPath:
+	assert(dwarf != null)
+	var start_pos: Vector2i = dwarf.grid_pos
+	var walking_speed := dwarf.movement_comp.movement_speed
 
-	# Find job with shortest path
-	var best_job_with_path: JobWithPath = null
-	for job in ready_jobs:
-		var path: Path = Global.level.nav.find_path_to_one_of(start_pos, job.workable_from_grid_poses)
-		if path != null:
-			if best_job_with_path == null or path.get_length_grid_space() < best_job_with_path.path.get_length_grid_space():
-				best_job_with_path = JobWithPath.new(job, path)
+	# Update all jobs first
+	for job in _jobs:
+		job.update_workable_from_cells()
+
+
+	# Score all jobs according to various criteria (mostly distance for now)
+	var scored_jobs: Array[ScoredJob] = []
+
+	for job: Job in _jobs:
+		if not job.is_workable():
+			continue
+
+		var path: Path = Global.level.nav.find_path_to_one_of(start_pos, job.workable_from_poses)
+		if not path:
+			continue
+
+		# Score job - lower is better		 
+		var remaining_time := job.estimate_remaining_time()
+		var path_length := path.get_total_length_world_space()
+		var score: float = path_length
+
+		# Dont start jobs that will be finished when we arrive
+		if path_length / walking_speed > remaining_time:
+			continue
+
+		# Penalize jobs which are already being worked on
+		if remaining_time < Job.MAX_REMAINING_TIME_ESTIMATE:
+			score += (Global.CELL_SIZE * 50)
+
+		# Penalize mining job directly below dwarf (only slightly, prefer horizontally adjacent ones)
+		if job.job_type == Job.Type.MINE:
+			if dwarf.grid_pos == job.center_cell.grid_pos - Vector2i(0, 1):
+				score += 1.0
 			
-	return best_job_with_path
+
+		scored_jobs.append(ScoredJob.new(job, path, score))
+
+	# No valid jobs
+	if scored_jobs.is_empty():
+		return null
+
+	# Sort by score
+	scored_jobs.sort_custom(ScoredJob.compare)
+
+	# Print
+	print_rich("JobManager: Dwarf %s scored jobs (lower is better):" % [dwarf])
+	for j in scored_jobs:
+		print_rich("- Score: %.1f - %s" % [j.score, j.job])
+	print()
+
+	return JobWithPath.new(scored_jobs[0].job, scored_jobs[0].path)
+	
 
 ########################################################################################################################
 # PRIVATE METHODS
@@ -62,22 +102,15 @@ func _process(delta: float) -> void:
 	_debug_draw_proxy.queue_redraw()
 
 
+# Not really required, this only keeps jobs up to date for debug drawing
 func _on_nav_updated() -> void:
-	# Update all jobs not in progress
 	for job in _jobs:
-		if job.state != Job.State.IN_PROCESS:
-			job.update_workable_from_cells()
-			job.update_state()
+		job.update_workable_from_cells()
 
-	
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
-const debug_state_colors := {
-	Job.State.BLOCKED: Color.RED,
-	Job.State.READY: Color.GREEN,
-	Job.State.IN_PROCESS: Color.BLUE,
-}
+var _debug_draw_proxy := DebugDrawProxy.new(self)
 
 const debug_size_point := 7.0
 
@@ -91,17 +124,19 @@ func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 	var num_already_drawn_per_cell: Dictionary[Vector2i, int] = {}
 
 	for job in _jobs:
-		var color_actual: Color = debug_state_colors.get(job.state, Colors.DEFAULT)
-		var cell: Cell = job.target_cell
+		var cell: Cell = job.center_cell
 
 		var draw_world_pos := Util.grid_to_world_cell_center(cell.grid_pos)
 		var offset_idx: int = num_already_drawn_per_cell.get(cell.grid_pos, 0)
 		num_already_drawn_per_cell[cell.grid_pos] = offset_idx + 1
-
-		var text: String = Enum.to_str(Job.Type, job.type) + " - " + Enum.to_str(Job.State, job.state)
 		var pos := draw_world_pos + _debug_get_offset(offset_idx)
 
-		ui_layer.draw_string(debug_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, debug_font_size, color_actual)
+		# Job Info
+		var info := job.get_debug_info()
+		var text: String = info[0] + " - " + info[1]
+		var color: Color = info[2]
+
+		ui_layer.draw_string(debug_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, debug_font_size, color)
 
 
 func _debug_get_offset(idx: int) -> Vector2:

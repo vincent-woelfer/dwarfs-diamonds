@@ -9,6 +9,9 @@ const LAYER_2 := 1 << 1
 ########################################################################################################################
 # Dwardfs & Diamonds NEW
 ########################################################################################################################
+static func color_string(text: String, color: Color) -> String:
+	return "[color=%s]%s[/color]" % [color.to_html(false), text]
+
 static func is_pos_inside_map_no_border(pos: Vector2) -> bool:
 	var min_x := 0.0
 	var min_y := 0.0

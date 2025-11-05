@@ -118,11 +118,12 @@ func get_num_cells() -> int:
 
 
 ## Returns length of path in grid space (cells), accounting for diagonal movement
-func get_length_grid_space() -> float:
-	var length: float = 0.0
-	for i in range(_grid_points.size() - 1):
-		length += (_grid_points[i + 1] - _grid_points[i]).length()
-	return length
+func get_total_length_world_space() -> float:
+	return _get_total_length_grid_space() * Global.CELL_SIZE
+
+## Returns length of path in grid space (cells), accounting for diagonal movement
+func get_remaining_length_world_space() -> float:
+	return _get_remaining_length_grid_space() * Global.CELL_SIZE
 
 
 func set_debug_draw_enabled(enabled: bool) -> void:
@@ -293,6 +294,20 @@ func _calculate_floor_points() -> void:
 	_floor_points = p
 	_floor_to_grid_point_map = map
 
+
+## Returns length of path in grid space (cells), accounting for diagonal movement
+func _get_total_length_grid_space() -> float:
+	var length: float = 0.0
+	for i in range(_grid_points.size() - 1):
+		length += (_grid_points[i + 1] - _grid_points[i]).length()
+	return length
+
+## Returns length of path in grid space (cells), accounting for diagonal movement
+func _get_remaining_length_grid_space() -> float:
+	var length: float = 0.0
+	for i in range(_get_curr_grid_pos_index(), _grid_points.size() - 1):
+		length += (_grid_points[i + 1] - _grid_points[i]).length()
+	return length
 	
 ########################################################################################################################
 # DEBUG DRAWING

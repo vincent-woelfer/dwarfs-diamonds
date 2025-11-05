@@ -44,7 +44,7 @@ func assign_path(new_path: Path) -> bool:
 	if new_path == null or sm.state == State.FALLING:
 		return false
 
-	# Hide path, even if reference still stored elsewhere
+	# Hide OLD path, even if reference still stored elsewhere
 	if path:
 		path.debug_draw = false
 
