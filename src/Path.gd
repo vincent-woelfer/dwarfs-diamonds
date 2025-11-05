@@ -43,9 +43,7 @@ func start_following_from_pos(start_pos: Vector2, debug_draw_: bool = true) -> v
 	_curr_pos = start_pos
 
 	# Enable debug drawing
-	if debug_draw_:
-		debug_draw = true
-		_debug_draw_proxy.queue_redraw()
+	debug_draw = debug_draw_
 
 	if _floor_points.size() == 0:
 		_update_next_indices(0)
@@ -74,7 +72,7 @@ func tick_follow_path(distance: float) -> Vector2:
 	assert(_curr_pos != Vector2.INF) # Make sure start_following_from_pos was called
 	var final_pos: Vector2 = _curr_pos
 
-	while _next_floor_idx < _floor_points.size():
+	while not _reached_end:
 		var next_waypoint: Vector2 = _floor_points[_next_floor_idx]
 		var vec_to_next: Vector2 = next_waypoint - _curr_pos
 		var dist_to_next: float = vec_to_next.length()
@@ -89,7 +87,6 @@ func tick_follow_path(distance: float) -> Vector2:
 		final_pos = next_waypoint
 		distance -= dist_to_next
 		_update_next_indices(_next_floor_idx + 1)
-		_debug_draw_proxy.queue_redraw()
 
 	_curr_pos = final_pos
 	return final_pos
@@ -170,16 +167,18 @@ func _get_curr_grid_pos_index() -> int:
 ## Updates _next_center_idx to the cell containing the next floor point.
 ## This means this switches shortly before exiting the current cell.
 func _update_next_indices(new_next_floor: int) -> void:
-	var max_index := _floor_points.size() - 1
+	var max_floor_index := _floor_points.size() - 1
 
-	# Check if we reached the end (if index goes past max)
-	_reached_end = new_next_floor > max_index
+	# Check if we reached the end (if index goes past max). Also works for empty floor_points
+	_reached_end = new_next_floor > max_floor_index
 
 	# Increment with cap
-	_next_floor_idx = min(new_next_floor, max_index)
+	_next_floor_idx = min(new_next_floor, max_floor_index)
 
 	# Update center idx accordingly
 	_next_center_idx = _floor_to_grid_point_map[_next_floor_idx]
+
+	_debug_draw_proxy.queue_redraw()
 
 ## Calculates floor-points based on _grid_points.
 ## Also fills _floor_to_grid_point_map.

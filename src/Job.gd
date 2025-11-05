@@ -160,7 +160,7 @@ func get_debug_info() -> Array:
 			info[1] = "READY"
 			info[2] = Color.BLUE
 		else:
-			info[1] = "IN_PROGESS (%d/%d)" % [assigned_dwarfs.size(), get_capacity()]
+			info[1] = "DOING (%d/%d)" % [assigned_dwarfs.size(), get_capacity()]
 			info[2] = Color.GREEN
 
 	return info

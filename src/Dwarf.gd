@@ -87,9 +87,16 @@ func _on_finished_path() -> void:
 
 	# Start working - depends on job type
 	# TODO other job types
-	print_rich("%s reached %s and starts mining" % [self, job_with_path.job.center_cell])
 
-	sm.transition_to(State.MINING)
+	if job_with_path.job.job_type == Job.Type.MINE:
+		if curr_cell.grid_pos in job_with_path.job.workable_from_poses:
+			print_rich("%s reached %s and starts mining" % [self, job_with_path.job.center_cell])
+			sm.transition_to(State.MINING)
+		else:
+			print_rich("%s reached %s but cannot work from here, abandoning job" % [self, job_with_path.job.center_cell])
+			job_with_path.job.unassign_dwarf(self)
+			job_with_path = null
+			sm.transition_to(State.IDLE)
 
 
 func _on_new_cell_entered(new_cell: Cell) -> void:
@@ -110,6 +117,12 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 
 func _enter_mining() -> void:
 	mining_comp.start_mining(job_with_path.job.center_cell)
+
+	# Look at cell
+	var dir_to_cell: Vector2i = (job_with_path.job.center_cell.grid_pos - grid_pos)
+	if dir_to_cell.x != 0:
+		animated_sprite.flip_h = dir_to_cell.x < 0
+
 
 func _tick_mining(delta: float) -> void:
 	# Mining is handled in MiningComponent
@@ -207,7 +220,7 @@ func _validate_current_path() -> void:
 	var new_path: Path = Global.level.nav.find_path_to_one_of(grid_pos, job_with_path.job.workable_from_poses)
 
 	if new_path != null:
-		if movement_comp.assign_path(job_with_path.path):
+		if movement_comp.assign_path(new_path):
 			job_with_path.path = new_path
 			job_with_path.path.set_debug_draw_color(dwarf_color)
 		
@@ -245,7 +258,6 @@ func _physics_process_dying(delta: float) -> void:
 
 
 func _to_string() -> String:
-	# return "Dwarf-%d (%s | pos: %s)" % [dwarf_id, Enum.to_str(State, sm.state), grid_pos]
 	var print_color := Colors.to_print_color(dwarf_color)
 	return Util.color_string("Dwarf-%d (%s @ %s)" % [dwarf_id, Enum.to_str(State, sm.state), grid_pos], print_color)
 

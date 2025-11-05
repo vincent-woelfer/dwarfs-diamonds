@@ -51,6 +51,7 @@ func assign_path(new_path: Path) -> bool:
 	path = new_path
 	path.start_following_from_pos(parent.global_position, true)
 	sm.transition_to(State.FOLLOWING_PATH)
+
 	return true
 
 
@@ -90,6 +91,9 @@ func _physics_process_falling(delta: float) -> void:
 func _physics_process_following_path(delta: float) -> void:
 	# Check if we have a path
 	if path == null:
+		print_rich("MovementComponent from %s: FOLLOWING_PATH but path=null!" % [parent])
+		# TODO emit signal, otherwise we get stuck here
+		# Signal_OnFinishedPath.emit()
 		sm.transition_to(State.NOT_MOVING)
 		return
 

@@ -16,6 +16,8 @@ func add_job(job: Job) -> void:
 				assert(false, "JobManager: Not adding duplicate mining job for cell " % job.center_cell)
 				return
 
+	job.update_workable_from_cells()
+
 	_jobs.append(job)
 
 
@@ -115,11 +117,12 @@ var _debug_draw_proxy := DebugDrawProxy.new(self)
 
 const debug_size_point := 7.0
 
-const debug_offset_start := Vector2(-0.44, -0.38) * Global.CELL_SIZE_VEC
+# Multiple jobs per cell are displaced from top to bot
+const debug_offset_start := Vector2(-0.44, -0.35) * Global.CELL_SIZE_VEC
 const debug_offset_inc := Vector2(0.0, 0.12) * Global.CELL_SIZE_VEC
 
 var debug_font := ThemeDB.fallback_font
-var debug_font_size := 14
+var debug_font_size := 13
 
 func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 	var num_already_drawn_per_cell: Dictionary[Vector2i, int] = {}

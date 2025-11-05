@@ -1,6 +1,7 @@
 
 
-bug: sometimes 
+bug: sometimes job selection ->
+
 Dwarf-0 (MOVING @ (7, 4)) started Job(MINE - IN_PROGESS (2/2) @ (5, 4))
 
 gets printed but dwarf does not start moving and is stuck
