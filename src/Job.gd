@@ -169,5 +169,5 @@ func get_debug_info() -> Array:
 func _to_string() -> String:
 	var info := get_debug_info()
 	var color: Color = info[2]
-	color = color.lightened(0.5)
+	color = Colors.to_print_color(color)
 	return Util.color_string("Job(%s - %s @ %s)" % [info[0], info[1], center_cell.grid_pos], color)

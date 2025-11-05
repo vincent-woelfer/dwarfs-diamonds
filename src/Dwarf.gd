@@ -31,7 +31,7 @@ func _ready() -> void:
 	# ID + Color
 	dwarf_id = next_dwarf_id
 	next_dwarf_id += 1
-	dwarf_color = Colors.get_rand_dwarf_color()
+	dwarf_color = Colors.get_rand_dwarf_color(dwarf_id)
 
 	# Apply Color
 	animated_sprite.modulate = dwarf_color.lerp(Color.WHITE, 0.3)
@@ -77,7 +77,7 @@ func _physics_process_idle(delta: float) -> void:
 
 
 	else:
-		HexLog.print_throttled("%s found no job, remains idle" % [self])
+		HexLog.print_throttled(self, "%s found no job, remains idle" % [self], 0.5)
 		pass
 
 
@@ -246,7 +246,7 @@ func _physics_process_dying(delta: float) -> void:
 
 func _to_string() -> String:
 	# return "Dwarf-%d (%s | pos: %s)" % [dwarf_id, Enum.to_str(State, sm.state), grid_pos]
-	var print_color := dwarf_color.lightened(0.5)
+	var print_color := Colors.to_print_color(dwarf_color)
 	return Util.color_string("Dwarf-%d (%s @ %s)" % [dwarf_id, Enum.to_str(State, sm.state), grid_pos], print_color)
 
 ########################################################################################################################

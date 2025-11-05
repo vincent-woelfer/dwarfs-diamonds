@@ -65,6 +65,10 @@ func _ready() -> void:
 
 	# DWARF
 	spawn_dwarf(Vector2i(3, 2))
+	spawn_dwarf(Vector2i(10, 2))
+
+	# other side
+	spawn_dwarf(Vector2i(17, 2))
 
 func spawn_dwarf(grid_pos: Vector2i) -> void:
 	var cell := get_cell(grid_pos)

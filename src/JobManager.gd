@@ -77,11 +77,12 @@ func get_new_job_for_worker(dwarf: Dwarf) -> JobWithPath:
 	# Sort by score
 	scored_jobs.sort_custom(ScoredJob.compare)
 
-	# Print
-	print_rich("JobManager: Dwarf %s scored jobs (lower is better):" % [dwarf])
+	# Debug Print
+	var print_color := Colors.to_print_color(dwarf.dwarf_color)
+	print_rich(Util.color_string("\nJobManager: Scoring jobs for %s (lower is better):" % [dwarf], print_color))
 	for j in scored_jobs:
-		print_rich("- Score: %.1f - %s" % [j.score, j.job])
-	print()
+		print_rich(Util.color_string("- Score: %6.0f" % [j.score], print_color) + (" - %s" % [j.job]))
+	print() # New line
 
 	return JobWithPath.new(scored_jobs[0].job, scored_jobs[0].path)
 	
