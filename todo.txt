@@ -1,2 +1,3 @@
 
 
+zwerg debug display welche cell currently (mit farbe)

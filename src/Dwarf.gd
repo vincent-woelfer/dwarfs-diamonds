@@ -8,8 +8,10 @@ extends GridObject2D
 @onready var movement_comp: MovementComponent = $MovementComponent
 @onready var audio_player: AudioStreamPlayer2D = $AudioStreamPlayer2D
 
+# Static ID generator
 static var next_dwarf_id: int = 0
 var dwarf_id: int
+var dwarf_color: Color
 
 var job_with_path: JobWithPath
 
@@ -26,9 +28,16 @@ func _ready() -> void:
 	sm = StateMachine.new(self, State, State.IDLE)
 	sm.set_state_exitable(State.DYING, false)
 
+	# ID + Color
 	dwarf_id = next_dwarf_id
 	next_dwarf_id += 1
+	dwarf_color = Colors.get_rand_dwarf_color()
 
+	# Apply Color
+	animated_sprite.modulate = dwarf_color.lerp(Color.WHITE, 0.3)
+	light.color = dwarf_color.lerp(light.color, 0.3)
+
+	# Initial Position
 	global_position = Global.level.get_cell(grid_pos).get_floor_point()
 
 	# SIGNALS
@@ -46,6 +55,9 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	sm.physics_process(delta)
 
+	# For now every frame
+	_debug_draw_proxy_absolute.queue_redraw()
+
 
 func _physics_process_idle(delta: float) -> void:
 	# Try to get a new job
@@ -55,10 +67,11 @@ func _physics_process_idle(delta: float) -> void:
 		job_with_path = new_job_with_path
 
 		job_with_path.job.assign_dwarf(self)
+		job_with_path.path.set_debug_draw_color(dwarf_color)
 		movement_comp.assign_path(job_with_path.path)
 		sm.transition_to(State.MOVING)
 
-		print("%s started job %s at %s" % [self, Enum.to_str(Job.Type, job_with_path.job.type), job_with_path.job.target_cell])
+		print_rich("%s started job %s at %s" % [self, Enum.to_str(Job.Type, job_with_path.job.type), job_with_path.job.target_cell])
 
 	else:
 		# TODO hangs here if between cells :( ^
@@ -72,12 +85,13 @@ func _on_finished_path() -> void:
 
 	# Start working - depends on job type
 	# TODO other job types
-	print("%s reached %s and starts mining" % [self, job_with_path.job.target_cell])
+	print_rich("%s reached %s and starts mining" % [self, job_with_path.job.target_cell])
 
 	sm.transition_to(State.MINING)
 
 
 func _on_new_cell_entered(new_cell: Cell) -> void:
+	# TODO vincent
 	if new_cell == null:
 		return
 
@@ -88,7 +102,7 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 
 	# Check for torch placement
 	if num_torches > 0 and new_cell.deco_elements.is_empty() and Global.level.should_contain_torch(grid_pos):
-		print("%s placing torch at %s" % [self, grid_pos])
+		print_rich("%s placing torch at %s" % [self, grid_pos])
 		num_torches -= 1
 		new_cell.add_deco_element()
 
@@ -107,7 +121,7 @@ func _on_movement_direction_changed(new_dir: Vector2) -> void:
 
 
 func _on_mining_completed(mined_cell: Cell) -> void:
-	print("%s completed mining job at %s" % [self, mined_cell.grid_pos])
+	print_rich("%s completed mining job at %s" % [self, mined_cell.grid_pos])
 
 	# Complete job
 	if job_with_path != null:
@@ -156,7 +170,7 @@ func on_job_deleted() -> void:
 	if job_with_path == null:
 		return
 
-	print("%s's job was deleted" % [self])
+	print_rich("%s's job was deleted" % [self])
 
 	# Delete own reference
 	if job_with_path.path != null:
@@ -186,9 +200,10 @@ func _on_nav_updated() -> void:
 		# TODO if falling assign_path fails and we are not actually following a path
 		if new_path != null:
 			job_with_path.path = new_path
+			job_with_path.path.set_debug_draw_color(dwarf_color)
 			movement_comp.assign_path(job_with_path.path)
 		else:
-			print("%s lost path to job at %s" % [self, job_with_path.job.target_cell])
+			print_rich("%s lost path to job at %s" % [self, job_with_path.job.target_cell])
 			job_with_path.job.unassign_dwarf(self)
 			movement_comp.abort_path()
 			job_with_path = null
@@ -196,7 +211,7 @@ func _on_nav_updated() -> void:
 
 
 func _enter_dying() -> void:
-	print("%s has died!" % [self])
+	print_rich("%s has died!" % [self])
 	
 	if job_with_path != null:
 		# Abandon job
@@ -221,12 +236,16 @@ func _physics_process_dying(delta: float) -> void:
 
 
 func _to_string() -> String:
-	return "Dwarf-%d (%s | pos: %s)" % [dwarf_id, Enum.to_str(State, sm.state), grid_pos]
+	# return "Dwarf-%d (%s | pos: %s)" % [dwarf_id, Enum.to_str(State, sm.state), grid_pos]
+	var print_color := dwarf_color.lightened(0.5)
+	var color_str := "[color=%s]" % [print_color.to_html(false)]
+	return color_str + "Dwarf-%d (%s | pos: %s)" % [dwarf_id, Enum.to_str(State, sm.state), grid_pos] + "[/color]"
 
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
 var _debug_draw_proxy := DebugDrawProxy.new(self)
+var _debug_draw_proxy_absolute := DebugDrawProxy.new(self, false)
 
 const debug_state_colors := {
 	State.IDLE: Color.WHITE,
@@ -244,9 +263,23 @@ var debug_font_size := 22
 
 
 func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
+	# Status Text
 	var color_actual: Color = debug_state_colors.get(sm.state, Colors.DEFAULT)
 	var text: String = Enum.to_str(Dwarf.State, sm.state)
 	ui_layer.draw_string(debug_font, debug_offset, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, color_actual)
+
+
+func _debug_draw_in_ui_absolute(ui_layer: CanvasItem) -> void:
+	# Occupied Cell
+	var cell_to_draw: Cell = curr_cell # Global.level.get_cell(grid_pos) # curr_cell
+
+	if cell_to_draw != null:
+		var offset: Vector2 = cell_to_draw.global_position
+		var cell_poly_points := cell_to_draw.visual.poly_points.duplicate()
+		for i in range(cell_poly_points.size()):
+			cell_poly_points[i] += offset
+
+		ui_layer.draw_colored_polygon(cell_poly_points, Colors.with_alpha(dwarf_color, 0.3))
 
 
 func _dev_toogle_light(is_light_on: bool) -> void:

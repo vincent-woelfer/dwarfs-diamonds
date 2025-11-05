@@ -39,6 +39,7 @@ var fall_start_y: int
 func is_falling() -> bool:
 	return sm.state == State.FALLING
 
+
 func assign_path(new_path: Path) -> bool:
 	if new_path == null or sm.state == State.FALLING:
 		return false
@@ -51,6 +52,7 @@ func assign_path(new_path: Path) -> bool:
 	path.start_following_from_pos(parent.global_position, true)
 	sm.transition_to(State.FOLLOWING_PATH)
 	return true
+
 
 func abort_path() -> void:
 	# Hide path, even if reference still stored elsewhere
@@ -95,7 +97,7 @@ func _physics_process_following_path(delta: float) -> void:
 	curr_speed = movement_speed
 
 	# Follow path
-	parent.global_position = path.follow_path(curr_speed * delta)
+	parent.global_position = path.tick_follow_path(curr_speed * delta)
 	parent.update_grid_pos(path.get_curr_grid_pos())
 
 	# Direction for flipping sprite

@@ -17,6 +17,7 @@ var ladder_sprite: Sprite2D
 var occluder: LightOccluder2D
 var occluder_poly: OccluderPolygon2D
 
+# world-space RELATIVE TO CELL
 var poly_points: PackedVector2Array
 
 # Methods
@@ -109,9 +110,9 @@ func _encode_stencil_buffer() -> void:
 	stencil_poly.color.b8 |= (1 << 6) if c.is_standable() else 0
 
 
-# Returns a rectangle polygon for cell at grid position (x, y)
+# Returns a rectangle polygon for cell at grid position (x, y) in world-space RELATIVE TO CELL
 func _get_cell_polygon() -> PackedVector2Array:
-	var base: Vector2 = Vector2(c.grid_pos.x * Global.CELL_SIZE, c.grid_pos.y * Global.CELL_SIZE)
+	var base: Vector2 = c.grid_pos * Global.CELL_SIZE
 
 	# 4 Corners
 	var top_left := Vector2.ZERO
@@ -125,7 +126,7 @@ func _get_cell_polygon() -> PackedVector2Array:
 	var bot := (bot_right + bot_left) * 0.5
 	var left := (bot_left + top_left) * 0.5
 
-	# Offset
+	# Deterministic-Random Offset
 	var max_corner_offset := Global.CELL_SIZE * 0.1
 	var max_side_offset := Global.CELL_SIZE * 0.125
 

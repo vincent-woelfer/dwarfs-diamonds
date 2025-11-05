@@ -15,14 +15,16 @@ var _center_points: PackedVector2Array
 var _floor_points: PackedVector2Array
 
 # Mapping from floor-point-index to grid-point-index. Size = m
-# So _map[_next_floor_idx] gives the grid-point-index of the cell containing that floor-point
+# So _map[_next_floor_idx] gives the grid-point-index (size=n) of the cell containing that floor-point
 var _floor_to_grid_point_map: Array[int]
 
 # Current following indices
 # Used mostly for debug drawing and for get_next_cell
 var _next_center_idx: int = 0
-# Capped at size (so after last point) == reached end
+# Capped at size-1
 var _next_floor_idx: int = 0
+
+var _reached_end: bool = false
 
 var _curr_pos: Vector2 = Vector2.INF
 
@@ -68,7 +70,7 @@ func start_following_from_pos(start_pos: Vector2, debug_draw_: bool = true) -> v
 ## Should be called exactly once per physics frame.
 ## Allows to call get_curr_cell and get_next_cell after moving.
 ## current_pos in world space
-func follow_path(distance: float) -> Vector2:
+func tick_follow_path(distance: float) -> Vector2:
 	assert(_curr_pos != Vector2.INF) # Make sure start_following_from_pos was called
 	var final_pos: Vector2 = _curr_pos
 
@@ -107,8 +109,7 @@ func get_next_grid_pos() -> Vector2i:
 
 
 func reached_end() -> bool:
-	assert(_next_floor_idx <= _floor_points.size())
-	return _next_floor_idx == _floor_points.size()
+	return _reached_end
 
 
 ## For now just returns number of points
@@ -124,6 +125,14 @@ func get_length_grid_space() -> float:
 	return length
 
 
+func set_debug_draw_enabled(enabled: bool) -> void:
+	debug_draw = enabled
+	_debug_draw_proxy.queue_redraw()
+
+func set_debug_draw_color(color: Color) -> void:
+	debug_color = color
+	_debug_draw_proxy.queue_redraw()
+
 ########################################################################################################################
 # INTERNAL API
 ########################################################################################################################
@@ -133,35 +142,43 @@ func get_length_grid_space() -> float:
 func _get_curr_grid_pos_index() -> int:
 	assert(_curr_pos != Vector2.INF) # Make sure start_following_from_pos was called
 
-	# Decide whether _curr_pos already is in _next_center_idx or the previous one
-	var sampled_grid_pos := Global.level.get_cell_at_world_pos(_curr_pos + Global.VERT_OFFSET_SMALL).grid_pos
-	var curr_grid_pos_index: int
+	# Get prev and next cell grid_poses
+	var prev_floor_idx: int = max(_next_floor_idx - 1, 0)
+	var prev_cell_grid_pos: Vector2i = _grid_points[_floor_to_grid_point_map[prev_floor_idx]]
+	var next_cell_grid_pos: Vector2i = _grid_points[_floor_to_grid_point_map[_next_floor_idx]]
 
-	# After end of path -> last cell
-	if reached_end():
-		curr_grid_pos_index = _grid_points.size() - 1
-	# In next cell
-	elif sampled_grid_pos == _grid_points[_next_center_idx]:
-		curr_grid_pos_index = _next_center_idx
-	# Previous cell
+	# If same
+	if prev_cell_grid_pos == next_cell_grid_pos:
+		return _floor_to_grid_point_map[_next_floor_idx]
+
+	# if between cells -> check which is closer
 	else:
-		var prev_center_idx: int = max(_next_center_idx - 1, 0)
-		curr_grid_pos_index = prev_center_idx
+		# Get cell centers
+		var prev_cell_center := _center_points[_floor_to_grid_point_map[prev_floor_idx]]
+		var next_cell_center := _center_points[_floor_to_grid_point_map[_next_floor_idx]]
 
-	return curr_grid_pos_index
+		var dist_to_prev: float = _curr_pos.distance_squared_to(prev_cell_center)
+		var dist_to_next: float = _curr_pos.distance_squared_to(next_cell_center)
+
+		if dist_to_prev <= dist_to_next:
+			return _floor_to_grid_point_map[prev_floor_idx]
+		else:
+			return _floor_to_grid_point_map[_next_floor_idx]
+
 
 ## Updates _next_center_idx to the cell containing the next floor point.
 ## This means this switches shortly before exiting the current cell.
 func _update_next_indices(new_next_floor: int) -> void:
+	var max_index := _floor_points.size() - 1
+
+	# Check if we reached the end (if index goes past max)
+	_reached_end = new_next_floor > max_index
+
 	# Increment with cap
-	_next_floor_idx = min(new_next_floor, _floor_points.size()) # can be size -> this means reached end
+	_next_floor_idx = min(new_next_floor, max_index)
 
 	# Update center idx accordingly
-	var is_last_foor_point: bool = _next_floor_idx == _floor_points.size()
-	if is_last_foor_point:
-		_next_center_idx = _grid_points.size()
-	else:
-		_next_center_idx = _floor_to_grid_point_map[_next_floor_idx]
+	_next_center_idx = _floor_to_grid_point_map[_next_floor_idx]
 
 ## Calculates floor-points based on _grid_points.
 ## Also fills _floor_to_grid_point_map.

@@ -38,7 +38,7 @@ static func print_throttled(text: String, times_per_sec: float = 1.0) -> void:
 	var last_time: float = _last_print_times.get(key, -INF)
 
 	if now - last_time >= min_interval:
-		print(text)
+		print_rich(text)
 		_last_print_times[key] = now
  
 
