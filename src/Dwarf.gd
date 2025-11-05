@@ -60,6 +60,10 @@ func _physics_process(delta: float) -> void:
 
 
 func _physics_process_idle(delta: float) -> void:
+	find_new_job()
+
+
+func find_new_job() -> void:
 	# Try to get a new job
 	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_worker(self)
 
@@ -75,10 +79,12 @@ func _physics_process_idle(delta: float) -> void:
 		else:
 			print_rich("%s could not assign path to %s, remains idle" % [self, new_job_with_path.job])
 
-
 	else:
 		HexLog.print_throttled(self, "%s found no job, remains idle" % [self], 0.5)
-		pass
+
+		# Check if we are even in a connected cell
+		if not Global.level.nav.is_cell_enabled(grid_pos):
+			HexLog.print_throttled(self, "%s is in a disconnected cell!" % [self])
 
 
 func _on_finished_path() -> void:

@@ -1,7 +1,5 @@
 
 
-bug: sometimes job selection ->
+func _update_on_ground_check() -> void:
+implement "is climbing" based on path progress ???
 
-Dwarf-0 (MOVING @ (7, 4)) started Job(MINE - IN_PROGESS (2/2) @ (5, 4))
-
-gets printed but dwarf does not start moving and is stuck

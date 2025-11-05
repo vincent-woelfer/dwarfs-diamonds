@@ -60,6 +60,10 @@ func find_path_to_one_of(start: Vector2i, goals: Array[Vector2i]) -> Path:
 	return shortest_path
 
 
+func is_cell_enabled(grid_pos: Vector2i) -> bool:
+	var id: int = Util.hash(grid_pos)
+	return _is_id_enabled(id)
+
 ########################################################################################################################
 # PRIVATE METHODS
 ########################################################################################################################
