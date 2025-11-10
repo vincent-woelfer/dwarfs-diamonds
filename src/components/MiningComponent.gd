@@ -63,7 +63,4 @@ func _physics_process(delta: float) -> void:
 			continue
 
 		# Actual Mining
-		mining_cell.mining_process += mine_speed * delta
-		if mining_cell.mining_process >= 1.0:
-			# This in turn emits Signal_CellMiningCompleted which this and all other MiningComponents listen to
-			Actions.destroy_cell(mining_cell)
+		mining_cell.increase_mining_process(mine_speed * delta)

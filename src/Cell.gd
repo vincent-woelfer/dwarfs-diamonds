@@ -64,6 +64,16 @@ func set_is_selected(selected: bool) -> void:
 	is_selected = selected
 	visual.set_dirty()
 
+
+func increase_mining_process(amount: float) -> void:
+	mining_process = clamp(mining_process + amount, 0.0, 1.0)
+	visual.set_dirty()
+
+	if mining_process >= 1.0:
+		# This in turn emits Signal_CellMiningCompleted which this and all other MiningComponents listen to
+		Actions.destroy_cell(self)
+
+
 func destroy() -> void:
 	if not is_solid:
 		return
@@ -126,7 +136,7 @@ func set_marked_for_mining(should_mine: bool) -> bool:
 	return true
 
 
-## For now aleays torch
+## For now always torch
 func add_deco_element() -> void:
 	if not deco_elements.is_empty():
 		return
