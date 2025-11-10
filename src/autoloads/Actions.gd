@@ -23,7 +23,7 @@ func destroy_cell(cell: Cell) -> void:
 	Actions.mark_cell_for_mining(cell, false)
 
 	# Spawn Rubble
-	# Global.level.spawn_rubble(cell.grid_pos)
+	Global.level.spawn_rubble(cell.grid_pos)
 
 
 func mark_cell_for_mining(cell: Cell, is_marked_for_mining: bool) -> void:

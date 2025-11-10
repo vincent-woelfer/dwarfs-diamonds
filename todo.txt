@@ -1,5 +1,1 @@
 
-
-func _update_on_ground_check() -> void:
-implement "is climbing" based on path progress ???
-
