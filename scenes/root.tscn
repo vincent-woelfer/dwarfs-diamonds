@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://pbh6gu6l3vu2"]
+[gd_scene load_steps=11 format=3 uid="uid://pbh6gu6l3vu2"]
 
 [ext_resource type="Script" uid="uid://6tsnng1yc534" path="res://src/Level.gd" id="1_j5px3"]
 [ext_resource type="Script" uid="uid://dyag5xrvgqmps" path="res://src/Camera.gd" id="2_twpsu"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://cu5vij5h7nlbn" path="res://src/MousePointer.gd" id="4_j287u"]
 [ext_resource type="Script" uid="uid://ywmes8ymdo2a" path="res://src/post_processing/PostProcessCanvasLayer.gd" id="4_jh1ax"]
 [ext_resource type="Shader" uid="uid://xfugqc6jg0g2" path="res://shaders/StencilPostProcess.gdshader" id="4_sqa0i"]
+[ext_resource type="Script" uid="uid://diuf7i4psy2dl" path="res://src/utils/DevFpsLabel.gd" id="8_5sfjl"]
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_j287u"]
 viewport_path = NodePath("StencilViewport")
@@ -53,3 +54,8 @@ material = SubResource("ShaderMaterial_sqa0i")
 [node name="UICanvasLayer-2" type="CanvasLayer" parent="."]
 layer = 2
 follow_viewport_enabled = true
+
+[node name="DevFpsLabel" type="Label" parent="UICanvasLayer-2"]
+offset_right = 40.0
+offset_bottom = 45.0
+script = ExtResource("8_5sfjl")
