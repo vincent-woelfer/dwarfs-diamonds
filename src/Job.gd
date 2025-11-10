@@ -120,7 +120,8 @@ func estimate_remaining_time() -> float:
 				if dwarf.job_with_path and dwarf.job_with_path.path:
 					# Estimate time based on path length and walking speed
 					var path_length: float = dwarf.job_with_path.path.get_remaining_length_world_space()
-					var time := path_length / dwarf.movement_comp.movement_speed
+					var walking_speed := dwarf.movement_comp.movement_capabilities.get_speed(Enum.MoveMode.WALK)
+					var time := path_length / walking_speed
 					remaining_time = min(remaining_time, time + 5.0) # +5s buffer for starting mining
 
 		return remaining_time

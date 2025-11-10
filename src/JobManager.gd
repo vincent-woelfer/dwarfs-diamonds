@@ -33,7 +33,7 @@ func remove_mining_job_for_cell(cell: Cell) -> void:
 func get_new_job_for_worker(dwarf: Dwarf) -> JobWithPath:
 	assert(dwarf != null)
 	var start_pos: Vector2i = dwarf.grid_pos
-	var walking_speed := dwarf.movement_comp.movement_speed
+	var walking_speed := dwarf.movement_comp.movement_capabilities.get_speed(Enum.MoveMode.WALK)
 
 	# Update all jobs first
 	for job in _jobs:

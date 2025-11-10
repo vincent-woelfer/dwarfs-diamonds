@@ -18,14 +18,19 @@ var _floor_points: PackedVector2Array
 # So _map[_next_floor_idx] gives the grid-point-index (size=n) of the cell containing that floor-point
 var _floor_to_grid_point_map: Array[int]
 
+# MoveMode from previous floor point to current floor point. Size = m
+# [0] is an unused dummy point
+var _floor_point_move_modes: Array[Enum.MoveMode]
+
 # Current following indices
-# Used mostly for debug drawing and for get_next_cell
+# Used mostly for debug drawing and for get_next_cell, capped at size-1
 var _next_center_idx: int = 0
 # Capped at size-1
 var _next_floor_idx: int = 0
 
 var _reached_end: bool = false
 
+# Current position of following-node in world space
 var _curr_pos: Vector2 = Vector2.INF
 
 # Normal case is > 2 points. 0 is an exception
@@ -68,7 +73,7 @@ func start_following_from_pos(start_pos: Vector2, debug_draw_: bool = true) -> v
 ## Should be called exactly once per physics frame.
 ## Allows to call get_curr_cell and get_next_cell after moving.
 ## current_pos in world space
-func tick_follow_path(distance: float) -> Vector2:
+func tick_follow_path(delta: float, movement_capa: MovementCapabilities) -> Vector2:
 	assert(_curr_pos != Vector2.INF) # Make sure start_following_from_pos was called
 	var final_pos: Vector2 = _curr_pos
 
@@ -78,14 +83,18 @@ func tick_follow_path(distance: float) -> Vector2:
 		var dist_to_next: float = vec_to_next.length()
 		var dir_to_next: Vector2 = vec_to_next.normalized()
 
+		var move_mode := _floor_point_move_modes[_next_floor_idx]
+		var speed: float = movement_capa.get_speed(move_mode)
+		var distance: float = speed * delta
+
 		# Distance covered and no new waypoint reached -> break
 		if distance < dist_to_next:
 			final_pos += dir_to_next * distance
 			break
 
-		# New waypoint reached, continue to next
+		# New waypoint reached, continue to next and reduce remaining delta
 		final_pos = next_waypoint
-		distance -= dist_to_next
+		delta -= dist_to_next / speed
 		_update_next_indices(_next_floor_idx + 1)
 
 	_curr_pos = final_pos
@@ -103,6 +112,10 @@ func get_next_grid_pos() -> Vector2i:
 	var curr_grid_pos_index := _get_curr_grid_pos_index()
 	var next_grid_pos_index: int = min(curr_grid_pos_index + 1, _grid_points.size() - 1)
 	return _grid_points[next_grid_pos_index]
+
+
+func get_curr_move_mode() -> Enum.MoveMode:
+	return _floor_point_move_modes[_next_floor_idx]
 
 
 func reached_end() -> bool:
@@ -185,16 +198,20 @@ func _update_next_indices(new_next_floor: int) -> void:
 func _calculate_floor_points() -> void:
 	if _grid_points.size() == 0:
 		_floor_points = PackedVector2Array()
+		_floor_point_move_modes = []
+		_floor_to_grid_point_map = []
 		return
 
 	# New _floor_points array
-	var p: PackedVector2Array = PackedVector2Array()
+	var p: PackedVector2Array = []
 	var map: Array[int] = []
+	var move_modes: Array[Enum.MoveMode] = []
 
 	# We go through pairs and connect from ground-center to ground-center.
 	# We always assume from-center is already in follow_points, thats why we add it for the inital cell before the loop
 	p.append(Global.level.get_cell(_grid_points[0]).get_floor_point())
 	map.append(0)
+	move_modes.append(Enum.MoveMode.WALK) # Dummy first point
 	
 	for i in range(_grid_points.size() - 1):
 		var from_idx := i
@@ -207,6 +224,13 @@ func _calculate_floor_points() -> void:
 				# Vertical -> connect directly, only floor-center of to cell
 				p.append(to.poly_point(Enum.PolyPoint.BOT))
 				map.append(to_idx)
+
+				var upwards: bool = from.grid_pos.y > to.grid_pos.y
+				if upwards:
+					move_modes.append(Enum.MoveMode.CLIMB_LADDER_UP)
+				else:
+					move_modes.append(Enum.MoveMode.CLIMB_LADDER_DOWN)
+
 			else:
 				# Horizontal -> connect directly, exit-floor-point of from + enter-floor-point + center of to
 				if from.grid_pos.x < to.grid_pos.x:
@@ -222,8 +246,8 @@ func _calculate_floor_points() -> void:
 				
 				# Mapping is the same in both cases
 				map.append(from_idx)
-				map.append(to_idx)
-				map.append(to_idx)
+				map.append_array([to_idx, to_idx])
+				move_modes.append_array([Enum.MoveMode.WALK, Enum.MoveMode.WALK, Enum.MoveMode.WALK])
 					
 		else:
 			# Diagonal -> we offset the wall-points inward a bit to avoid clipping into walls
@@ -253,11 +277,10 @@ func _calculate_floor_points() -> void:
 					p.append(to.poly_point(Enum.PolyPoint.BOT))
 				
 				# Mapping is the same in both cases
-				map.append(from_idx)
-				map.append(from_idx)
-				map.append(from_idx)
-				map.append(to_idx)
-				map.append(to_idx)
+				map.append_array([from_idx, from_idx, from_idx])
+				map.append_array([to_idx, to_idx])
+				move_modes.append_array([Enum.MoveMode.WALK, Enum.MoveMode.CLIMB_WALL_UP, Enum.MoveMode.CLIMB_WALL_UP])
+				move_modes.append_array([Enum.MoveMode.WALK, Enum.MoveMode.WALK])
 
 			elif not upwards:
 				if to_the_right:
@@ -282,16 +305,18 @@ func _calculate_floor_points() -> void:
 				
 				# Mapping is the same in both cases
 				map.append(from_idx)
-				map.append(to_idx)
-				map.append(to_idx)
-				map.append(to_idx)
-				map.append(to_idx)
+				map.append_array([to_idx, to_idx, to_idx, to_idx])
+				move_modes.append(Enum.MoveMode.WALK)
+				move_modes.append_array([Enum.MoveMode.CLIMB_WALL_DOWN, Enum.MoveMode.CLIMB_WALL_DOWN])
+				move_modes.append_array([Enum.MoveMode.WALK, Enum.MoveMode.WALK])
 
-
+	# Final assertions
 	assert(p.size() == map.size())
+	assert(p.size() == move_modes.size())
 
-	_floor_points = p
-	_floor_to_grid_point_map = map
+	self._floor_points = p
+	self._floor_to_grid_point_map = map
+	self._floor_point_move_modes = move_modes
 
 
 ## Returns length of path in grid space (cells), accounting for diagonal movement

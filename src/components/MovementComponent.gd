@@ -16,16 +16,9 @@ var sm: StateMachine
 ################ Configuration ################
 var movement_capabilities: MovementCapabilities = MovementCapabilities.new()
 
-const falling_acceleration: float = 600.0 # pixels per second squared
-const max_falling_speed: float = 2000.0 # pixels per second
-const starting_speed: float = 200.0 # pixels per second
-
-const movement_speed = 250.0 # pixels per second
-
 ################ Current Internal State ################
 var path: Path
 
-var curr_speed: float = 0.0
 var curr_falling_speed: float = 0.0
 
 # For tracking fall distance in cells
@@ -81,7 +74,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _physics_process_falling(delta: float) -> void:
-	curr_falling_speed = min(curr_falling_speed + falling_acceleration * delta, max_falling_speed)
+	curr_falling_speed = min(curr_falling_speed + movement_capabilities.falling_acceleration * delta, movement_capabilities.falling_max_speed)
 	parent.global_position.y += curr_falling_speed * delta
 
 	# Sample grid pos
@@ -97,11 +90,8 @@ func _physics_process_following_path(delta: float) -> void:
 		sm.transition_to(State.NOT_MOVING)
 		return
 
-	# Check which speed to use
-	curr_speed = movement_speed
-
 	# Follow path
-	parent.global_position = path.tick_follow_path(curr_speed * delta)
+	parent.global_position = path.tick_follow_path(delta, movement_capabilities)
 	parent.update_grid_pos(path.get_curr_grid_pos())
 
 	# Direction for flipping sprite
@@ -114,17 +104,20 @@ func _physics_process_following_path(delta: float) -> void:
 		sm.transition_to(State.NOT_MOVING)
 		
 
+func _get_curr_move_mode() -> Enum.MoveMode:
+	if path:
+		return path.get_curr_move_mode()
+	else:
+		return Enum.MoveMode.WALK
+
 # Check if we should start/stop falling
 func _update_on_ground_check() -> void:
 	var can_stand_in_current_cell := parent.curr_cell.is_standable(_get_can_use_ladders())
+	var move_mode := _get_curr_move_mode()
 
-	# TODO this is dirty. To avoid stating to fall when "climbing" a diagonal connection wall we just check
-	# if we are horizontally centered in the cell.
-	var horizontally_centered: bool = abs(parent.global_position.x - parent.curr_cell.get_floor_point().x) <= Global.CELL_SIZE * 0.1
-
-	# Currently standing on solid ground or ladder
+	# Currently standing on solid ground or ladder or climbing wall
 	if not is_falling():
-		if can_stand_in_current_cell or not horizontally_centered: # TODO hacky
+		if can_stand_in_current_cell or (move_mode != Enum.MoveMode.WALK):
 			# Nothing to do            
 			return
 		else:
@@ -145,7 +138,7 @@ func _update_on_ground_check() -> void:
 
 
 func _enter_falling() -> void:
-	curr_falling_speed = starting_speed
+	curr_falling_speed = movement_capabilities.falling_starting_speed
 	fall_start_y = parent.grid_pos.y
 	Signal_OnStartedFalling.emit()
 

@@ -42,3 +42,12 @@ enum PolyPoint {
 	BOT_LEFT = 6,
 	LEFT = 7,
 }
+
+# Movement Mode
+enum MoveMode {
+	WALK,
+	CLIMB_WALL_UP,
+	CLIMB_WALL_DOWN,
+	CLIMB_LADDER_UP,
+	CLIMB_LADDER_DOWN,
+}
