@@ -6,6 +6,10 @@ static func rand_color() -> Color:
 	return Color(randf_range(0.2, 0.8), randf_range(0.2, 0.8), randf_range(0.2, 0.8), 1.0)
 
 
+static func rand_rubble_color() -> Color:
+	return Color(randf_range(0.5, 1.0), randf_range(0.5, 1.0), randf_range(0.5, 1.0), 1.0)
+	
+
 static func get_cell_color(type: Enum.CellType, solid: bool) -> Color:
 	var color: Color = CellTypeColor.get(type, DEFAULT)
 
@@ -34,24 +38,6 @@ static func get_rand_dwarf_color(dwarf_id: int) -> Color:
 
 static func to_print_color(color: Color) -> Color:
 	return color.lightened(0.5)
-
-# static var dwarf_color_uses := {}
-# static func get_rand_dwarf_color() -> Color:
-# 	# Initialize usage counts
-# 	if dwarf_color_uses.is_empty():
-# 		for color: Color in dwarf_colors:
-# 			dwarf_color_uses[color] = 0
-
-# 	# sort array by least used
-# 	var sorted_colors := dwarf_colors.duplicate()
-# 	sorted_colors.shuffle()
-# 	sorted_colors.sort_custom(func(a: Color, b: Color) -> int:
-# 		return dwarf_color_uses[a] - dwarf_color_uses[b]
-# 	)
-
-# 	var selected_color: Color = sorted_colors[0]
-# 	dwarf_color_uses[selected_color] += 1
-# 	return selected_color
 
 
 static func with_alpha(color: Color, alpha: float) -> Color:

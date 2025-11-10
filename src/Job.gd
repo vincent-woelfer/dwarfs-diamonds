@@ -7,7 +7,7 @@ extends RefCounted
 enum Type {
 	MINE,
 	BUILD_LADDER,
-	CARRY,
+	RUBBLE,
 }
 
 var job_type: Job.Type
@@ -21,6 +21,9 @@ var workable_from_poses: Array[Vector2i] = []
 # Currently assigned dwarfs
 var assigned_dwarfs: Array[Dwarf] = []
 
+# Only for rubbles: reference to the rubble to be picked up
+var rubble: Rubble = null
+
 
 ########################################################################################################################
 # PUBLIC METHODS
@@ -30,7 +33,7 @@ func get_capacity() -> int:
 		return 2
 	elif job_type == Job.Type.BUILD_LADDER:
 		return 1
-	elif job_type == Job.Type.CARRY:
+	elif job_type == Job.Type.RUBBLE:
 		return 1
 
 	assert(false)
@@ -97,8 +100,24 @@ func update_workable_from_cells() -> void:
 			if n_cell.is_standable(false):
 				workable_from_poses.append(n_cell.grid_pos)
 
+	elif job_type == Job.Type.BUILD_LADDER:
+		for n_offset: Vector2i in Util.neighbours_cardinal:
+			var n_cell: Cell = center_cell.get_neighbour(n_offset)
 
-## Estimates remaining time in seconds. For now only works when dwarf already arrived at job
+			if n_cell == null:
+				continue
+			
+			if n_cell.is_standable(false):
+				workable_from_poses.append(n_cell.grid_pos)
+
+	elif job_type == Job.Type.RUBBLE:
+		# Can only pick up rubble when not falling
+		if rubble.can_pickup():
+			workable_from_poses.append(center_cell.grid_pos)
+		
+
+## Estimates remaining time in seconds. For now only works when dwarf already arrived at job.
+## Used for other dwarfs to decide whether to take this job or not.
 const MAX_REMAINING_TIME_ESTIMATE: float = 1000.0
 func estimate_remaining_time() -> float:
 	if assigned_dwarfs.is_empty():
@@ -126,8 +145,17 @@ func estimate_remaining_time() -> float:
 
 		return remaining_time
 
+	elif job_type == Job.Type.BUILD_LADDER:
+		# Only one dwarf can do this job
+		return 0.0
+
+	elif job_type == Job.Type.RUBBLE:
+		# Only one dwarf can do this job
+		return 0.0
+
 
 	# Other job types not implemented yet
+	assert(false)
 	return MAX_REMAINING_TIME_ESTIMATE
 
 

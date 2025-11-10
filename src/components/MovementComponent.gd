@@ -110,6 +110,7 @@ func _get_curr_move_mode() -> Enum.MoveMode:
 	else:
 		return Enum.MoveMode.WALK
 
+
 # Check if we should start/stop falling
 func _update_on_ground_check() -> void:
 	var can_stand_in_current_cell := parent.curr_cell.is_standable(_get_can_use_ladders())

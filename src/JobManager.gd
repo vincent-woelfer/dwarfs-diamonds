@@ -17,8 +17,15 @@ func add_job(job: Job) -> void:
 				return
 
 	job.update_workable_from_cells()
-
 	_jobs.append(job)
+
+
+func remove_job(job: Job) -> void:
+	assert(job != null)
+	assert(job in _jobs)
+
+	job.delete()
+	_jobs.erase(job)
 
 
 # Called by Global Action if cell is no longer marked for mining
