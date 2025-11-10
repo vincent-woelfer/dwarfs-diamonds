@@ -48,11 +48,11 @@ func _update_selected_cells() -> void:
 	# Deselect previous
 	for cell in prev_selected_cells:
 		if cell not in curr_selected_cells:
-			cell.is_selected = false
+			cell.set_is_selected(false)
 
 	# Select current
 	for cell in curr_selected_cells:
-		cell.is_selected = true
+		cell.set_is_selected(true)
 
 	# Mark cells for mining
 	# Single click

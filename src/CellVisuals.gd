@@ -20,10 +20,11 @@ var occluder_poly: OccluderPolygon2D
 # world-space RELATIVE TO CELL
 var poly_points: PackedVector2Array
 
+var dirty: bool
+
 # Methods
 func _init(_parent_cell: Cell) -> void:
 	self.process_priority = Enum.ProcessPriority.CELL_VISUAL
-
 	self.c = _parent_cell
 
 
@@ -72,10 +73,15 @@ func _ready() -> void:
 
 	update()
 
+func set_dirty() -> void:
+	dirty = true
+
 
 # dirty flag IS ONLY A PERFOCMANCE OPTIMIZATION -> ignore for now
 func _process(delta: float) -> void:
-	update()
+	if dirty:
+		dirty = false
+		update()
 
 
 func update() -> void:
@@ -110,6 +116,13 @@ func _encode_stencil_buffer() -> void:
 	stencil_poly.color.b8 |= (1 << 6) if c.is_standable() else 0
 
 
+## Returns a single poly point in world-space RELATIVE TO CELL
+func get_poly_point(point: Enum.PolyPoint) -> Vector2:
+	assert(poly_points.size() == 8)
+	assert(point >= 0 and point < poly_points.size())
+	return poly_points[point]
+
+
 # Returns a rectangle polygon for cell at grid position (x, y) in world-space RELATIVE TO CELL
 func _get_cell_polygon() -> PackedVector2Array:
 	var base: Vector2 = c.grid_pos * Global.CELL_SIZE
@@ -141,10 +154,3 @@ func _get_cell_polygon() -> PackedVector2Array:
 
 	# Clockwise, starting from top-left
 	return PackedVector2Array([top_left, top, top_right, right, bot_right, bot, bot_left, left])
-
-
-## Returns a single poly point in world-space RELATIVE TO CELL
-func get_poly_point(point: Enum.PolyPoint) -> Vector2:
-	assert(poly_points.size() == 8)
-	assert(point >= 0 and point < poly_points.size())
-	return poly_points[point]

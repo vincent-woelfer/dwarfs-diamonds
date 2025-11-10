@@ -60,6 +60,10 @@ func queue_nav_update() -> void:
 		Global.level.nav.queue_update_cell(n_grid_pos)
 
 
+func set_is_selected(selected: bool) -> void:
+	is_selected = selected
+	visual.set_dirty()
+
 func destroy() -> void:
 	if not is_solid:
 		return
@@ -73,6 +77,8 @@ func destroy() -> void:
 	queue_nav_update()
 	audio_player.play()
 
+	visual.set_dirty()
+
 
 func build_platform() -> void:
 	if is_solid:
@@ -85,6 +91,8 @@ func build_platform() -> void:
 	
 	queue_nav_update()
 
+	visual.set_dirty()
+
 
 func build_ladder() -> void:
 	if is_solid:
@@ -93,10 +101,14 @@ func build_ladder() -> void:
 	has_ladder = true
 	queue_nav_update()
 
+	visual.set_dirty()
+
 
 func destroy_ladder() -> void:
 	has_ladder = false
 	queue_nav_update()
+
+	visual.set_dirty()
 
 
 ## Returns true when state changed
@@ -110,6 +122,7 @@ func set_marked_for_mining(should_mine: bool) -> bool:
 		return false
 
 	is_marked_for_mining = should_mine
+	visual.set_dirty()
 	return true
 
 
@@ -123,6 +136,7 @@ func add_deco_element() -> void:
 
 	deco_elements.append(new_deco)
 	add_child(new_deco)
+	visual.set_dirty()
 
 
 ## Returns a single poly point in world-space absolute

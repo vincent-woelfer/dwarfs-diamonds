@@ -55,8 +55,6 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	sm.physics_process(delta)
 
-	# For now every frame
-	_debug_draw_proxy_absolute.queue_redraw()
 
 
 func _physics_process_idle(delta: float) -> void:
@@ -106,6 +104,8 @@ func _on_finished_path() -> void:
 
 
 func _on_new_cell_entered(new_cell: Cell) -> void:
+	_debug_draw_proxy_absolute.queue_redraw()
+	
 	if new_cell == null:
 		return
 
@@ -297,7 +297,7 @@ func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 
 func _debug_draw_in_ui_absolute(ui_layer: CanvasItem) -> void:
 	# Occupied Cell
-	var cell_to_draw: Cell = curr_cell # Global.level.get_cell(grid_pos) # curr_cell
+	var cell_to_draw: Cell = curr_cell
 
 	if cell_to_draw != null:
 		var offset: Vector2 = cell_to_draw.global_position

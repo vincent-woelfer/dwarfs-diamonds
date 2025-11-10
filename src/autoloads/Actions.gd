@@ -36,3 +36,5 @@ func mark_cell_for_mining(cell: Cell, is_marked_for_mining: bool) -> void:
 		Global.level.job_manager.add_job(Job.new(Job.Type.MINE, cell))
 	else:
 		Global.level.job_manager.remove_mining_job_for_cell(cell)
+
+	cell.visual.set_dirty()
