@@ -10,6 +10,7 @@ func _init(target_: Node2D, follow_target_: bool = true) -> void:
 	if not follow_target:
 		self.global_position = Vector2.ZERO
 
+	# TODO maybe use screen space layer if not following target?
 	Global.ui_canvas_layer_world_space.add_child(self)
 
 
