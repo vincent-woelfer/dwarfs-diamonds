@@ -84,9 +84,10 @@ func _physics_process_falling(delta: float) -> void:
 func _physics_process_following_path(delta: float) -> void:
 	# Check if we have a path
 	if path == null:
-		print_rich("MovementComponent from %s: FOLLOWING_PATH but path=null!" % [parent])
-		# TODO emit signal, otherwise we get stuck here
+		# This should never happen! Maybe emit signal as error handling, otherwise we get stuck here
 		# Signal_OnFinishedPath.emit()
+		assert(false)
+		print_rich("MovementComponent from %s: FOLLOWING_PATH but path=null!" % [parent])
 		sm.transition_to(State.NOT_MOVING)
 		return
 
@@ -101,6 +102,7 @@ func _physics_process_following_path(delta: float) -> void:
 	# Check if we reached the end of the path
 	if path.reached_end():
 		Signal_OnFinishedPath.emit()
+		path = null
 		sm.transition_to(State.NOT_MOVING)
 		
 

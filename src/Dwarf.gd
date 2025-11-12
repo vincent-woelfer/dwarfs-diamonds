@@ -17,9 +17,12 @@ var job_with_path: JobWithPath
 
 var num_torches: int = 50
 
-
 enum State {IDLE, MOVING, MINING, FALLING, DYING}
 var sm: StateMachine
+
+########################################################################################################################
+# SETUP & OWN PROCESSING
+########################################################################################################################
 
 func setup(grid_pos_: Vector2i, sample_offset_: Vector2 = Global.VERT_OFFSET_SMALL) -> void:
 	super.setup(grid_pos_, sample_offset_)
@@ -50,18 +53,185 @@ func _ready() -> void:
 	movement_comp.Signal_OnFinishedPath.connect(_on_finished_path)
 	movement_comp.Signal_OnStartedFalling.connect(_on_started_falling)
 	movement_comp.Signal_OnLanded.connect(_on_landed)
-
+	movement_comp.sm.Signal_StateChanged.connect(_on_movement_state_changed)
 
 func _physics_process(delta: float) -> void:
 	sm.physics_process(delta)
 
 
+########################################################################################################################
+# STATE MACHINE HANDLES
+########################################################################################################################
 
 func _physics_process_idle(delta: float) -> void:
-	find_new_job()
+	_find_new_job()
 
 
-func find_new_job() -> void:
+func _enter_mining() -> void:
+	mining_comp.start_mining(job_with_path.job.center_cell)
+
+	# Look at cell
+	var dir_to_cell: Vector2i = (job_with_path.job.center_cell.grid_pos - grid_pos)
+	if dir_to_cell.x != 0:
+		animated_sprite.flip_h = dir_to_cell.x < 0
+
+
+func _enter_dying() -> void:
+	print_rich("%s has died!" % [self])
+	
+	_abandon_job()
+
+	# Hide player sprite + light
+	animated_sprite.visible = false
+	light.enabled = false
+
+	# Play death sound
+	audio_player.stream = Audio.sounds.get("dwarf_on_landing")
+	audio_player.pitch_scale = 1.8
+	audio_player.play()
+
+func _physics_process_dying(delta: float) -> void:
+	# Wait for sound to finish then free. Dont use await as this is called in physics process
+	if not audio_player.playing:
+		queue_free()
+
+########################################################################################################################
+# SIGNAL HANDLERS
+########################################################################################################################
+## Triggered by MovementComponent
+func _on_movement_state_changed(prev_state: int, next_state: int) -> void:
+	print_rich("%s MovementComponent state changed from %s to %s" % [self, Enum.to_str(MovementComponent.State, prev_state), Enum.to_str(MovementComponent.State, next_state)])
+
+
+## Triggered by MovementComponent
+func _on_finished_path() -> void:
+	job_with_path.path.free()
+	job_with_path.path = null
+
+	# TODO handle no job case (should not happen)
+
+	# Validate if we can work on the job
+	if not (curr_cell.grid_pos in job_with_path.job.workable_from_poses):
+		print_rich("%s reached %s but cannot work from here, abandoning job" % [self, job_with_path.job.center_cell])
+		_abandon_job()
+		sm.transition_to(State.IDLE)
+		return
+
+	# Start working - depends on job type
+	if job_with_path.job.job_type == Job.Type.MINE:
+		print_rich("%s reached %s and starts mining" % [self, job_with_path.job.center_cell])
+		sm.transition_to(State.MINING)
+
+
+## Triggered by MovementComponent
+func _on_landed(fall_height_cells: int) -> void:
+	if fall_height_cells > 1:
+		audio_player.stream = Audio.sounds.get("dwarf_on_landing")
+		audio_player.pitch_scale = 1.4
+		audio_player.play()
+
+	if fall_height_cells > 5:
+		sm.transition_to(State.DYING)
+		return
+
+	sm.transition_to(State.IDLE)
+
+	# Simulate entering cell anew with idle (to place torches)
+	_on_new_cell_entered(curr_cell)
+
+
+## Triggered by MovementComponent
+func _on_new_cell_entered(new_cell: Cell) -> void:
+	_debug_draw_proxy_absolute.queue_redraw()
+	
+	if new_cell == null:
+		return
+
+	# Place Torch
+	# -> Only place if idle or walking
+	if sm.state != State.IDLE and sm.state != State.MOVING:
+		return
+
+	# Check for torch placement
+	if num_torches > 0 and new_cell.deco_elements.is_empty() and Global.level.should_contain_torch(grid_pos):
+		print_rich("%s placing torch at %s" % [self, grid_pos])
+		num_torches -= 1
+		new_cell.add_deco_element()
+
+
+## Triggered by MovementComponent
+func _on_movement_direction_changed(new_dir: Vector2) -> void:
+	if new_dir.x != 0:
+		animated_sprite.flip_h = new_dir.x < 0
+
+
+## Triggered by MovementComponent
+func _on_started_falling() -> void:
+	_abandon_job()
+	sm.transition_to(State.FALLING)
+
+
+## Triggered by MiningComponent
+func _on_mining_completed(mined_cell: Cell) -> void:
+	print_rich("%s completed %s" % [self, job_with_path.job])
+
+	# Complete job
+	if job_with_path != null:
+		job_with_path.job.complete(self)
+
+		# Clear job reference
+		if job_with_path.path != null:
+			job_with_path.path.free()
+
+		job_with_path = null
+
+	# Transition back to idle but dont override falling state
+	if sm.state != State.FALLING:
+		sm.transition_to(State.IDLE)
+
+## Triggered by Job. When job is deleted - not for the dwarf calling job.complete
+func on_job_deleted() -> void:
+	if job_with_path == null:
+		return
+
+	print_rich("%s's job was deleted" % [self])
+
+	_abandon_job()
+
+	# Abort mining
+	if sm.state == State.MINING:
+		mining_comp.stop_mining()
+
+	# Transition back to idle but dont override falling state
+	if sm.state != State.FALLING:
+		sm.transition_to(State.IDLE)
+
+
+## Triggered by NavMesh updates (via EventBus)
+func _on_nav_updated() -> void:
+	# If nav updated while following a path -> recalculate path for job or abort if not valid
+	if job_with_path != null:
+		_validate_current_path()
+
+
+########################################################################################################################
+# OWN (UTILITY) FUNCTIONS
+########################################################################################################################
+func _abandon_job() -> void:
+	if job_with_path == null:
+		return
+
+	print_rich("%s abandoning %s" % [self, job_with_path.job])
+	if job_with_path.path != null:
+		if movement_comp.sm.state == MovementComponent.State.FOLLOWING_PATH:
+			movement_comp.abort_path()
+		job_with_path.path.free()
+	if job_with_path.job != null:
+		job_with_path.job.unassign_dwarf(self)
+	job_with_path = null
+
+
+func _find_new_job() -> void:
 	# Try to get a new job
 	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_worker(self)
 
@@ -83,135 +253,6 @@ func find_new_job() -> void:
 		# Check if we are even in a connected cell
 		if not Global.level.nav.is_cell_enabled(grid_pos):
 			HexLog.print_throttled(self, "%s is in a disconnected cell!" % [self])
-
-
-func _on_finished_path() -> void:
-	job_with_path.path.free()
-	job_with_path.path = null
-
-	# Start working - depends on job type
-	# TODO other job types
-
-	if job_with_path.job.job_type == Job.Type.MINE:
-		if curr_cell.grid_pos in job_with_path.job.workable_from_poses:
-			print_rich("%s reached %s and starts mining" % [self, job_with_path.job.center_cell])
-			sm.transition_to(State.MINING)
-		else:
-			print_rich("%s reached %s but cannot work from here, abandoning job" % [self, job_with_path.job.center_cell])
-			job_with_path.job.unassign_dwarf(self)
-			job_with_path = null
-			sm.transition_to(State.IDLE)
-
-
-func _on_new_cell_entered(new_cell: Cell) -> void:
-	_debug_draw_proxy_absolute.queue_redraw()
-	
-	if new_cell == null:
-		return
-
-	# Place Torch
-	# -> Only place if idle or walking
-	if sm.state != State.IDLE and sm.state != State.MOVING:
-		return
-
-	# Check for torch placement
-	if num_torches > 0 and new_cell.deco_elements.is_empty() and Global.level.should_contain_torch(grid_pos):
-		print_rich("%s placing torch at %s" % [self, grid_pos])
-		num_torches -= 1
-		new_cell.add_deco_element()
-
-
-func _enter_mining() -> void:
-	mining_comp.start_mining(job_with_path.job.center_cell)
-
-	# Look at cell
-	var dir_to_cell: Vector2i = (job_with_path.job.center_cell.grid_pos - grid_pos)
-	if dir_to_cell.x != 0:
-		animated_sprite.flip_h = dir_to_cell.x < 0
-
-
-func _tick_mining(delta: float) -> void:
-	# Mining is handled in MiningComponent
-	pass
-
-
-func _on_movement_direction_changed(new_dir: Vector2) -> void:
-	if new_dir.x != 0:
-		animated_sprite.flip_h = new_dir.x < 0
-
-
-func _on_mining_completed(mined_cell: Cell) -> void:
-	print_rich("%s completed %s" % [self, job_with_path.job])
-
-	# Complete job
-	if job_with_path != null:
-		job_with_path.job.complete(self)
-
-		# Clear job reference
-		if job_with_path.path != null:
-			job_with_path.path.free()
-
-		job_with_path = null
-
-	# Transition back to idle but dont override falling state
-	if sm.state != State.FALLING:
-		sm.transition_to(State.IDLE)
-
-
-## Triggered by MovementComponent
-func _on_started_falling() -> void:
-	# Abandon job
-	if job_with_path != null:
-		if job_with_path.path != null:
-			job_with_path.path.free()
-		job_with_path.job.unassign_dwarf(self)
-		job_with_path = null
-
-	sm.transition_to(State.FALLING)
-
-## Triggered by MovementComponent
-func _on_landed(fall_height_cells: int) -> void:
-	if fall_height_cells > 1:
-		audio_player.stream = Audio.sounds.get("dwarf_on_landing")
-		audio_player.pitch_scale = 1.4
-		audio_player.play()
-
-	if fall_height_cells > 5:
-		sm.transition_to(State.DYING)
-		return
-
-	sm.transition_to(State.IDLE)
-
-	# Simulate entering cell anew with idle (to place torches)
-	_on_new_cell_entered(curr_cell)
-
-
-## Called externally when job is deleted - not for the dwarf calling job.complete
-func on_job_deleted() -> void:
-	if job_with_path == null:
-		return
-
-	print_rich("%s's job was deleted" % [self])
-
-	# Delete own reference
-	if job_with_path.path != null:
-		movement_comp.abort_path()
-		job_with_path.path.free()
-	job_with_path = null
-
-	# Abort mining
-	if sm.state == State.MINING:
-		mining_comp.stop_mining()
-
-	# Transition back to idle but dont override falling state
-	if sm.state != State.FALLING:
-		sm.transition_to(State.IDLE)
-
-
-func _on_nav_updated() -> void:
-	# If nav updated while following a path -> recalculate path for job or abort if not valid
-	if job_with_path != null:
-		_validate_current_path()
 
 
 func _validate_current_path() -> void:
@@ -236,31 +277,6 @@ func _validate_current_path() -> void:
 		movement_comp.abort_path()
 		job_with_path = null
 		sm.transition_to(State.IDLE)
-
-
-func _enter_dying() -> void:
-	print_rich("%s has died!" % [self])
-	
-	if job_with_path != null:
-		# Abandon job
-		if job_with_path.path != null:
-			job_with_path.path.free()
-		job_with_path.job.unassign_dwarf(self)
-		job_with_path = null
-
-	# Hide player sprite + light
-	animated_sprite.visible = false
-	light.enabled = false
-
-	# Play death sound
-	audio_player.stream = Audio.sounds.get("dwarf_on_landing")
-	audio_player.pitch_scale = 1.8
-	audio_player.play()
-
-func _physics_process_dying(delta: float) -> void:
-	# Wait for sound to finish then free. Dont use await as this is called in physics process
-	if not audio_player.playing:
-		queue_free()
 
 
 func _to_string() -> String:

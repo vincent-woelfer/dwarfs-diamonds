@@ -1,1 +1,7 @@
 
+carry component
+
+build component
+
+
+Together with mining component, add check "can do this job" which is used when filtering for jobs

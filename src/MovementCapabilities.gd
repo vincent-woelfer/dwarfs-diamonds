@@ -33,4 +33,6 @@ func get_speed(move_mode: Enum.MoveMode) -> float:
             return speed_climbing_wall_up
         Enum.MoveMode.CLIMB_WALL_DOWN:
             return speed_climbing_wall_down
+
+    assert(false)
     return 0.0
