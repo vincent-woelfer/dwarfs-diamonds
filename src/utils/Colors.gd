@@ -10,23 +10,14 @@ static func rand_rubble_color() -> Color:
 	return Color(randf_range(0.5, 1.0), randf_range(0.5, 1.0), randf_range(0.5, 1.0), 1.0)
 	
 
-static func get_cell_color(type: Enum.CellType, solid: bool) -> Color:
-	var color: Color = CellTypeColor.get(type, DEFAULT)
-
-	# Not here, done in shader
-	# if solid:
-		# color = color.darkened(0.3)
-
-	return color.lightened(0.2)
+static func to_print_color(color: Color) -> Color:
+	return color.lightened(0.5)
 
 
-static var dwarf_colors := [
-	Color8(250, 0, 0), # Red
-	Color8(0, 250, 0), # Green
-	Color8(0, 0, 250), # Blue
-	Color8(255, 215, 0), # Gold
-	Color8(128, 0, 128), # Purple
-]
+static func with_alpha(color: Color, alpha: float) -> Color:
+	return Color(color.r, color.g, color.b, alpha)
+
+
 static func get_rand_dwarf_color(dwarf_id: int) -> Color:
 	# Shuffle each time the game is started to get different color assignments
 	if dwarf_id == 0:
@@ -36,18 +27,30 @@ static func get_rand_dwarf_color(dwarf_id: int) -> Color:
 	var index := dwarf_id % dwarf_colors.size()
 	return dwarf_colors[index]
 
-static func to_print_color(color: Color) -> Color:
-	return color.lightened(0.5)
+static var dwarf_colors := [
+	Color8(250, 0, 0), # Red
+	Color8(0, 250, 0), # Green
+	Color8(0, 0, 250), # Blue
+	Color8(255, 215, 0), # Gold
+	Color8(128, 0, 128), # Purple
+]
 
-
-static func with_alpha(color: Color, alpha: float) -> Color:
-	return Color(color.r, color.g, color.b, alpha)
-
+static func get_cell_color(type: Enum.CellType, solid: bool) -> Color:
+	var color: Color = CellTypeColor.get(type, DEFAULT)
+	return color
 
 static var CellTypeColor := {
-	Enum.CellType.A: Color8(45, 36, 70), # Deep violet-blue tone
-	Enum.CellType.B: Color8(70, 36, 36), # Muted red-brown tone
-	Enum.CellType.C: Color8(40, 60, 35), # Olive
-	Enum.CellType.BUILDING: Color8(85, 60, 40), # Warm orange-brown
-	Enum.CellType.SKY: Color(0.3, 0.7, 0.95), # Avoit 1.0 in any channel
+	Enum.CellType.A: Color8(81, 73, 106), # Deep violet-blue tone
+	Enum.CellType.B: Color8(106, 73, 73), # Muted red-brown tone
+	Enum.CellType.C: Color8(76, 96, 71), # Olive
+	Enum.CellType.BUILDING: Color8(121, 96, 76), # Warm orange-brown
+	Enum.CellType.SKY: Color(0.44, 0.76, 0.96), # Sky blue
+}
+
+# TODO bad design having this here, but no better place right now
+static var CellMiningHardness := {
+	Enum.CellType.A: 1.0,
+	Enum.CellType.B: 2.0,
+	Enum.CellType.C: 3.0,
+	Enum.CellType.BUILDING: 3.0,
 }

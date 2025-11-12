@@ -1,15 +1,15 @@
-class_name MiningComponent
+class_name BuildingComponent
 extends Node2D
 
-## Emitted when a cell was completely mined by this component
-signal Signal_OnMiningCompleted(mined_cell: Cell)
+## Emitted when building completed
+signal Signal_OnBuildingCompleted()
 
 # per second
-@export var mining_speed: float = 1.0
-@export var max_simultaneous_mining_cells: int = 1
+@export var building_speed: float = 1.0
 
 # internal
-var _currently_mining_cells: Array[Cell] = []
+var _curr_building_cell: Cell = null
+# var _curr_building_building: 
 
 ########################################################################################################################
 # PUBLIC METHODS
@@ -61,4 +61,4 @@ func _physics_process(delta: float) -> void:
 			continue
 
 		# Actual Mining
-		mining_cell.increase_mining_process(mining_speed * delta)
+		mining_cell.increase_mining_process(building_speed * delta)

@@ -11,11 +11,14 @@ var deco_elements: Array[DecoTorch] = []
 # Audio
 var audio_player: AudioStreamPlayer2D
 
-# GROUND TRUTH BOOL STATUS FLAGS
-var is_solid: bool
-var has_ladder: bool
 
 var torch_scene := preload('res://scenes/deco/DecoTorch.tscn')
+
+########################################################################################################################
+# GROUND TRUTH BOOL STATUS FLAGS
+########################################################################################################################
+var is_solid: bool
+var has_ladder: bool
 
 ########################################################################################################################
 # Derived State Flags
@@ -50,6 +53,9 @@ var is_selected: bool = false
 # Always between 0.0 and 1.0
 var mining_process: float = 0.0
 
+# multiplier for mining speed. Higher means harder to mine. For default miner (speed=1), equals seconds to mine.
+var mining_hardness: float = 1.0
+
 
 ########################################################################################################################
 # PUBLIC METHODS
@@ -66,8 +72,9 @@ func set_is_selected(selected: bool) -> void:
 	visual.set_dirty()
 
 
-func increase_mining_process(amount: float) -> void:
-	mining_process = clamp(mining_process + amount, 0.0, 1.0)
+func increase_mining_process(mining_speed_with_delta: float) -> void:
+	var mining_with_hardness := mining_speed_with_delta / mining_hardness
+	mining_process = clamp(mining_process + mining_with_hardness, 0.0, 1.0)
 	visual.set_dirty()
 
 	if mining_process >= 1.0:
@@ -174,7 +181,10 @@ func _init(_grid_pos: Vector2i, _type: Enum.CellType, _is_solid: bool) -> void:
 	# dev - random ladder
 	has_ladder = randf() < 0.1 if (!is_solid and type != Enum.CellType.SKY) else false
 
-	
+	# mining hardness
+	mining_hardness = Colors.CellMiningHardness.get(type, mining_hardness)
+
+
 func _ready() -> void:
 	# Required for chilren to be able to use these layers
 	self.visibility_layer = Util.LAYER_1 | Util.LAYER_2

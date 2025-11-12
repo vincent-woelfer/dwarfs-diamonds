@@ -12,6 +12,7 @@ signal Signal_NavUpdated() # Emitted when the nav grid has been updated
 signal Signal_MouseHoveredCellChanged(hovered_cell: Cell)
 
 
+## Emitted in Actions.destroy_cell after cell is destroyed
 signal Signal_GlobalCellDestroyed(destroyed_cell: Cell)
 
 

@@ -100,6 +100,7 @@ func update_workable_from_cells() -> void:
 			if n_cell.is_standable(false):
 				workable_from_poses.append(n_cell.grid_pos)
 
+	# BUILD LADDER
 	elif job_type == Job.Type.BUILD_LADDER:
 		for n_offset: Vector2i in Util.neighbours_cardinal:
 			var n_cell: Cell = center_cell.get_neighbour(n_offset)
@@ -110,6 +111,7 @@ func update_workable_from_cells() -> void:
 			if n_cell.is_standable(false):
 				workable_from_poses.append(n_cell.grid_pos)
 
+	# RUBBLE
 	elif job_type == Job.Type.RUBBLE:
 		# Can only pick up rubble when not falling
 		if rubble.can_pickup():
@@ -131,7 +133,7 @@ func estimate_remaining_time() -> float:
 			# If at least one dwarf is already mining -> use its speed
 			if dwarf.sm.state == Dwarf.State.MINING:
 				var remaining_process: float = 1.0 - center_cell.mining_process
-				var time := remaining_process / dwarf.mining_comp.mine_speed
+				var time := remaining_process / dwarf.mining_comp.mining_speed
 				remaining_time = min(remaining_time, time)
 
 			# Dwarf still walking to job
