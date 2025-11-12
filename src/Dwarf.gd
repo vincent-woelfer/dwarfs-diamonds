@@ -100,7 +100,9 @@ func _physics_process_dying(delta: float) -> void:
 ########################################################################################################################
 ## Triggered by MovementComponent
 func _on_movement_state_changed(prev_state: int, next_state: int) -> void:
-	print_rich("%s MovementComponent state changed from %s to %s" % [self, Enum.to_str(MovementComponent.State, prev_state), Enum.to_str(MovementComponent.State, next_state)])
+	pass
+	# print_rich("%s MovementComponent state changed from %s to %s" % [self,
+		# Enum.to_str(MovementComponent.State, prev_state), Enum.to_str(MovementComponent.State, next_state)])
 
 
 ## Triggered by MovementComponent
@@ -121,6 +123,19 @@ func _on_finished_path() -> void:
 	if job_with_path.job.job_type == Job.Type.MINE:
 		print_rich("%s reached %s and starts mining" % [self, job_with_path.job.center_cell])
 		sm.transition_to(State.MINING)
+	
+	elif job_with_path.job.job_type == Job.Type.RUBBLE:
+		print_rich("%s reached %s and starts picking up rubble" % [self, job_with_path.job.center_cell])
+		# TODO
+
+	elif job_with_path.job.job_type == Job.Type.BUILD_LADDER:
+		print_rich("%s reached %s and starts building ladder" % [self, job_with_path.job.center_cell])
+		# TODO
+
+	else:
+		print_rich("%s reached %s but job type %s is unhandled, abandoning job" % [self, job_with_path.job.center_cell, Enum.to_str(Job.Type, job_with_path.job.job_type)])
+		_abandon_job()
+		sm.transition_to(State.IDLE)
 
 
 ## Triggered by MovementComponent
@@ -200,7 +215,7 @@ func on_job_deleted() -> void:
 
 	# Abort mining
 	if sm.state == State.MINING:
-		mining_comp.stop_mining()
+		mining_comp.stop_mining_all_cells()
 
 	# Transition back to idle but dont override falling state
 	if sm.state != State.FALLING:

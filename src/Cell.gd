@@ -47,6 +47,7 @@ var is_marked_for_mining: bool = false
 # Yellow overlay, used for selection
 var is_selected: bool = false
 
+# Always between 0.0 and 1.0
 var mining_process: float = 0.0
 
 
@@ -70,8 +71,8 @@ func increase_mining_process(amount: float) -> void:
 	visual.set_dirty()
 
 	if mining_process >= 1.0:
-		# This in turn emits Signal_CellMiningCompleted which this and all other MiningComponents listen to
-		Actions.destroy_cell(self)
+		# This in turn emits Signal_GlobalCellMiningCompleted which this and all other MiningComponents listen to
+		Actions.destroy_cell(self) # calls destroy()
 
 
 func destroy() -> void:

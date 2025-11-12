@@ -17,7 +17,7 @@ func destroy_cell(cell: Cell) -> void:
 	cell.destroy()
 
 	# Signal MiningComponets that mining was completed
-	EventBus.Signal_CellMiningCompleted.emit(cell)
+	EventBus.Signal_GlobalCellDestroyed.emit(cell)
 
 	# Call global action to trigger all steps
 	Actions.mark_cell_for_mining(cell, false)

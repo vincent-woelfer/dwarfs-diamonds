@@ -1,15 +1,14 @@
 class_name MiningComponent
 extends Node2D
 
-
 ## Emitted when a cell was completely mined by this component
 signal Signal_OnMiningCompleted(mined_cell: Cell)
 
 # per second
-static var default_mine_speed: float = 0.5
-@export var mine_speed: float = default_mine_speed
+@export var mine_speed: float = 0.5
 @export var max_simultaneous_mining_cells: int = 1
 
+# internal
 var _currently_mining_cells: Array[Cell] = []
 
 ########################################################################################################################
@@ -29,7 +28,7 @@ func stop_mining_cell(cell: Cell) -> void:
 	if cell in _currently_mining_cells:
 		_currently_mining_cells.erase(cell)
 
-func stop_mining() -> void:
+func stop_mining_all_cells() -> void:
 	_currently_mining_cells.clear()
 
 
@@ -42,23 +41,22 @@ func is_currently_mining() -> bool:
 ########################################################################################################################
 func _ready() -> void:
 	# SIGNALS
-	EventBus.Signal_CellMiningCompleted.connect(_on_cell_mining_completed)
+	EventBus.Signal_GlobalCellDestroyed.connect(_on_global_cell_mining_completed)
 
 
 ## Called by Signal_CellMiningCompleted for EVERY mined cell in the game
-func _on_cell_mining_completed(mined_cell: Cell) -> void:
+func _on_global_cell_mining_completed(mined_cell: Cell) -> void:
 	# Check if this component was mining that cell
 	if mined_cell in _currently_mining_cells:
+		_currently_mining_cells.erase(mined_cell)
 		Signal_OnMiningCompleted.emit(mined_cell)
 
-	_currently_mining_cells.erase(mined_cell)
-
-
+		
 func _physics_process(delta: float) -> void:
 	for mining_cell in _currently_mining_cells:
-		# Was cell destroyed by other means? This should NOT happen
+		# Was cell destroyed by other means? This should NOT happen since we catch this with the global signal, but just in case
 		if not mining_cell.is_solid:
-			assert(false, "MiningComponent: Cell %s being mined but is no longer solid!" % mining_cell.grid_pos)
+			assert(false)
 			_currently_mining_cells.erase(mining_cell)
 			continue
 
