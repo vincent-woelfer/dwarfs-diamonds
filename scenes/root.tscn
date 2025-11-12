@@ -51,11 +51,14 @@ script = ExtResource("4_jh1ax")
 [node name="StencilColorRect" type="ColorRect" parent="PostProcessCanvasLayer-1"]
 material = SubResource("ShaderMaterial_sqa0i")
 
-[node name="UICanvasLayer-2" type="CanvasLayer" parent="."]
+[node name="UICanvasLayer-WorldSpace-2" type="CanvasLayer" parent="."]
 layer = 2
 follow_viewport_enabled = true
 
-[node name="DevFpsLabel" type="Label" parent="UICanvasLayer-2"]
-offset_right = 40.0
+[node name="UICanvasLayer-ScreenSpace-3" type="CanvasLayer" parent="."]
+layer = 3
+
+[node name="DevFpsLabel" type="Label" parent="UICanvasLayer-ScreenSpace-3"]
+offset_right = 1.0
 offset_bottom = 45.0
 script = ExtResource("8_5sfjl")

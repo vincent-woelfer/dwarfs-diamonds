@@ -32,8 +32,9 @@ const SKY_HEIGHT: int = 3
 @onready var level: Level = get_tree().root.get_node("root/Level")
 
 @onready var post_process_canvas_layer: PostProcessCanvasLayer = get_tree().root.get_node("root/PostProcessCanvasLayer-1")
-@onready var ui_canvas_layer: CanvasLayer = get_tree().root.get_node("root/UICanvasLayer-2")
 @onready var stencil_viewport: StencilViewport = get_tree().root.get_node("root/StencilViewport")
+@onready var ui_canvas_layer_world_space: CanvasLayer = get_tree().root.get_node("root/UICanvasLayer-WorldSpace-2")
+@onready var ui_canvas_layer_screen_space: CanvasLayer = get_tree().root.get_node("root/UICanvasLayer-ScreenSpace-3")
 
 
 func _ready() -> void:
@@ -72,4 +73,4 @@ func _on_window_size_changed() -> void:
 		if stencil_viewport:
 			stencil_viewport.update_size(size)
 
-		# Add ui_canvas_layer ???
+		# Add ui_canvas_layer_screen_space ???
