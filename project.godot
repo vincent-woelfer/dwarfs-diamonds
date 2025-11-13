@@ -49,6 +49,9 @@ window/handheld/orientation=1
 [file_customization]
 
 folder_colors={
+"res://assets/": "red",
+"res://scenes/": "orange",
+"res://shaders/": "yellow",
 "res://src/": "blue"
 }
 
@@ -124,6 +127,11 @@ dev_toogle_jobs_draw={
 dev_toogle_light={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194334,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+dev_toogle_building_draw={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194335,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
 ]
 }
 

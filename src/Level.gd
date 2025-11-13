@@ -1,7 +1,7 @@
 class_name Level
 extends Node2D
 
-var wandering_light_scene := preload('res://scenes/WanderingLight.tscn')
+# var wandering_light_scene := preload('res://scenes/WanderingLight.tscn')
 var dwarf_scene := preload('res://scenes/Dwarf.tscn')
 var rubble_scene := preload('res://scenes/Rubble.tscn')
 
@@ -11,7 +11,7 @@ var dwarfs: Array[Dwarf] = []
 
 var rubbles: Array[Rubble] = []
 
-var nav: Nav
+var nav: NavManager
 var job_manager: JobManager
 
 var darkness: CanvasModulate
@@ -28,7 +28,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	nav = Nav.new()
+	nav = NavManager.new()
 	add_child(nav)
 
 	job_manager = JobManager.new()

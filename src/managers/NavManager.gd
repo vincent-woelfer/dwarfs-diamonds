@@ -1,4 +1,4 @@
-class_name Nav
+class_name NavManager
 extends Node2D
 
 var _astar: AStar2D = null
