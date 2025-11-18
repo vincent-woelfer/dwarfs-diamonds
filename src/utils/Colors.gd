@@ -1,3 +1,4 @@
+@tool
 class_name Colors
 
 static var DEFAULT: Color = Color(1.0, 0.0, 1.0) # Magenta, indicates error
@@ -32,7 +33,7 @@ static var dwarf_colors := [
 	Color8(0, 250, 0), # Green
 	Color8(0, 0, 250), # Blue
 	Color8(255, 215, 0), # Gold
-	Color8(128, 0, 128), # Purple
+	Color8(140, 0, 140), # Purple
 ]
 
 static func get_cell_color(type: Enum.CellType, solid: bool) -> Color:
@@ -54,3 +55,18 @@ static var CellMiningHardness := {
 	Enum.CellType.C: 3.0,
 	Enum.CellType.BUILDING: 3.0,
 }
+
+
+## GridPattern Colors
+static var grid_pattern_preview_colors: Array[Color] = [
+	Color8(0, 0, 250), # Blue
+	Color8(250, 0, 0), # Red
+	Color8(0, 250, 0), # Green
+	Color8(255, 215, 0), # Gold
+	Color8(140, 0, 140), # Purple
+]
+
+static func get_rand_grid_pattern_color(id: int) -> Color:
+	# Deterministic based on id
+	var index := id % grid_pattern_preview_colors.size()
+	return grid_pattern_preview_colors[index]

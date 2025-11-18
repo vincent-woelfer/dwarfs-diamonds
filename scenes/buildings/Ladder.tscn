@@ -1,20 +1,33 @@
-[gd_scene load_steps=4 format=3 uid="uid://cdo861127yy5g"]
+[gd_scene load_steps=8 format=3 uid="uid://cdo861127yy5g"]
 
 [ext_resource type="Texture2D" uid="uid://b8geavf5qgxbi" path="res://assets/sprites/ladder.png" id="1_0b2n0"]
 [ext_resource type="Script" uid="uid://c08mmaccrjyck" path="res://src/buildings/Ladder.gd" id="1_q77c0"]
 [ext_resource type="Script" uid="uid://pqnih1ekj0u5" path="res://src/utils/GridPatternPreview.gd" id="2_8ecwd"]
+[ext_resource type="Script" uid="uid://bdgg1wxcmv4go" path="res://src/resources/GridPattern.gd" id="2_yd306"]
+[ext_resource type="Script" uid="uid://bwmp5gn3ali5i" path="res://src/resources/BuildingData.gd" id="3_iomy7"]
+
+[sub_resource type="Resource" id="Resource_5dooy"]
+script = ExtResource("2_yd306")
+pattern = Array[Vector2i]([Vector2i(0, 0), Vector2i(-2, 0)])
+metadata/_custom_type_script = "uid://bdgg1wxcmv4go"
+
+[sub_resource type="Resource" id="Resource_wtumn"]
+script = ExtResource("3_iomy7")
+grid_pattern = SubResource("Resource_5dooy")
+metadata/_custom_type_script = "uid://bwmp5gn3ali5i"
 
 [node name="Ladder" type="Node2D"]
 modulate = Color(0.5, 0.5, 0.5, 1)
 script = ExtResource("1_q77c0")
+building_data = SubResource("Resource_wtumn")
 metadata/_custom_type_script = "uid://c08mmaccrjyck"
-
-[node name="Sprite2D" type="Sprite2D" parent="."]
-position = Vector2(0, -64)
-scale = Vector2(0.6, 0.5)
-texture = ExtResource("1_0b2n0")
 
 [node name="GridPatternPreview" type="Node2D" parent="."]
 z_index = -100
 script = ExtResource("2_8ecwd")
 metadata/_custom_type_script = "uid://pqnih1ekj0u5"
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -64)
+scale = Vector2(0.6, 0.5)
+texture = ExtResource("1_0b2n0")
