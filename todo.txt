@@ -1,4 +1,9 @@
 
+FIX recusrsion in ladder <-> ladderbuildingcomponent does not work.
+how to fix??
+(maybe  loading via name string)
+
+
 carry component
 
 build component

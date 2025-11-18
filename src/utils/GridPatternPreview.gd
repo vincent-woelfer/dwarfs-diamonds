@@ -5,14 +5,12 @@ extends Node2D
 var grid_patterns: Array[GridPattern] = []
 var colors: Array[Color] = []
 
-var default_color := Color(0, 0, 1.0)
-
 var alpha_fill: float = 0.15
 var alpha_border: float = 0.5
 var margin_width: float = 2.0
 
 # Offset to visually center the pattern on the grid
-var offset_for_editor: Vector2 = Vector2(-0.5, -1.0) * Global.CELL_SIZE_VEC
+var offset_for_editor: Vector2 = - Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
 
 var dirty: bool = true
 
@@ -28,7 +26,7 @@ func _draw() -> void:
 	var idx := 0
 	for grid_pattern: GridPattern in grid_patterns:
 		# Calculate colors
-		var color := colors[idx] if idx < colors.size() else default_color
+		var color := colors[idx] if idx < colors.size() else Colors.DEFAULT
 		idx += 1
 		var color_fill := Colors.with_alpha(color, alpha_fill)
 		var color_border := Colors.with_alpha(color, alpha_border)
@@ -47,6 +45,14 @@ func _draw() -> void:
 			draw_rect(rect, color_border, false, margin_width)
 
 
+func _ready() -> void:
+	if not Engine.is_editor_hint():
+		return
+
+	grid_patterns.clear()
+	colors.clear()
+	dirty = true
+
 func _process(_delta: float) -> void:
 	if not Engine.is_editor_hint():
 		return
@@ -59,7 +65,7 @@ func _process(_delta: float) -> void:
 	if dirty:
 		dirty = false
 		queue_redraw()
-		print("redraw")
+		print("GridPatternPreview updated with %d pattern(s)" % grid_patterns.size())
 
 
 func _scan_node(node: Object) -> void:
@@ -69,8 +75,13 @@ func _scan_node(node: Object) -> void:
 			var prop_name: String = prop.name
 			var value: Variant = node.get(prop_name)
 			if value is GridPattern:
+				# Add pattern directly with static color
 				@warning_ignore("unsafe_cast")
-				_add_grid_pattern(value as GridPattern, prop_name)
+				_add_grid_pattern(value as GridPattern)
+			elif value is BuildingData:
+				# Add all patterns with predefined colors
+				@warning_ignore("unsafe_cast")
+				_add_building_data(value as BuildingData)
 
 	# recurse into children (only if it's a Node)
 	if node is Node:
@@ -78,13 +89,23 @@ func _scan_node(node: Object) -> void:
 			_scan_node(child)
 
 
-func _add_grid_pattern(grid_pattern: GridPattern, variable_name: String) -> void:
-	if grid_patterns.has(grid_pattern):
+func _add_grid_pattern(grid_pattern: GridPattern, color: Color = Color.BLACK) -> void:
+	if grid_patterns.has(grid_pattern) or grid_pattern == null or grid_pattern.pattern.is_empty():
 		return
 
-	dirty = true
 	grid_patterns.append(grid_pattern)
 
-	# Colors
-	var new_color := Colors.get_rand_grid_pattern_color(colors.size())
-	colors.append(new_color)
+	if color == Color.BLACK:
+		# Assign a color from the predefined list
+		colors.append(Colors.get_rand_grid_pattern_color(colors.size()))
+	else:
+		colors.append(color)
+		
+	dirty = true
+
+
+func _add_building_data(building_data: BuildingData) -> void:
+	for pattern_with_color in building_data.get_all_patterns_with_colors():
+		var grid_pattern: GridPattern = pattern_with_color["pattern"]
+		var color: Color = pattern_with_color["color"]
+		_add_grid_pattern(grid_pattern, color)

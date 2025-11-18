@@ -57,13 +57,11 @@ static var CellMiningHardness := {
 }
 
 
-## GridPattern Colors
+## GridPattern Colors. RGB are used in BuildingData, use others here
 static var grid_pattern_preview_colors: Array[Color] = [
-	Color8(0, 0, 250), # Blue
-	Color8(250, 0, 0), # Red
-	Color8(0, 250, 0), # Green
 	Color8(255, 215, 0), # Gold
 	Color8(140, 0, 140), # Purple
+	Color8(0, 255, 255), # Cyan
 ]
 
 static func get_rand_grid_pattern_color(id: int) -> Color:

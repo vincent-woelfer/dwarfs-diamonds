@@ -6,8 +6,9 @@ const CELL_SIZE: int = 128
 const CELL_SIZE_VEC: Vector2 = Vector2(CELL_SIZE, CELL_SIZE)
 
 const CELL_SIZE_VEC_HALF: Vector2 = CELL_SIZE_VEC * 0.5
-# const CELL_SIZE_VEC_QUARTER: Vector2 = CELL_SIZE_VEC * 0.25
-# const CELL_SIZE_VEC_FIFTH: Vector2 = CELL_SIZE_VEC * 0.20
+
+## From top-left corner of cell to center of floor (0,0 in editor)
+const CELL_OFFSET_CORNER_TO_CENTER_FLOOR: Vector2 = Vector2(0.5, 1.0) * CELL_SIZE_VEC
 
 # Size=128 at 3840x2160 (4K) gives 30x16.8 cells
 const LEVEL_WIDTH: int = 30
@@ -17,6 +18,7 @@ const LEVEL_SIZE_VEC: Vector2 = Vector2(LEVEL_WIDTH, LEVEL_HEIGHT)
 # Aspect setting "expand" = both width and height change with aspect ratio.
 # Both will never be smaller than the base mouse_size (3840x2160), one will always be larger or exact base mouse_size.
 
+## For sampling grid_position from world_position
 const VERT_OFFSET_SMALL := Vector2(0, -CELL_SIZE * 0.5)
 
 const VEC_LEFT := Vector2(-1, 0)
