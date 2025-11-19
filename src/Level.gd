@@ -6,13 +6,14 @@ var dwarf_scene := preload('res://scenes/Dwarf.tscn')
 var rubble_scene := preload('res://scenes/Rubble.tscn')
 
 var cells: Array[Array] = []
-
 var dwarfs: Array[Dwarf] = []
-
 var rubbles: Array[Rubble] = []
 
-var nav: NavManager
+# Managers
+var nav_manager: NavManager
 var job_manager: JobManager
+var building_manager: BuildingManager
+
 
 var darkness: CanvasModulate
 var darkness_factor: float = 0.4
@@ -28,11 +29,15 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	nav = NavManager.new()
-	add_child(nav)
+	## Managers
+	nav_manager = NavManager.new()
+	add_child(nav_manager)
 
 	job_manager = JobManager.new()
 	add_child(job_manager)
+
+	building_manager = BuildingManager.new()
+	add_child(building_manager)
 
 	# Darkness
 	darkness = CanvasModulate.new()

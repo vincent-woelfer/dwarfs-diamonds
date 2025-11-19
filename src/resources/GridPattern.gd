@@ -7,14 +7,17 @@ extends Resource
 
 
 func _init(pattern_: Array[Vector2i] = [], world_offset_: Vector2i = Vector2i.ZERO) -> void:
-    world_offset = world_offset_
+    assert(pattern_ != null)
     pattern = _remove_duplicates(pattern_)
+    world_offset = world_offset_
+
 
 func _remove_duplicates(array: Array[Vector2i]) -> Array[Vector2i]:
     var unique_positions: Dictionary[Vector2i, bool] = {}
     for pos in array:
         unique_positions[pos] = true
     return (unique_positions.keys() as Array[Vector2i])
+
 
 func get_local_positions() -> Array[Vector2i]:
     return pattern

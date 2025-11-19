@@ -36,6 +36,8 @@ func _ready() -> void:
 	next_dwarf_id += 1
 	dwarf_color = Colors.get_rand_dwarf_color(dwarf_id)
 
+	self.z_index = Enum.ZIndex.DWARFS
+
 	# Apply Color
 	animated_sprite.modulate = dwarf_color.lerp(Color.WHITE, 0.3)
 	light.color = dwarf_color.lerp(light.color, 0.3)
@@ -266,7 +268,7 @@ func _find_new_job() -> void:
 		HexLog.print_throttled(self, "%s found no job, remains idle" % [self], 0.5)
 
 		# Check if we are even in a connected cell
-		if not Global.level.nav.is_cell_enabled(grid_pos):
+		if not Global.level.nav_manager.is_cell_enabled(grid_pos):
 			HexLog.print_throttled(self, "%s is in a disconnected cell!" % [self])
 
 
@@ -279,7 +281,7 @@ func _validate_current_path() -> void:
 	
 	# Force job to update workable cells first
 	job_with_path.job.update_workable_from_cells()
-	var new_path: Path = Global.level.nav.find_path_to_one_of(grid_pos, job_with_path.job.workable_from_poses)
+	var new_path: Path = Global.level.nav_manager.find_path_to_one_of(grid_pos, job_with_path.job.workable_from_poses)
 
 	if new_path != null:
 		if movement_comp.assign_path(new_path):

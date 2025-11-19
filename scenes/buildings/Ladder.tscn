@@ -6,7 +6,6 @@
 [ext_resource type="Resource" uid="uid://ba83ntoh2g74g" path="res://scenes/buildings/LadderBuildingData.tres" id="2_ftl2j"]
 
 [node name="Ladder" type="Node2D"]
-modulate = Color(0.5, 0.5, 0.5, 1)
 script = ExtResource("1_q77c0")
 building_data = ExtResource("2_ftl2j")
 metadata/_custom_type_script = "uid://c08mmaccrjyck"

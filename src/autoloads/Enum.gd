@@ -30,6 +30,12 @@ enum ProcessPriority {
 	CELL_VISUAL = 11
 }
 
+enum ZIndex {
+	CELL = 0,
+	BUILDINGS = 100,
+	DWARFS = 200,
+}
+
 
 # Index of poly points of cell
 enum PolyPoint {

@@ -1,3 +1,4 @@
+@abstract
 class_name GridObject2D
 extends Node2D
 
@@ -14,6 +15,7 @@ func setup(grid_pos_: Vector2i, sample_offset_: Vector2 = Global.VERT_OFFSET_SMA
 	sample_offset = sample_offset_
 
 	curr_cell = Global.level.get_cell(grid_pos)
+
 
 func update_grid_pos(new_grid_pos: Vector2i) -> void:
 	grid_pos_prev = grid_pos

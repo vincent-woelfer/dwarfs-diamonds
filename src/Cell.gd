@@ -7,6 +7,7 @@ var grid_pos: Vector2i
 var visual: CellVisuals
 
 var deco_elements: Array[DecoTorch] = []
+var buildings: Array[BuildingBase] = []
 
 # Audio
 var audio_player: AudioStreamPlayer2D
@@ -18,7 +19,6 @@ var torch_scene := preload('res://scenes/deco/DecoTorch.tscn')
 # GROUND TRUTH BOOL STATUS FLAGS
 ########################################################################################################################
 var is_solid: bool
-var has_ladder: bool
 
 ########################################################################################################################
 # Derived State Flags
@@ -37,9 +37,16 @@ func is_standable(can_use_ladders: bool = true) -> bool:
 	var n_bot := get_neighbour(Global.VEC_DOWN)
 
 	if can_use_ladders:
-		return (has_ladder) or (n_bot and n_bot.is_solid)
+		return (has_ladder()) or (n_bot and n_bot.is_solid)
 	else:
 		return n_bot and n_bot.is_solid
+
+# TODO not really nice. Is inefficient
+func has_ladder() -> bool:
+	for building in buildings:
+		if building is Ladder and building.is_complete:
+			return true
+	return false
 
 ########################################################################################################################
 # OTHER FLAGS
@@ -64,7 +71,7 @@ func queue_nav_update() -> void:
 	# Update all neighbours. Self not needed as its implicitly updated when neighbour updates
 	for n: Vector2i in Util.neighbours_all:
 		var n_grid_pos: Vector2i = grid_pos + n
-		Global.level.nav.queue_update_cell(n_grid_pos)
+		Global.level.nav_manager.queue_update_cell(n_grid_pos)
 
 
 func set_is_selected(selected: bool) -> void:
@@ -87,7 +94,8 @@ func destroy() -> void:
 		return
 
 	is_solid = false
-	has_ladder = false
+	# TODO
+	# has_ladder = false
 	mining_process = 0.0
 	if grid_pos.y <= Global.SKY_HEIGHT:
 		type = Enum.CellType.SKY
@@ -103,7 +111,8 @@ func build_platform() -> void:
 		return
 
 	is_solid = true
-	has_ladder = false
+	# TODO
+	# has_ladder = false
 	type = Enum.CellType.BUILDING
 	mining_process = 0.0
 	
@@ -112,21 +121,21 @@ func build_platform() -> void:
 	visual.set_dirty()
 
 
-func build_ladder() -> void:
-	if is_solid:
+func add_building(building: BuildingBase) -> void:
+	if building in buildings:
 		return
 
-	has_ladder = true
+	buildings.append(building)
+	visual.set_dirty()
 	queue_nav_update()
 
+func remove_building(building: BuildingBase) -> void:
+	if building not in buildings:
+		return
+
+	buildings.erase(building)
 	visual.set_dirty()
-
-
-func destroy_ladder() -> void:
-	has_ladder = false
 	queue_nav_update()
-
-	visual.set_dirty()
 
 
 ## Returns true when state changed
@@ -178,9 +187,6 @@ func _init(_grid_pos: Vector2i, _type: Enum.CellType, _is_solid: bool) -> void:
 	self.is_selected = false
 	self.mining_process = 0.0
 	
-	# dev - random ladder
-	has_ladder = randf() < 0.1 if (!is_solid and type != Enum.CellType.SKY) else false
-
 	# mining hardness
 	mining_hardness = Colors.CellMiningHardness.get(type, mining_hardness)
 

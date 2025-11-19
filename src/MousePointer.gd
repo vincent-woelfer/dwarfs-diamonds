@@ -85,10 +85,14 @@ func _actions() -> void:
 	# Build Laders
 	if Input.is_action_just_pressed("mouse_right_build_ladder"):
 		for cell in curr_selected_cells:
-			if not cell.has_ladder:
-				cell.build_ladder()
+			if not cell.has_ladder():
+				var ladder_building_data: BuildingData = load("res://scenes/buildings/LadderBuildingData.tres") as BuildingData
+				var ladder := Actions.place_building(cell, ladder_building_data)
+				ladder.update_build_process(ladder_building_data.build_time) # Instantly complete
 			else:
-				cell.destroy_ladder()
+				pass
+				#TODO
+				# cell.destroy_ladder()
 
 	######## DEBUG ########
 	if Input.is_action_just_pressed("dev_place_debug_path_start"):

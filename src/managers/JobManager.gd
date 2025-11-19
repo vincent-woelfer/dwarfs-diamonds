@@ -54,7 +54,7 @@ func get_new_job_for_worker(dwarf: Dwarf) -> JobWithPath:
 		if not job.is_workable():
 			continue
 
-		var path: Path = Global.level.nav.find_path_to_one_of(start_pos, job.workable_from_poses)
+		var path: Path = Global.level.nav_manager.find_path_to_one_of(start_pos, job.workable_from_poses)
 		if not path:
 			continue
 

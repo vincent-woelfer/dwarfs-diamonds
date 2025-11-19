@@ -6,7 +6,7 @@ var c: Cell
 
 # Material
 var unshaded_material: CanvasItemMaterial = preload("res://assets/materials/unshaded_material.tres")
-var ladder: CompressedTexture2D = preload("res://assets/sprites/ladder.png")
+# var ladder: CompressedTexture2D = preload("res://assets/sprites/ladder.png")
 
 var background_poly: Polygon2D
 var stencil_poly: Polygon2D
@@ -31,6 +31,7 @@ func _init(_parent_cell: Cell) -> void:
 func _ready() -> void:
 	# Required for chilren to be able to use these layers
 	self.visibility_layer = Util.LAYER_1 | Util.LAYER_2
+	self.z_index = Enum.ZIndex.CELL
 
 	poly_points = _get_cell_polygon()
 
@@ -44,14 +45,14 @@ func _ready() -> void:
 	add_child(background_poly)
 
 	# Ladder
-	ladder_sprite = Sprite2D.new()
-	ladder_sprite.texture = ladder
-	var fac: float = (Global.CELL_SIZE as float) / (ladder.get_width() as float)
-	ladder_sprite.scale = Vector2.ONE * fac
-	ladder_sprite.position = Vector2(Global.CELL_SIZE, Global.CELL_SIZE) * 0.5
-	ladder_sprite.visibility_layer = Util.LAYER_1
-	ladder_sprite.z_index = 2
-	add_child(ladder_sprite)
+	# ladder_sprite = Sprite2D.new()
+	# ladder_sprite.texture = ladder
+	# var fac: float = (Global.CELL_SIZE as float) / (ladder.get_width() as float)
+	# ladder_sprite.scale = Vector2.ONE * fac
+	# ladder_sprite.position = Vector2(Global.CELL_SIZE, Global.CELL_SIZE) * 0.5
+	# ladder_sprite.visibility_layer = Util.LAYER_1
+	# ladder_sprite.z_index = 2
+	# add_child(ladder_sprite)
 
 	# Stencil
 	stencil_poly = Polygon2D.new()
@@ -88,7 +89,7 @@ func update() -> void:
 	# VISUAL
 	occluder.visible = c.is_solid
 
-	ladder_sprite.visible = c.has_ladder
+	# ladder_sprite.visible = c.has_ladder
 
 	# Change light mask if solid (no light passes through)
 	background_poly.light_mask = 0 if c.is_solid else 1

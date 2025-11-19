@@ -9,6 +9,8 @@ var _cell_connections_to_update: CellPairQueue = CellPairQueue.new()
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################
+
+## Update nav for this cell and all neighbours
 func queue_update_cell(grid_pos: Vector2i) -> void:
 	if not Util.is_grid_pos_valid(grid_pos):
 		return
@@ -151,7 +153,7 @@ func _should_connect_cardinal_neighbours(from: Cell, to: Cell) -> bool:
 
 	# If upwards, we can only go up if the lower cell has a ladder.
 	if from == lower_cell:
-		return lower_cell.has_ladder
+		return lower_cell.has_ladder()
 
 	# If downwards, we can always go down
 	else:

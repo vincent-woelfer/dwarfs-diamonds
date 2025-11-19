@@ -38,3 +38,17 @@ func mark_cell_for_mining(cell: Cell, is_marked_for_mining: bool) -> void:
 		Global.level.job_manager.remove_mining_job_for_cell(cell)
 
 	cell.visual.set_dirty()
+
+
+func place_building(cell: Cell, building_data: BuildingData) -> BuildingBase:
+	# TODO verify building can be placed (enough space, valid terrain, etc)
+	print_rich("Placing building: %s at %s" % [building_data.name, cell.grid_pos])
+
+	var building_instance := building_data.instantiate_scene() as BuildingBase
+	building_instance.setup_building(cell.grid_pos, building_data)
+
+	# Also adds as child
+	Global.level.building_manager.register_building(building_instance)
+
+	cell.add_building(building_instance)
+	return building_instance

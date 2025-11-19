@@ -1,3 +1,6 @@
+########################################################################################################################
+# TOOL SCRIPT
+########################################################################################################################
 @tool
 class_name GridPatternPreview
 extends Node2D
@@ -65,7 +68,10 @@ func _process(_delta: float) -> void:
 	if dirty:
 		dirty = false
 		queue_redraw()
-		print("GridPatternPreview updated with %d pattern(s)" % grid_patterns.size())
+		if parent_node:
+			print("%s: GridPatternPreview updated with %d pattern(s)" % [parent_node.name, grid_patterns.size()])
+		else:
+			print("null-parent: GridPatternPreview updated with %d pattern(s)" % [grid_patterns.size()])
 
 
 func _scan_node(node: Object) -> void:

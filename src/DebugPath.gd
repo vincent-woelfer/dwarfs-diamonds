@@ -34,7 +34,7 @@ func update() -> void:
 	if path:
 		path.queue_free()
 
-	var nav := Global.level.nav
+	var nav := Global.level.nav_manager
 	if not nav or not nav._astar or end_pos == Vector2i.MIN:
 		return
 
