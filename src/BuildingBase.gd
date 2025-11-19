@@ -17,9 +17,7 @@ func setup_building(grid_pos_: Vector2i, building_data_: BuildingData) -> void:
 	super.setup(grid_pos_, Vector2.ZERO)
 
 	# Instantiate building data (incl patterns) at position
-	print("param building_data_: %s" % building_data_)
 	self.building_data = building_data_.instantiate_at_position(grid_pos)
-	print("self.building_data: %s" % self.building_data)
 
 	self.z_index = Enum.ZIndex.BUILDINGS
 	self.modulate = modulate_unfinished
@@ -40,12 +38,16 @@ func update_build_process(building_speed_with_delta: float) -> void:
 	build_process = clamp(build_process + building_with_duration, 0.0, 1.0)
 
 	if build_process >= 1.0:
-		# Finalize building
-		is_complete = true
-		self.modulate = modulate_done
+		_complete()
 
-		# Update nav for all building cells
-		for pos in building_data.pattern_building.get_world_positions():
-			var cell: Cell = Global.level.get_cell(pos)
-			if cell != null:
-				cell.queue_nav_update()
+		
+func _complete() -> void:
+	print_rich("Building %s completed at %s" % [building_data.name, grid_pos])
+	is_complete = true
+	self.modulate = modulate_done
+
+	# Update nav for all building cells
+	for pos in building_data.pattern_building.get_world_positions():
+		var cell: Cell = Global.level.get_cell(pos)
+		if cell != null:
+			cell.queue_nav_update()

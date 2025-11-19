@@ -88,7 +88,8 @@ func _actions() -> void:
 			if not cell.has_ladder():
 				var ladder_building_data: BuildingData = load("res://scenes/buildings/LadderBuildingData.tres") as BuildingData
 				var ladder := Actions.place_building(cell, ladder_building_data)
-				ladder.update_build_process(ladder_building_data.build_time) # Instantly complete
+				# await Util.await_time(1.0)
+				ladder._complete() # Complete instantly for mouse pointer
 			else:
 				pass
 				#TODO
