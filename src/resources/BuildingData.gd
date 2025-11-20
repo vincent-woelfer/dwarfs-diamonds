@@ -3,6 +3,7 @@ class_name BuildingData
 extends Resource
 
 
+@export_group("Building Properties")
 ## Name of the building. Must match the scene name of the building
 @export var name: String
 
@@ -15,6 +16,8 @@ extends Resource
 ########################################################################################################################
 # Grid Patterns
 ########################################################################################################################
+@export_group("Grid Patterns")
+
 ## Pattern defining the area the building occupies
 @export var pattern_building: GridPattern
 const pattern_building_color: Color = Color.BLUE
@@ -24,25 +27,38 @@ const pattern_building_color: Color = Color.BLUE
 const pattern_build_from_color: Color = Color.GREEN
 
 
-func get_all_patterns_with_colors() -> Array[Dictionary]:
-	var patterns_with_colors: Array[Dictionary] = []
+########################################################################################################################
+# Placement Checks
+########################################################################################################################
+func is_placeable_at(grid_pos: Vector2i) -> bool:
+	assert(pattern_building != null)
+	# assert(pattern_build_from != null)
 
-	patterns_with_colors.append({
-		"pattern": pattern_building,
-		"color": pattern_building_color
-	})
-	patterns_with_colors.append({
-		"pattern": pattern_build_from,
-		"color": pattern_build_from_color
-	})
+	var pattern_building_world := GridPattern.new(self.pattern_building.pattern, grid_pos)
 
-	return patterns_with_colors
+
+	# Check if all building pattern cells are free
+	for pos in pattern_building_world.get_world_positions():
+		var cell: Cell = Global.level.get_cell(pos)
+		if cell == null:
+			return false
+
+		# Cell for building must be empty
+		if cell.is_solid:
+			return false
+
+		# Check for solid ground requirement
+		if requires_solid_ground:
+			if not cell.has_solid_ground():
+				return false
+
+	return true
 
 
 ########################################################################################################################
 # Scene Instantiation
 ########################################################################################################################
-func instantiate_scene() -> Node:
+func instantiate_scene() -> Node2D:
 	var scene_path: String = "res://scenes/buildings/%s.tscn" % name
 	var res: Resource = load(scene_path)
 	if res == null:
@@ -56,11 +72,11 @@ func instantiate_scene() -> Node:
 	return (res as PackedScene).instantiate()
 
 
-func instantiate_at_position(grid_pos: Vector2i) -> BuildingData:
+func instantiate_building_data(grid_pos: Vector2i) -> BuildingData:
 	# Copy building data itself
 	var instance: BuildingData = BuildingData.new()
 
-	# Copy properties
+	# Copy properties - TODO add new properties here
 	instance.name = self.name
 	instance.build_time = self.build_time
 	instance.requires_solid_ground = self.requires_solid_ground
@@ -70,12 +86,32 @@ func instantiate_at_position(grid_pos: Vector2i) -> BuildingData:
 		instance.pattern_building = GridPattern.new(self.pattern_building.pattern, grid_pos)
 	else:
 		instance.pattern_building = GridPattern.new([], grid_pos)
-		push_error("BuildingData.instantiate_at_position: BuildingData %s has no pattern_building defined." % self.name)
+		push_error("BuildingData.instantiate_building_data: BuildingData %s has no pattern_building defined." % self.name)
 
 	if self.pattern_build_from:
 		instance.pattern_build_from = GridPattern.new(self.pattern_build_from.pattern, grid_pos)
 	else:
 		instance.pattern_build_from = GridPattern.new([], grid_pos)
-		push_error("BuildingData.instantiate_at_position: BuildingData %s has no pattern_build_from defined." % self.name)
+		push_error("BuildingData.instantiate_building_data: BuildingData %s has no pattern_build_from defined." % self.name)
 
 	return instance
+
+
+func get_all_patterns_with_colors() -> Array[Dictionary]:
+	var patterns_with_colors: Array[Dictionary] = []
+	patterns_with_colors.append({"pattern": pattern_building, "color": pattern_building_color})
+	patterns_with_colors.append({"pattern": pattern_build_from, "color": pattern_build_from_color})
+	# TODO add more patterns here if needed
+
+	return patterns_with_colors
+
+
+########################################################################################################################
+# Validation
+########################################################################################################################
+func _validate_property(property: Dictionary) -> void:
+	if property.name == "pattern_building" and pattern_building == null:
+		push_warning("BuildingData: 'pattern_building' is not set for building '%s'." % name)
+
+	if property.name == "pattern_build_from" and pattern_build_from == null:
+		push_warning("BuildingData: 'pattern_build_from' is not set for building '%s'." % name)

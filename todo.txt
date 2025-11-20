@@ -1,8 +1,5 @@
 
-FIX recusrsion in ladder <-> ladderbuildingcomponent does not work.
-how to fix??
-(maybe  loading via name string)
-
+TODO: BuildingData:47 TODO 
 
 carry component
 

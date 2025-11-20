@@ -17,7 +17,7 @@ func setup_building(grid_pos_: Vector2i, building_data_: BuildingData) -> void:
 	super.setup(grid_pos_, Vector2.ZERO)
 
 	# Instantiate building data (incl patterns) at position
-	self.building_data = building_data_.instantiate_at_position(grid_pos)
+	self.building_data = building_data_.instantiate_building_data(grid_pos)
 
 	self.z_index = Enum.ZIndex.BUILDINGS
 	self.modulate = modulate_unfinished
