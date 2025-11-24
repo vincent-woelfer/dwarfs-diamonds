@@ -8,6 +8,8 @@ extends Node2D
 @onready var mining_comp: MiningComponent = $MiningComponent
 @onready var building_preview: BuildingPreview = $BuildingPreview
 
+
+# Preloaded Building Data
 var ladder_building_data: BuildingData = preload("res://scenes/buildings/LadderBuildingData.tres") as BuildingData
 
 # Variables

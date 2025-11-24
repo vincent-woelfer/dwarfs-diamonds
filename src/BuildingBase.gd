@@ -1,4 +1,4 @@
-# @abstract
+@abstract
 @tool
 class_name BuildingBase
 extends GridObject2D

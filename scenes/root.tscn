@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://dyag5xrvgqmps" path="res://src/Camera.gd" id="2_twpsu"]
 [ext_resource type="Script" uid="uid://dbjxic6v0lmsn" path="res://src/DebugPath.gd" id="3_kycxp"]
 [ext_resource type="Script" uid="uid://cl5edeyo0f0k5" path="res://src/post_processing/StencilViewport.gd" id="3_lrqlo"]
-[ext_resource type="Script" uid="uid://cu5vij5h7nlbn" path="res://src/MousePointer.gd" id="4_j287u"]
+[ext_resource type="PackedScene" uid="uid://5eoqygfv14mi" path="res://scenes/MousePointer.tscn" id="4_5sfjl"]
 [ext_resource type="Script" uid="uid://ywmes8ymdo2a" path="res://src/post_processing/PostProcessCanvasLayer.gd" id="4_jh1ax"]
 [ext_resource type="Shader" uid="uid://xfugqc6jg0g2" path="res://shaders/StencilPostProcess.gdshader" id="4_sqa0i"]
 [ext_resource type="Script" uid="uid://diuf7i4psy2dl" path="res://src/utils/DevFpsLabel.gd" id="8_5sfjl"]
@@ -34,9 +34,7 @@ metadata/_custom_type_script = "uid://dyag5xrvgqmps"
 script = ExtResource("3_kycxp")
 metadata/_custom_type_script = "uid://dbjxic6v0lmsn"
 
-[node name="MousePointer" type="Node2D" parent="."]
-script = ExtResource("4_j287u")
-metadata/_custom_type_script = "uid://cu5vij5h7nlbn"
+[node name="MousePointer" parent="." instance=ExtResource("4_5sfjl")]
 
 [node name="StencilViewport" type="SubViewport" parent="."]
 disable_3d = true
