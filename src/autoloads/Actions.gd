@@ -40,8 +40,13 @@ func mark_cell_for_mining(cell: Cell, is_marked_for_mining: bool) -> void:
 	cell.visual.set_dirty()
 
 
-func place_building(cell: Cell, building_data: BuildingData) -> BuildingBase:
-	# TODO verify building can be placed (enough space, valid terrain, etc)
+## Verification takes place before calling this
+func place_building(cell: Cell, building_data: BuildingData, finish_instantly: bool = false) -> BuildingBase:
+	# Validate - actual validation already took place, just to catch any issues here
+	assert(cell != null)
+	assert(building_data != null)
+	assert(building_data.is_placeable_at(cell.grid_pos))
+
 	print_rich("Placing building: %s at %s" % [building_data.name, cell.grid_pos])
 
 	var building_instance := building_data.instantiate_scene() as BuildingBase
@@ -51,4 +56,8 @@ func place_building(cell: Cell, building_data: BuildingData) -> BuildingBase:
 	Global.level.building_manager.register_building(building_instance)
 
 	cell.add_building(building_instance)
+
+	if finish_instantly:
+		building_instance._complete()
+
 	return building_instance

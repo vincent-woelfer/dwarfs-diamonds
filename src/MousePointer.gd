@@ -69,11 +69,7 @@ func _physics_process_neutral(delta: float) -> void:
 	_actions_neutral()
 
 
-# Building Placement State
-# Nothing, done via BuildingPreview and .set_building_data()
-# func _enter_building_placement() -> void:
-	# building_preview.set_building_data()
-
+# Not enter function since we need to call with new building data
 func _transition_to_building_placement(building_data: BuildingData) -> void:
 	building_preview.set_building_data(building_data)
 	sm.transition_to(State.BUILDING_PLACEMENT)
@@ -113,17 +109,11 @@ func _actions_mode_change() -> bool:
 func _actions_building_placement() -> void:
 	# Place Building
 	if Input.is_action_just_pressed("mouse_left"):
-		if building_preview.is_valid_placement:
-			var bulding := Actions.place_building(building_preview.curr_cell, building_preview.building_data)
-		else:
-			# Invalid placement feedback
-			pass
+		building_preview.place_building()
 
 	# Mouse Placement with instant building (for testing)
 	if Input.is_action_just_pressed("mouse_left_ctrl"):
-		if building_preview.is_valid_placement:
-			var bulding := Actions.place_building(building_preview.curr_cell, building_preview.building_data)
-			bulding._complete() # Complete instantly for testing here
+		building_preview.place_building(true)
 
 
 func _actions_neutral() -> void:
@@ -132,23 +122,6 @@ func _actions_neutral() -> void:
 		for cell in curr_selected_cells:
 			mining_comp.start_mining(cell)
 
-
-	# Build Cells
-	# if Input.is_action_just_pressed("mouse_right_build_platform"):
-	# 	for cell in curr_selected_cells:
-	# 		cell.build_platform()
-
-	# Build Laders
-	# if Input.is_action_just_pressed("mouse_right_build_ladder"):
-	# 	for cell in curr_selected_cells:
-	# 		if not cell.has_ladder():
-				
-	# 			var ladder := Actions.place_building(cell, ladder_building_data)
-	# 			ladder._complete() # Complete instantly for mouse pointer
-	# 		else:
-	# 			pass
-	# 			#TODO
-	# 			# cell.destroy_ladder()
 
 	######## DEBUG ########
 	if Input.is_action_just_pressed("dev_place_debug_path_start"):
