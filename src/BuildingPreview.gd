@@ -19,8 +19,8 @@ var preview_scene: Node2D = null
 
 
 # Constant Colors
-const modulate_valid: Color = Color(1, 1, 1, 0.5)
-const modulate_invalid: Color = Color(1, 0.3, 0.3, 0.5)
+const modulate_valid: Color = Color(1.0, 1.0, 1.0, 1.0)
+const modulate_invalid: Color = Color(1.1, 0.5, 0.5, 1.0)
 
 
 func _ready() -> void:
@@ -34,13 +34,15 @@ func _process(delta: float) -> void:
 
 	# Mouse position follows automatically via Node2D position
 	# Update position snapped to grid and current cell
-	grid_pos = Global.level.get_cell_at_world_pos(global_position).grid_pos
-	curr_cell = Global.level.get_cell(grid_pos)
+	curr_cell = Global.level.get_cell_at_world_pos(global_position)
 
 	# Abort if no current cell
 	if curr_cell == null:
 		visible = false
 		return
+	else:
+		visible = true
+		grid_pos = curr_cell.grid_pos
 
 	# Snap Preview Scene to cell position
 	preview_scene.global_position = curr_cell.global_position + Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
@@ -83,6 +85,6 @@ func set_building_data(building_data_new: BuildingData) -> void:
 func _set_validity(is_valid: bool) -> void:
 	is_valid_placement = is_valid
 	if is_valid_placement:
-		self.modulate = modulate_valid
+		preview_scene.modulate = modulate_valid
 	else:
-		self.modulate = modulate_invalid
+		preview_scene.modulate = modulate_invalid

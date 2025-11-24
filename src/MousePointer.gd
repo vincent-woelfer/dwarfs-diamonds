@@ -59,7 +59,8 @@ func _exit_neutral() -> void:
 	curr_selected_cells.clear()
 
 func _physics_process_neutral(delta: float) -> void:
-	_actions_mode_change()
+	if _actions_mode_change():
+		return
 
 	_follow_mouse_pointer()
 
@@ -73,12 +74,17 @@ func _physics_process_neutral(delta: float) -> void:
 # func _enter_building_placement() -> void:
 	# building_preview.set_building_data()
 
+func _transition_to_building_placement(building_data: BuildingData) -> void:
+	building_preview.set_building_data(building_data)
+	sm.transition_to(State.BUILDING_PLACEMENT)
+
 func _exit_building_placement() -> void:
 	building_preview.set_building_data(null)
 
 
 func _physics_process_building_placement(delta: float) -> void:
-	_actions_mode_change()
+	if _actions_mode_change():
+		return
 	
 	_follow_mouse_pointer()
 
@@ -92,20 +98,23 @@ func _follow_mouse_pointer() -> void:
 	self.position = Global.camera.mouse_pos_world_space()
 	curr_cell = Global.level.get_cell_at_world_pos(self.global_position)
 
-func _actions_mode_change() -> void:
+func _actions_mode_change() -> bool:
 	if Input.is_action_just_pressed("mouse_neutral"):
 		sm.transition_to(State.NEUTRAL)
+		return true
 
 	elif Input.is_action_just_pressed("mouse_place_building_ladder"):
-		building_preview.set_building_data(ladder_building_data)
-		sm.transition_to(State.BUILDING_PLACEMENT)
+		_transition_to_building_placement(ladder_building_data)
+		return true
+
+	return false
 
 
 func _actions_building_placement() -> void:
 	# Place Building
 	if Input.is_action_just_pressed("mouse_left"):
 		if building_preview.is_valid_placement:
-			var ladder := Actions.place_building(building_preview.curr_cell, ladder_building_data)
+			var bulding := Actions.place_building(building_preview.curr_cell, building_preview.building_data)
 		else:
 			# Invalid placement feedback
 			pass
@@ -113,8 +122,8 @@ func _actions_building_placement() -> void:
 	# Mouse Placement with instant building (for testing)
 	if Input.is_action_just_pressed("mouse_left_ctrl"):
 		if building_preview.is_valid_placement:
-			var ladder := Actions.place_building(building_preview.curr_cell, ladder_building_data)
-			ladder._complete() # Complete instantly for testing here
+			var bulding := Actions.place_building(building_preview.curr_cell, building_preview.building_data)
+			bulding._complete() # Complete instantly for testing here
 
 
 func _actions_neutral() -> void:

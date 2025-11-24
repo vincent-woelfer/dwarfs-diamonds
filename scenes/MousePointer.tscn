@@ -25,5 +25,7 @@ max_simultaneous_mining_cells = 100
 metadata/_custom_type_script = "uid://sfmxn54qwmtl"
 
 [node name="BuildingPreview" type="Node2D" parent="."]
+light_mask = 0
+z_index = 400
 script = ExtResource("3_ky82m")
 metadata/_custom_type_script = "uid://coltev41qn6yk"

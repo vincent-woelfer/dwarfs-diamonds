@@ -45,6 +45,7 @@ func has_solid_ground() -> bool:
 	var n_bot := get_neighbour(Global.VEC_DOWN)
 	return n_bot != null and n_bot.is_solid
 
+
 # TODO not really nice. Is inefficient
 func has_ladder() -> bool:
 	for building in buildings:

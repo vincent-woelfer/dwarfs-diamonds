@@ -34,8 +34,6 @@ metadata/_custom_type_script = "uid://dyag5xrvgqmps"
 script = ExtResource("3_kycxp")
 metadata/_custom_type_script = "uid://dbjxic6v0lmsn"
 
-[node name="MousePointer" parent="." instance=ExtResource("4_5sfjl")]
-
 [node name="StencilViewport" type="SubViewport" parent="."]
 disable_3d = true
 transparent_bg = true
@@ -52,6 +50,8 @@ material = SubResource("ShaderMaterial_sqa0i")
 [node name="UICanvasLayer-WorldSpace-2" type="CanvasLayer" parent="."]
 layer = 2
 follow_viewport_enabled = true
+
+[node name="MousePointer" parent="UICanvasLayer-WorldSpace-2" instance=ExtResource("4_5sfjl")]
 
 [node name="UICanvasLayer-ScreenSpace-3" type="CanvasLayer" parent="."]
 layer = 3
