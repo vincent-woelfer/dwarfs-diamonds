@@ -37,7 +37,7 @@ func is_placeable_at(grid_pos: Vector2i) -> bool:
 	var pattern_building_world := GridPattern.new(self.pattern_building.pattern, grid_pos)
 
 
-	# Check if all building pattern cells are free
+	# Check if all building pattern cells exist, are free and have solid ground if required
 	for pos in pattern_building_world.get_world_positions():
 		var cell: Cell = Global.level.get_cell(pos)
 		if cell == null:
@@ -51,6 +51,14 @@ func is_placeable_at(grid_pos: Vector2i) -> bool:
 		if requires_solid_ground:
 			if not cell.has_solid_ground():
 				return false
+
+		# Check if any other building occupies the cell
+		# TODO does this work for multi-cell buildings??? Decide wheter to add building to all cells or only central cell
+		if not cell.buildings.is_empty():
+			return false
+				
+
+	# TODO Check pattern_build_from conditions here if needed ???
 
 	return true
 
@@ -67,6 +75,19 @@ func instantiate_scene() -> Node2D:
 
 	if res is not PackedScene:
 		push_error("BuildingData.instantiate_scene: Resource at path %s is not a PackedScene." % scene_path)
+		return null
+
+	return (res as PackedScene).instantiate()
+
+func instantiate_preview_scene() -> Node2D:
+	var scene_path: String = "res://scenes/buildings/%sPreview.tscn" % name
+	var res: Resource = load(scene_path)
+	if res == null:
+		push_error("BuildingData.instantiate_preview_scene: Could not load scene at path: %s" % scene_path)
+		return null
+
+	if res is not PackedScene:
+		push_error("BuildingData.instantiate_preview_scene: Resource at path %s is not a PackedScene." % scene_path)
 		return null
 
 	return (res as PackedScene).instantiate()

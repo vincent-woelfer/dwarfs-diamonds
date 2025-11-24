@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://pa3jahk1xsrm"]
+
+[ext_resource type="Texture2D" uid="uid://b8geavf5qgxbi" path="res://assets/sprites/ladder.png" id="1_d3cek"]
+
+[node name="LadderPreview" type="Node2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -64)
+scale = Vector2(0.6, 0.5)
+texture = ExtResource("1_d3cek")

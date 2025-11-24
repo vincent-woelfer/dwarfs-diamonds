@@ -17,8 +17,11 @@ var job_with_path: JobWithPath
 
 var num_torches: int = 50
 
+# State machine
 enum State {IDLE, MOVING, MINING, FALLING, DYING}
 var sm: StateMachine
+func _physics_process(delta: float) -> void:
+	sm.physics_process(delta)
 
 ########################################################################################################################
 # SETUP & OWN PROCESSING
@@ -57,12 +60,9 @@ func _ready() -> void:
 	movement_comp.Signal_OnLanded.connect(_on_landed)
 	movement_comp.sm.Signal_StateChanged.connect(_on_movement_state_changed)
 
-func _physics_process(delta: float) -> void:
-	sm.physics_process(delta)
-
 
 ########################################################################################################################
-# STATE MACHINE HANDLES
+# STATE MACHINE HANDLERS
 ########################################################################################################################
 
 func _physics_process_idle(delta: float) -> void:

@@ -34,6 +34,7 @@ enum ZIndex {
 	CELL = 0,
 	BUILDINGS = 100,
 	DWARFS = 200,
+	MOUSE_POINTER = 300,
 }
 
 

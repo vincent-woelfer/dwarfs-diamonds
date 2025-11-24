@@ -1,41 +1,153 @@
+@icon("res://assets/class_icons/MousePointer.svg")
 class_name MousePointer
 extends Node2D
 
-var sprite: Polygon2D
-var size: float = 20.0
-var color := Color(1, 0, 0, 0.5)
 
+# Scene Components
+@onready var visual_sprite: Node2D = $VisualSprite
+@onready var mining_comp: MiningComponent = $MiningComponent
+@onready var building_preview: BuildingPreview = $BuildingPreview
+
+var ladder_building_data: BuildingData = preload("res://scenes/buildings/LadderBuildingData.tres") as BuildingData
+
+# Variables
+var selection_pattern: GridPattern
+
+# Current & Previous selected cells
 var curr_selected_cells: Array[Cell] = []
 var prev_selected_cells: Array[Cell] = []
 
-var mining_comp: MiningComponent
+var curr_cell: Cell = null
 
-var selection_pattern: GridPattern
+# State machine
+enum State {NEUTRAL, BUILDING_PLACEMENT}
+var sm: StateMachine
+func _physics_process(delta: float) -> void:
+	sm.physics_process(delta)
+
 
 func _ready() -> void:
-	sprite = Polygon2D.new()
-	sprite.polygon = PackedVector2Array([Vector2(0, 0), Vector2(size, 0), Vector2(size, size), Vector2(0, size)])
-	sprite.offset = Vector2.ONE * -size * 0.5
-	sprite.color = color
-	sprite.position = self.position
-	sprite.z_index = 10
-	add_child(sprite)
+	sm = StateMachine.new(self, State, State.NEUTRAL)
 
-	mining_comp = MiningComponent.new()
-	mining_comp.max_simultaneous_mining_cells = 100
-	add_child(mining_comp)
+	self.z_index = Enum.ZIndex.MOUSE_POINTER
 
+	# Default selection pattern is single cell
 	selection_pattern = GridPattern.new([Vector2i.ZERO])
 
+	# SIGNALS
+	# ...
 
-func _process(delta: float) -> void:
+
+########################################################################################################################
+# STATE MACHINE HANDLERS
+########################################################################################################################
+
+# Neutral State
+func _enter_neutral() -> void:
+	visual_sprite.visible = true
+
+func _exit_neutral() -> void:
+	visual_sprite.visible = false
+
+	# Deselect all cells
+	for cell in curr_selected_cells:
+		cell.set_is_selected(false)
+
+	prev_selected_cells.clear()
+	curr_selected_cells.clear()
+
+func _physics_process_neutral(delta: float) -> void:
+	_actions_mode_change()
+
+	_follow_mouse_pointer()
+
 	_update_selected_cells()
-	_actions()
+
+	_actions_neutral()
 
 
-func _update_selected_cells() -> void:
+# Building Placement State
+# Nothing, done via BuildingPreview and .set_building_data()
+# func _enter_building_placement() -> void:
+	# building_preview.set_building_data()
+
+func _exit_building_placement() -> void:
+	building_preview.set_building_data(null)
+
+
+func _physics_process_building_placement(delta: float) -> void:
+	_actions_mode_change()
+	
+	_follow_mouse_pointer()
+
+	_actions_building_placement()
+
+
+########################################################################################################################
+# ACTIONS
+########################################################################################################################
+func _follow_mouse_pointer() -> void:
 	self.position = Global.camera.mouse_pos_world_space()
+	curr_cell = Global.level.get_cell_at_world_pos(self.global_position)
 
+func _actions_mode_change() -> void:
+	if Input.is_action_just_pressed("mouse_neutral"):
+		sm.transition_to(State.NEUTRAL)
+
+	elif Input.is_action_just_pressed("mouse_place_building_ladder"):
+		building_preview.set_building_data(ladder_building_data)
+		sm.transition_to(State.BUILDING_PLACEMENT)
+
+
+func _actions_building_placement() -> void:
+	# Place Building
+	if Input.is_action_just_pressed("mouse_left"):
+		if building_preview.is_valid_placement:
+			var ladder := Actions.place_building(building_preview.curr_cell, ladder_building_data)
+		else:
+			# Invalid placement feedback
+			pass
+
+	# Mouse Placement with instant building (for testing)
+	if Input.is_action_just_pressed("mouse_left_ctrl"):
+		if building_preview.is_valid_placement:
+			var ladder := Actions.place_building(building_preview.curr_cell, ladder_building_data)
+			ladder._complete() # Complete instantly for testing here
+
+
+func _actions_neutral() -> void:
+	# Mine Cells
+	if Input.is_action_just_pressed("mouse_right"):
+		for cell in curr_selected_cells:
+			mining_comp.start_mining(cell)
+
+
+	# Build Cells
+	# if Input.is_action_just_pressed("mouse_right_build_platform"):
+	# 	for cell in curr_selected_cells:
+	# 		cell.build_platform()
+
+	# Build Laders
+	# if Input.is_action_just_pressed("mouse_right_build_ladder"):
+	# 	for cell in curr_selected_cells:
+	# 		if not cell.has_ladder():
+				
+	# 			var ladder := Actions.place_building(cell, ladder_building_data)
+	# 			ladder._complete() # Complete instantly for mouse pointer
+	# 		else:
+	# 			pass
+	# 			#TODO
+	# 			# cell.destroy_ladder()
+
+	######## DEBUG ########
+	if Input.is_action_just_pressed("dev_place_debug_path_start"):
+		if curr_selected_cells.size() > 0:
+			var cell := curr_selected_cells[0]
+			EventBus.Signal_DebugPathSetStartCell.emit(cell.grid_pos)
+
+
+## Update selected cells based on mouse position and selection pattern
+func _update_selected_cells() -> void:
 	# Selected Cell
 	curr_selected_cells = _sample_cells_at_mouse_pos(self.position)
 
@@ -70,40 +182,8 @@ func _update_selected_cells() -> void:
 	prev_selected_cells = curr_selected_cells.duplicate()
 
 
-func _actions() -> void:
-	# Mine Cells
-	if Input.is_action_just_pressed("mouse_right_mine"):
-		for cell in curr_selected_cells:
-			mining_comp.start_mining(cell)
-
-
-	# Build Cells
-	if Input.is_action_just_pressed("mouse_right_build_platform"):
-		for cell in curr_selected_cells:
-			cell.build_platform()
-
-	# Build Laders
-	if Input.is_action_just_pressed("mouse_right_build_ladder"):
-		for cell in curr_selected_cells:
-			if not cell.has_ladder():
-				var ladder_building_data: BuildingData = load("res://scenes/buildings/LadderBuildingData.tres") as BuildingData
-				var ladder := Actions.place_building(cell, ladder_building_data)
-				# await Util.await_time(1.0)
-				ladder._complete() # Complete instantly for mouse pointer
-			else:
-				pass
-				#TODO
-				# cell.destroy_ladder()
-
-	######## DEBUG ########
-	if Input.is_action_just_pressed("dev_place_debug_path_start"):
-		if curr_selected_cells.size() > 0:
-			var cell := curr_selected_cells[0]
-			EventBus.Signal_DebugPathSetStartCell.emit(cell.grid_pos)
-
-
 ## Sample cells at mouse position. Guaranteed to not be null
-# The Cell directly under the mouse MUST BE at index 0!
+## The Cell directly under the mouse MUST BE at index 0!
 func _sample_cells_at_mouse_pos(world_pos: Vector2) -> Array[Cell]:
 	var selected_cells: Array[Cell] = []
 
@@ -118,10 +198,5 @@ func _sample_cells_at_mouse_pos(world_pos: Vector2) -> Array[Cell]:
 
 		cell = Global.level.get_cell_at_world_pos(world_pos + (offset as Vector2) * Global.CELL_SIZE)
 		Util.array_append_unique_not_null(selected_cells, cell)
-
-
-	# for x in range(2):
-		# var cell := level.get_cell_at_world_pos(world_pos + Vector2(x, 0) * Global.CELL_SIZE)
-		# Util.array_add_unique_not_null(cells, cell)
 
 	return selected_cells
