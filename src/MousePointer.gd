@@ -11,6 +11,7 @@ extends Node2D
 
 # Preloaded Building Data
 var ladder_building_data: BuildingData = preload("res://scenes/buildings/LadderBuildingData.tres") as BuildingData
+var base_building_data: BuildingData = preload("res://scenes/buildings/BaseBuildingData.tres") as BuildingData
 
 # Variables
 var selection_pattern: GridPattern
@@ -59,6 +60,7 @@ func _exit_neutral() -> void:
 	curr_selected_cells.clear()
 
 func _physics_process_neutral(delta: float) -> void:
+	# Check for mode change first, if so return
 	if _actions_mode_change():
 		return
 
@@ -79,6 +81,7 @@ func _exit_building_placement() -> void:
 
 
 func _physics_process_building_placement(delta: float) -> void:
+	# Check for mode change first, if so return
 	if _actions_mode_change():
 		return
 	
@@ -101,6 +104,10 @@ func _actions_mode_change() -> bool:
 
 	elif Input.is_action_just_pressed("mouse_place_building_ladder"):
 		_transition_to_building_placement(ladder_building_data)
+		return true
+
+	elif Input.is_action_just_pressed("mouse_place_building_base"):
+		_transition_to_building_placement(base_building_data)
 		return true
 
 	return false

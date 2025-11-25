@@ -1,0 +1,21 @@
+[gd_scene load_steps=5 format=3 uid="uid://chdft8rydes8j"]
+
+[ext_resource type="Script" uid="uid://bhjn3adn1kpal" path="res://src/buildings/Base.gd" id="1_s2aw1"]
+[ext_resource type="Script" uid="uid://pqnih1ekj0u5" path="res://src/utils/GridPatternPreview.gd" id="2_uh53p"]
+[ext_resource type="Resource" uid="uid://db45xsffb66e5" path="res://scenes/buildings/BaseBuildingData.tres" id="2_wkd27"]
+[ext_resource type="Texture2D" uid="uid://lotg8jqf047v" path="res://assets/sprites/base_1.png" id="4_uh53p"]
+
+[node name="Base" type="Node2D"]
+script = ExtResource("1_s2aw1")
+building_data = ExtResource("2_wkd27")
+metadata/_custom_type_script = "uid://c08mmaccrjyck"
+
+[node name="GridPatternPreview" type="Node2D" parent="."]
+z_index = 1
+script = ExtResource("2_uh53p")
+metadata/_custom_type_script = "uid://pqnih1ekj0u5"
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(64.00001, -132.7125)
+scale = Vector2(0.42812502, 0.4337295)
+texture = ExtResource("4_uh53p")

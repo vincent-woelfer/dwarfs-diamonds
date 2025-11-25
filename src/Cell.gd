@@ -93,7 +93,7 @@ func increase_mining_process(mining_speed_with_delta: float) -> void:
 		# This in turn emits Signal_GlobalCellMiningCompleted which this and all other MiningComponents listen to
 		Actions.destroy_cell(self) # calls destroy()
 
-
+## Destroy cell itself (terrain)
 func destroy() -> void:
 	if not is_solid:
 		return

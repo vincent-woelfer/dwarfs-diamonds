@@ -11,7 +11,7 @@ building_data = ExtResource("2_ftl2j")
 metadata/_custom_type_script = "uid://c08mmaccrjyck"
 
 [node name="GridPatternPreview" type="Node2D" parent="."]
-z_index = -100
+z_index = 1
 script = ExtResource("2_8ecwd")
 metadata/_custom_type_script = "uid://pqnih1ekj0u5"
 

@@ -22,7 +22,7 @@ func _draw() -> void:
 		return
 
 	# Setup once
-	self.z_index = -100
+	self.z_index = 1 # Draw above grid/sprites
 	var margin_vec: Vector2 = Vector2(margin_width, margin_width)
 
 	# Per grid pattern
