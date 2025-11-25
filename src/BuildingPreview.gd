@@ -59,16 +59,14 @@ func _process(delta: float) -> void:
 	preview_scene.global_position = curr_cell.global_position + Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR + shake_offset
 
 	# Update validity
-	if building_data.is_placeable_at(grid_pos):
-		_set_validity(true)
-	else:
-		_set_validity(false)
+	_update_is_valid_placement(building_data.is_placeable_at(grid_pos))
 
 
 func place_building(finish_instantly: bool = false) -> bool:
 	if building_data == null:
 		return false
 
+	_update_is_valid_placement(building_data.is_placeable_at(grid_pos))
 	if not is_valid_placement:
 		# Visual feedback for invalid placement
 		_shake(0.3, 20.0)
@@ -109,7 +107,7 @@ func set_building_data(building_data_new: BuildingData) -> void:
 	preview_scene.top_level = true
 
 
-func _set_validity(is_valid: bool) -> void:
+func _update_is_valid_placement(is_valid: bool) -> void:
 	is_valid_placement = is_valid
 	if is_valid_placement:
 		preview_scene.modulate = modulate_valid

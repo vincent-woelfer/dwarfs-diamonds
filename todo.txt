@@ -1,4 +1,5 @@
-
+Add building to all relevant cells,
+-> Correctly check if building can be placed based on occupued cells
 
 carry component
 

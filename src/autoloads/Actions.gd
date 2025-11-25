@@ -55,6 +55,7 @@ func place_building(cell: Cell, building_data: BuildingData, finish_instantly: b
 	# Also adds as child
 	Global.level.building_manager.register_building(building_instance)
 
+	# TODO add to all cells
 	cell.add_building(building_instance)
 
 	if finish_instantly:
