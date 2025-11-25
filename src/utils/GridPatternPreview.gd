@@ -50,15 +50,15 @@ func _draw() -> void:
 
 
 func _ready() -> void:
-	if not _should_draw():
-		return
-
 	grid_patterns.clear()
 	colors.clear()
 	dirty = true
 
 func _process(_delta: float) -> void:
 	if not _should_draw():
+		# TODO remove drawn patterns somehow
+		# TODO add flag so this gets called exactly once when toggled off
+		queue_redraw()
 		return
 
 	# Update grid pattern from parent

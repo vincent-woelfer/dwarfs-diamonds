@@ -1,9 +1,14 @@
+1)
 Add building to all relevant cells,
 -> Correctly check if building can be placed based on occupued cells
 
+2)
+gridpatternpreview 
+func _process(_delta: float) -> void:
+implement toogle flag
+
+3) Implement:
 carry component
-
 build component
-
 
 Together with mining component, add check "can do this job" which is used when filtering for jobs
