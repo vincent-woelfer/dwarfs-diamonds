@@ -10,9 +10,6 @@ extends Resource
 ## Build time in seconds (without modifiers)
 @export var build_time: float
 
-## If all cells below the building must be solid ground
-@export var requires_solid_ground: bool = false
-
 ########################################################################################################################
 # Grid Patterns
 ########################################################################################################################
@@ -30,17 +27,18 @@ const pattern_build_from_color: Color = Color.GREEN
 @export var pattern_entrance: GridPattern
 const pattern_entrance_color: Color = Color.RED
 
+## Pattern defining where the building requires solid ground
+@export var pattern_solid_ground: GridPattern
+const pattern_solid_ground_color: Color = Color(0.3, 0.15, 0.1) # Dark brown
+
 ########################################################################################################################
 # Placement Checks
 ########################################################################################################################
 func is_placeable_at(grid_pos: Vector2i) -> bool:
+	# Check if all building pattern cells exist, are free and have solid ground if required
 	assert(pattern_building != null)
-	# assert(pattern_build_from != null)
-
 	var pattern_building_world := GridPattern.new(self.pattern_building.pattern, grid_pos)
 
-
-	# Check if all building pattern cells exist, are free and have solid ground if required
 	for pos in pattern_building_world.get_world_positions():
 		var cell: Cell = Global.level.get_cell(pos)
 		if cell == null:
@@ -50,16 +48,22 @@ func is_placeable_at(grid_pos: Vector2i) -> bool:
 		if cell.is_solid:
 			return false
 
-		# Check for solid ground requirement
-		if requires_solid_ground:
-			if not cell.has_solid_ground():
-				return false
-
 		# Check if any other building occupies the cell
 		# TODO does this work for multi-cell buildings??? Decide wheter to add building to all cells or only central cell
 		if not cell.buildings.is_empty():
 			return false
 				
+	# Check solid ground requirement
+	if pattern_solid_ground != null:
+		var pattern_solid_ground_world := GridPattern.new(self.pattern_solid_ground.pattern, grid_pos)
+
+		for pos in pattern_solid_ground_world.get_world_positions():
+			var cell: Cell = Global.level.get_cell(pos)
+			if cell == null:
+				return false
+
+			if not cell.is_solid:
+				return false
 
 	# TODO Check pattern_build_from conditions here if needed ???
 
@@ -95,12 +99,14 @@ func instantiate_building_data(grid_pos: Vector2i) -> BuildingData:
 	# Copy properties - TODO add new properties here
 	instance.name = self.name
 	instance.build_time = self.build_time
-	instance.requires_solid_ground = self.requires_solid_ground
 
-	# Adjust patterns to new position
-	instance.pattern_building = _instantiate_pattern_at(self.pattern_building, grid_pos, "pattern_building")
-	instance.pattern_build_from = _instantiate_pattern_at(self.pattern_build_from, grid_pos, "pattern_build_from")
-	instance.pattern_entrance = _instantiate_pattern_at(self.pattern_entrance, grid_pos, "pattern_entrance")
+	# Adjust patterns to new position - find all patterns dynamically
+	for property: Dictionary in self.get_property_list():
+		var prop_name: String = property.name
+		if prop_name.begins_with("pattern_") and property.type != TYPE_COLOR:
+			@warning_ignore("UNSAFE_CAST")
+			var self_pattern := self.get(prop_name) as GridPattern
+			instance.set(prop_name, _instantiate_pattern_at(self_pattern, grid_pos, prop_name))
 
 	return instance
 
@@ -115,10 +121,14 @@ func _instantiate_pattern_at(pattern: GridPattern, grid_pos: Vector2i, var_name:
 
 func get_all_patterns_with_colors() -> Array[Dictionary]:
 	var patterns_with_colors: Array[Dictionary] = []
-	patterns_with_colors.append({"pattern": pattern_building, "color": pattern_building_color})
-	patterns_with_colors.append({"pattern": pattern_build_from, "color": pattern_build_from_color})
-	patterns_with_colors.append({"pattern": pattern_entrance, "color": pattern_entrance_color})
-	# TODO add more patterns here if needed
+
+	# Find all pattern properties dynamically
+	for property: Dictionary in self.get_property_list():
+		var prop_name: String = property.name
+		if prop_name.begins_with("pattern_") and property.type != TYPE_COLOR:
+			var pattern: GridPattern = self.get(prop_name)
+			var color: Color = self.get("%s_color" % prop_name)
+			patterns_with_colors.append({"pattern": pattern, "color": color})
 
 	return patterns_with_colors
 
@@ -127,11 +137,17 @@ func get_all_patterns_with_colors() -> Array[Dictionary]:
 # Validation
 ########################################################################################################################
 func _validate_property(property: Dictionary) -> void:
-	if property.name == "pattern_building" and pattern_building == null:
-		push_warning("BuildingData: 'pattern_building' is not set for building '%s'." % name)
+	var prop_name: String = property.name
+	var prop_variant: Variant = self.get(prop_name)
 
-	if property.name == "pattern_build_from" and pattern_build_from == null:
-		push_warning("BuildingData: 'pattern_build_from' is not set for building '%s'." % name)
+	if prop_name.begins_with("pattern_") and prop_variant is GridPattern:
+		@warning_ignore("UNSAFE_CAST")
+		var prop_pattern := prop_variant as GridPattern
 
-	if property.name == "pattern_entrance" and pattern_entrance == null:
-		push_warning("BuildingData: 'pattern_entrance' is not set for building '%s'." % name)
+		if prop_pattern == null:
+			push_warning("BuildingData: '%s' is not set for building '%s'." % [property.name, name])
+
+		# Empty patterns are okay for some patterns. Filter manually
+		elif prop_pattern.pattern.is_empty():
+			if prop_name in ["pattern_building", "pattern_build_from"]:
+				push_warning("BuildingData: '%s' has an empty pattern for building '%s'." % [property.name, name])

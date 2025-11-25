@@ -2,7 +2,7 @@
 class_name GridPattern
 extends Resource
 
-@export var world_offset: Vector2i = Vector2i.ZERO
+var world_offset: Vector2i = Vector2i.ZERO
 @export var pattern: Array[Vector2i] = []
 
 
