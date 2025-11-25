@@ -116,7 +116,7 @@ func _actions_mode_change() -> bool:
 func _actions_building_placement() -> void:
 	# Place Building
 	if Input.is_action_just_pressed("mouse_left"):
-		building_preview.place_building()
+		building_preview.place_building(false)
 
 	# Mouse Placement with instant building (for testing)
 	if Input.is_action_just_pressed("mouse_left_ctrl"):

@@ -26,8 +26,10 @@ const VEC_RIGHT := Vector2(1, 0)
 const VEC_UP := Vector2(0, -1)
 const VEC_DOWN := Vector2(0, 1)
 
-
 const SKY_HEIGHT: int = 3
+
+# Gameplay flags
+var draw_debug_building_patterns: bool = false
 
 # Relevant Game Objects
 @onready var camera: Camera = get_tree().root.get_node("root/Camera")

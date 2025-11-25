@@ -17,8 +17,9 @@ var offset_for_editor: Vector2 = - Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
 
 var dirty: bool = true
 
+
 func _draw() -> void:
-	if not Engine.is_editor_hint() or grid_patterns.is_empty():
+	if not _should_draw() or grid_patterns.is_empty():
 		return
 
 	# Setup once
@@ -49,7 +50,7 @@ func _draw() -> void:
 
 
 func _ready() -> void:
-	if not Engine.is_editor_hint():
+	if not _should_draw():
 		return
 
 	grid_patterns.clear()
@@ -57,7 +58,7 @@ func _ready() -> void:
 	dirty = true
 
 func _process(_delta: float) -> void:
-	if not Engine.is_editor_hint():
+	if not _should_draw():
 		return
 
 	# Update grid pattern from parent
@@ -115,3 +116,7 @@ func _add_building_data(building_data: BuildingData) -> void:
 		var grid_pattern: GridPattern = pattern_with_color["pattern"]
 		var color: Color = pattern_with_color["color"]
 		_add_grid_pattern(grid_pattern, color)
+
+
+func _should_draw() -> bool:
+	return Engine.is_editor_hint() or Global.draw_debug_building_patterns
