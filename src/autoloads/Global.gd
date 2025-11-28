@@ -29,9 +29,6 @@ const VEC_DOWN := Vector2(0, 1)
 
 const SKY_HEIGHT: int = 3
 
-# Gameplay flags
-var draw_debug_building_patterns: bool = false
-
 # Relevant Game Objects
 @onready var camera: Camera = _get_from_root("Camera")
 @onready var level: Level = _get_from_root("Level")

@@ -119,4 +119,4 @@ func _add_building_data(building_data: BuildingData) -> void:
 
 
 func _should_draw() -> bool:
-	return Engine.is_editor_hint() or Global.draw_debug_building_patterns
+	return Engine.is_editor_hint() or EventBus.dev_draw_building_patterns

@@ -23,6 +23,9 @@ signal Signal_GlobalCellDestroyed(destroyed_cell: Cell)
 signal Signal_DevToogleLight(is_light_on: bool) # F3
 var dev_light_on: bool = true
 
+# No Signal required
+var dev_draw_building_patterns: bool = false # F4
+
 
 func _ready() -> void:
 	pass
@@ -41,6 +44,9 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("dev_toogle_light"):
 		dev_light_on = not dev_light_on
 		Signal_DevToogleLight.emit(dev_light_on)
+
+	if event.is_action_pressed("dev_toogle_building_draw"):
+		dev_draw_building_patterns = not dev_draw_building_patterns
 
 
 ###################################

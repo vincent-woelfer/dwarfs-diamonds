@@ -43,9 +43,3 @@ func register_building(building: BuildingBase) -> void:
 # 			continue
 
 # 		# preview
-
-func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("dev_toogle_building_draw"):
-		Global.draw_debug_building_patterns = not Global.draw_debug_building_patterns
-		# _debug_draw_proxy.visible = not _debug_draw_proxy.visible
-		# _debug_draw_proxy.queue_redraw()

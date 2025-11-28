@@ -97,17 +97,6 @@ func spawn_rubble(grid_pos: Vector2i) -> void:
 	rubbles.append(new_rubble)
 
 
-func _dev_toogle_light(is_light_on: bool) -> void:
-	if is_light_on:
-		# WITH LIGHTING / DARKNESS		
-		darkness.visible = true
-		sun.enabled = true
-	else:
-		# NO LIGHTING / DARKNESS
-		darkness.visible = false
-		sun.enabled = false
-		
-
 func _generate_grid() -> void:
 	HexLog.print_banner_with_text("Generating Grid")
 	cells.clear()
@@ -173,6 +162,17 @@ func should_contain_torch(grid_pos: Vector2i) -> bool:
 		return true
 
 	return false
+
+
+func _dev_toogle_light(is_light_on: bool) -> void:
+	if is_light_on:
+		# WITH LIGHTING / DARKNESS		
+		darkness.visible = true
+		sun.enabled = true
+	else:
+		# NO LIGHTING / DARKNESS
+		darkness.visible = false
+		sun.enabled = false
 
 ########################################################################################################################
 # Helper functions
