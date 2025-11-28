@@ -13,7 +13,7 @@ var alpha_border: float = 0.5
 var margin_width: float = 2.0
 
 # Offset to visually center the pattern on the grid
-var offset_for_editor: Vector2 = - Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
+var visual_offset: Vector2 = - Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
 
 var dirty: bool = true
 
@@ -39,13 +39,13 @@ func _draw() -> void:
 			# Fill
 			var pos: Vector2 = grid_pos * Global.CELL_SIZE
 			var size: Vector2 = Global.CELL_SIZE_VEC
-			var rect := Rect2(pos + offset_for_editor, size)
+			var rect := Rect2(pos + visual_offset, size)
 			draw_rect(rect, color_fill, true)
 
 			# Border
 			pos += margin_vec * 0.5
 			size -= margin_vec
-			rect = Rect2(pos + offset_for_editor, size)
+			rect = Rect2(pos + visual_offset, size)
 			draw_rect(rect, color_border, false, margin_width)
 
 

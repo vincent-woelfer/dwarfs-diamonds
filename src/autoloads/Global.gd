@@ -1,4 +1,5 @@
 # No class_name here, the name of the singleton is set in the autoload
+@tool
 extends Node2D
 
 # Grid dimensions
@@ -32,13 +33,13 @@ const SKY_HEIGHT: int = 3
 var draw_debug_building_patterns: bool = false
 
 # Relevant Game Objects
-@onready var camera: Camera = get_tree().root.get_node("root/Camera")
-@onready var level: Level = get_tree().root.get_node("root/Level")
+@onready var camera: Camera = _get_from_root("Camera")
+@onready var level: Level = _get_from_root("Level")
 
-@onready var post_process_canvas_layer: PostProcessCanvasLayer = get_tree().root.get_node("root/PostProcessCanvasLayer-1")
-@onready var stencil_viewport: StencilViewport = get_tree().root.get_node("root/StencilViewport")
-@onready var ui_canvas_layer_world_space: CanvasLayer = get_tree().root.get_node("root/UICanvasLayer-WorldSpace-2")
-@onready var ui_canvas_layer_screen_space: CanvasLayer = get_tree().root.get_node("root/UICanvasLayer-ScreenSpace-3")
+@onready var post_process_canvas_layer: PostProcessCanvasLayer = _get_from_root("PostProcessCanvasLayer-1")
+@onready var stencil_viewport: StencilViewport = _get_from_root("StencilViewport")
+@onready var ui_canvas_layer_world_space: CanvasLayer = _get_from_root("UICanvasLayer-WorldSpace-2")
+@onready var ui_canvas_layer_screen_space: CanvasLayer = _get_from_root("UICanvasLayer-ScreenSpace-3")
 
 
 func _ready() -> void:
@@ -67,10 +68,10 @@ func _input(event: InputEvent) -> void:
 
 # React to window mouse_size changes
 func _on_window_size_changed() -> void:
-	var size: Vector2i = get_viewport().get_visible_rect().size
-	print("Updated viewport (game-world) size to: ", size)
-
 	if not Engine.is_editor_hint():
+		var size: Vector2i = get_viewport().get_visible_rect().size
+		print("Updated viewport (game-world) size to: ", size)
+
 		if post_process_canvas_layer:
 			post_process_canvas_layer.update_size(size)
 		
@@ -78,3 +79,7 @@ func _on_window_size_changed() -> void:
 			stencil_viewport.update_size(size)
 
 		# Add ui_canvas_layer_screen_space ???
+
+
+func _get_from_root(path: String) -> Variant:
+	return get_tree().root.get_node("root/%s" % path)
