@@ -23,11 +23,14 @@ var preview_tween: Tween = null
 const modulate_valid: Color = Color(1.0, 1.0, 1.0, 1.0)
 const modulate_invalid: Color = Color(1.1, 0.5, 0.5, 1.0)
 
-var shake_offset: Vector2 = Vector2.ZERO
+# Current Effects, set to maximums when shaking/flashing, tweened to zero
+var curr_shake_offset: Vector2 = Vector2.ZERO
+var curr_modulate_red_offset: Color = Color(0.0, 0.0, 0.0, 0.0)
+
+var curr_modulate_validity: Color = modulate_valid
 
 
 func _ready() -> void:
-	self.modulate = modulate_valid
 	set_building_data(null)
 
 
@@ -53,23 +56,27 @@ func _process(delta: float) -> void:
 			prev_cell = curr_cell
 			if preview_tween != null:
 				preview_tween.kill()
-			shake_offset = Vector2.ZERO
+			curr_shake_offset = Vector2.ZERO
+			curr_modulate_red_offset = Color(0.0, 0.0, 0.0, 0.0)
 
 	# Snap Preview Scene to cell position
-	preview_scene.global_position = curr_cell.global_position + Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR + shake_offset
+	preview_scene.global_position = curr_cell.global_position + Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR + curr_shake_offset
+
+	# Apply red flash modulate
+	preview_scene.modulate = curr_modulate_validity + curr_modulate_red_offset
 
 	# Update validity
 	_update_is_valid_placement(building_data.is_placeable_at(grid_pos))
 
 
-func place_building(finish_instantly: bool = false) -> bool:
+func attempt_to_place_preview_building(finish_instantly: bool = false) -> bool:
 	if building_data == null:
 		return false
 
 	_update_is_valid_placement(building_data.is_placeable_at(grid_pos))
 	if not is_valid_placement:
 		# Visual feedback for invalid placement
-		_shake(0.3, 20.0)
+		_shake_and_flash_red(0.3, 20.0)
 		return false
 
 	var building := Actions.place_building(curr_cell, building_data, finish_instantly)
@@ -110,12 +117,12 @@ func set_building_data(building_data_new: BuildingData) -> void:
 func _update_is_valid_placement(is_valid: bool) -> void:
 	is_valid_placement = is_valid
 	if is_valid_placement:
-		preview_scene.modulate = modulate_valid
+		curr_modulate_validity = modulate_valid
 	else:
-		preview_scene.modulate = modulate_invalid
+		curr_modulate_validity = modulate_invalid
 
 
-func _shake(duration: float, strength: float) -> void:
+func _shake_and_flash_red(duration: float, strength: float) -> void:
 	if preview_tween != null:
 		preview_tween.kill()
 
@@ -123,8 +130,13 @@ func _shake(duration: float, strength: float) -> void:
 	preview_tween.set_ease(Tween.EASE_OUT)
 	preview_tween.set_trans(Tween.TRANS_BOUNCE)
 
-	# var max_offset := (Vector2.ONE * strength).rotated(randf() * TAU)
-	var max_offset := (Vector2(1, 0) * strength)
+	# Shake
+	var angle_rad := deg_to_rad(-20) # towards top-right
+	var max_offset := (Vector2(1, 0) * strength).rotated(angle_rad)
+	self.curr_shake_offset = max_offset
+	preview_tween.tween_property(self, "curr_shake_offset", Vector2.ZERO, duration)
 
-	self.shake_offset = max_offset
-	preview_tween.tween_property(self, "shake_offset", Vector2.ZERO, duration)
+	# Red flash
+	const modulate_red_flash: Color = Color(0.45, 0.0, 0.0, 0.0)
+	self.curr_modulate_red_offset = modulate_red_flash
+	preview_tween.parallel().tween_property(self, "curr_modulate_red_offset", Color(0.0, 0.0, 0.0, 0.0), duration)

@@ -30,7 +30,7 @@ func _draw() -> void:
 	var idx := 0
 	for grid_pattern: GridPattern in grid_patterns:
 		# Calculate colors
-		var color := colors[idx] if idx < colors.size() else Colors.DEFAULT
+		var color := colors[idx] if idx < colors.size() else Colors.FALLBACK_COLOR
 		idx += 1
 		var color_fill := Colors.with_alpha(color, alpha_fill)
 		var color_border := Colors.with_alpha(color, alpha_border)

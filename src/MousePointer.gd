@@ -114,13 +114,15 @@ func _actions_mode_change() -> bool:
 
 
 func _actions_building_placement() -> void:
-	# Place Building
-	if Input.is_action_just_pressed("mouse_left"):
-		building_preview.place_building(false)
+	var ctrl_pressed: bool = Input.is_physical_key_pressed(KEY_CTRL)
 
-	# Mouse Placement with instant building (for testing)
-	if Input.is_action_just_pressed("mouse_left_ctrl"):
-		building_preview.place_building(true)
+	# Place Building - Normal - NO CTRL
+	if Input.is_action_just_pressed("mouse_left") and not ctrl_pressed:
+		building_preview.attempt_to_place_preview_building(false)
+
+	# Mouse Placement with instant building (for testing) - CTRL
+	if Input.is_action_just_pressed("mouse_left") and ctrl_pressed:
+		building_preview.attempt_to_place_preview_building(true)
 
 
 func _actions_neutral() -> void:

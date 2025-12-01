@@ -1,8 +1,12 @@
 @tool
 class_name Colors
 
-static var DEFAULT: Color = Color(1.0, 0.0, 1.0) # Magenta, indicates error
+## Magenta, indicates error
+static var FALLBACK_COLOR: Color = Color(1.0, 0.0, 1.0)
 
+########################################################################################################################
+# COLOR UTILITIES
+########################################################################################################################
 static func rand_color() -> Color:
 	return Color(randf_range(0.2, 0.8), randf_range(0.2, 0.8), randf_range(0.2, 0.8), 1.0)
 
@@ -19,6 +23,9 @@ static func with_alpha(color: Color, alpha: float) -> Color:
 	return Color(color.r, color.g, color.b, alpha)
 
 
+########################################################################################################################
+# DWARF COLORS
+########################################################################################################################
 static func get_rand_dwarf_color(dwarf_id: int) -> Color:
 	# Shuffle each time the game is started to get different color assignments
 	if dwarf_id == 0:
@@ -36,9 +43,11 @@ static var dwarf_colors := [
 	Color8(140, 0, 140), # Purple
 ]
 
+########################################################################################################################
+# CELL COLORS
+########################################################################################################################
 static func get_cell_color(type: Enum.CellType, solid: bool) -> Color:
-	var color: Color = CellTypeColor.get(type, DEFAULT)
-	return color
+	return CellTypeColor.get(type, FALLBACK_COLOR)
 
 static var CellTypeColor := {
 	Enum.CellType.A: Color8(81, 73, 106), # Deep violet-blue tone
@@ -48,15 +57,9 @@ static var CellTypeColor := {
 	Enum.CellType.SKY: Color(0.44, 0.76, 0.96), # Sky blue
 }
 
-# TODO bad design having this here, but no better place right now
-static var CellMiningHardness := {
-	Enum.CellType.A: 1.0,
-	Enum.CellType.B: 2.0,
-	Enum.CellType.C: 3.0,
-	Enum.CellType.BUILDING: 3.0,
-}
-
-
+########################################################################################################################
+# GRID PATTERN COLORS
+########################################################################################################################
 ## GridPattern Colors. RGB are used in BuildingData, use others here
 static var grid_pattern_preview_colors: Array[Color] = [
 	Color8(255, 215, 0), # Gold
@@ -68,3 +71,12 @@ static func get_rand_grid_pattern_color(id: int) -> Color:
 	# Deterministic based on id
 	var index := id % grid_pattern_preview_colors.size()
 	return grid_pattern_preview_colors[index]
+
+
+########################################################################################################################
+# BUILDING COLORS
+########################################################################################################################
+static var building_modulate_finished: Color = Color(1, 1, 1, 1.0)
+static var building_modulate_unfinished: Color = Color(1.0, 0.75, 0.3, 1.0) # Slightly orange tint
+static var building_light_mask_finished: int = 1
+static var building_light_mask_unfinished: int = 0

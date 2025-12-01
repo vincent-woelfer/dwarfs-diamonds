@@ -47,7 +47,8 @@ func place_building(cell: Cell, building_data: BuildingData, finish_instantly: b
 	assert(building_data != null)
 	assert(building_data.is_placeable_at(cell.grid_pos))
 
-	print_rich("Placing building: %s at %s" % [building_data.name, cell.grid_pos])
+	var finish_instant_string := " (instantly)" if finish_instantly else ""
+	print_rich("Placing building: %s at %s%s" % [building_data.name, cell.grid_pos, finish_instant_string])
 
 	var building_instance := building_data.instantiate_scene() as BuildingBase
 	building_instance.setup_building(cell.grid_pos, building_data)
@@ -55,8 +56,11 @@ func place_building(cell: Cell, building_data: BuildingData, finish_instantly: b
 	# Also adds as child
 	Global.level.building_manager.register_building(building_instance)
 
-	# TODO add to all cells
-	cell.add_building(building_instance)
+	# Add to all cells covered by building
+	for pos in building_instance.building_data.pattern_building.get_world_positions():
+		var covered_cell: Cell = Global.level.get_cell(pos)
+		if covered_cell != null:
+			covered_cell.add_building(building_instance)
 
 	if finish_instantly:
 		building_instance._complete()

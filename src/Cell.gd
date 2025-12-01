@@ -193,7 +193,7 @@ func _init(_grid_pos: Vector2i, _type: Enum.CellType, _is_solid: bool) -> void:
 	self.mining_process = 0.0
 	
 	# mining hardness
-	mining_hardness = Colors.CellMiningHardness.get(type, mining_hardness)
+	mining_hardness = Global.CellMiningHardness.get(type, mining_hardness)
 
 
 func _ready() -> void:

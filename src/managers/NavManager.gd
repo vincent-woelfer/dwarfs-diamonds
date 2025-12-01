@@ -263,7 +263,7 @@ func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 			var towards_to: bool = _astar.are_points_connected(from_id, to_id, false)
 			var towards_from: bool = _astar.are_points_connected(to_id, from_id, false)
 			var bidirectional := towards_from and towards_to
-			var color_actual: Color = debug_colors.get("connection_bidir" if bidirectional else "connection_unidir", Colors.DEFAULT)
+			var color_actual: Color = debug_colors.get("connection_bidir" if bidirectional else "connection_unidir", Colors.FALLBACK_COLOR)
 
 			# Smaller for unidirectional
 			var size_actual := debug_width_connection_bi if bidirectional else debug_width_connection_uni
@@ -283,11 +283,11 @@ func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 
 		var color_actual: Color
 		if _astar.is_point_disabled(from_id):
-			color_actual = debug_colors.get("point_disabled", Colors.DEFAULT)
+			color_actual = debug_colors.get("point_disabled", Colors.FALLBACK_COLOR)
 		elif cell.is_standable():
-			color_actual = debug_colors.get("point_standable", Colors.DEFAULT)
+			color_actual = debug_colors.get("point_standable", Colors.FALLBACK_COLOR)
 		else:
-			color_actual = debug_colors.get("point_passable", Colors.DEFAULT)
+			color_actual = debug_colors.get("point_passable", Colors.FALLBACK_COLOR)
 
 		# Draw point
 		ui_layer.draw_circle(point_pos, debug_size_point, color_actual)

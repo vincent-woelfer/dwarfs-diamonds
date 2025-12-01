@@ -323,7 +323,7 @@ var debug_font_size := 22
 
 func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 	# Status Text
-	var color_actual: Color = debug_state_colors.get(sm.state, Colors.DEFAULT)
+	var color_actual: Color = debug_state_colors.get(sm.state, Colors.FALLBACK_COLOR)
 	var text: String = Enum.to_str(Dwarf.State, sm.state)
 	ui_layer.draw_string(debug_font, debug_offset, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, color_actual)
 

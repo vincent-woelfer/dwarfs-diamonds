@@ -29,10 +29,18 @@ const VEC_DOWN := Vector2(0, 1)
 
 const SKY_HEIGHT: int = 3
 
+const CellMiningHardness := {
+	Enum.CellType.A: 1.0,
+	Enum.CellType.B: 2.0,
+	Enum.CellType.C: 3.0,
+	Enum.CellType.BUILDING: 3.0,
+}
+
 # Relevant Game Objects
 @onready var camera: Camera = _get_from_root("Camera")
 @onready var level: Level = _get_from_root("Level")
 
+# TODO verify this works
 @onready var post_process_canvas_layer: PostProcessCanvasLayer = _get_from_root("PostProcessCanvasLayer-1")
 @onready var stencil_viewport: StencilViewport = _get_from_root("StencilViewport")
 @onready var ui_canvas_layer_world_space: CanvasLayer = _get_from_root("UICanvasLayer-WorldSpace-2")
@@ -79,4 +87,5 @@ func _on_window_size_changed() -> void:
 
 
 func _get_from_root(path: String) -> Variant:
+	# TODO verify this works
 	return get_tree().root.get_node("root/%s" % path)

@@ -49,7 +49,7 @@ func is_placeable_at(grid_pos: Vector2i) -> bool:
 			return false
 
 		# Check if any other building occupies the cell
-		# TODO does this work for multi-cell buildings??? Decide wheter to add building to all cells or only central cell
+		# TODO could be improved by checking building types etc. Some buildings might be allowed to overlap others (maybe?)
 		if not cell.buildings.is_empty():
 			return false
 				
@@ -59,13 +59,10 @@ func is_placeable_at(grid_pos: Vector2i) -> bool:
 
 		for pos in pattern_solid_ground_world.get_world_positions():
 			var cell: Cell = Global.level.get_cell(pos)
-			if cell == null:
+			if cell == null or not cell.is_solid:
 				return false
 
-			if not cell.is_solid:
-				return false
-
-	# TODO Check pattern_build_from conditions here if needed ???
+	# TODO Maybe check if pattern_build_from are free? Or maybe check if building entrance is free?
 
 	return true
 
