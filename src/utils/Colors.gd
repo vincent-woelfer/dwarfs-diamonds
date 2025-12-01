@@ -77,6 +77,7 @@ static func get_rand_grid_pattern_color(id: int) -> Color:
 # BUILDING COLORS
 ########################################################################################################################
 static var building_modulate_finished: Color = Color(1, 1, 1, 1.0)
-static var building_modulate_unfinished: Color = Color(1.0, 0.75, 0.3, 1.0) # Slightly orange tint
+# static var building_modulate_unfinished: Color = Color(1.0, 0.75, 0.3, 1.0) # Slightly orange tint
+static var building_modulate_unfinished: Color = Color(1.2, 0.2, 0.2, 0.8) # red tint
 static var building_light_mask_finished: int = 1
 static var building_light_mask_unfinished: int = 0

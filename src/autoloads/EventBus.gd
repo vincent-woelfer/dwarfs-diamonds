@@ -24,7 +24,8 @@ signal Signal_DevToogleLight(is_light_on: bool) # F3
 var dev_light_on: bool = true
 
 # No Signal required
-var dev_draw_building_patterns: bool = false # F4
+signal Signal_DevToogleDrawBuildingPattern() # F4
+var dev_draw_building_patterns: bool = false
 
 
 func _ready() -> void:
@@ -47,6 +48,7 @@ func _input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("dev_toogle_building_draw"):
 		dev_draw_building_patterns = not dev_draw_building_patterns
+		Signal_DevToogleDrawBuildingPattern.emit()
 
 
 ###################################
