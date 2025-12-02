@@ -18,45 +18,45 @@ shader = ExtResource("4_sqa0i")
 shader_parameter/STENCIL_TEXTURE = SubResource("ViewportTexture_j287u")
 shader_parameter/zoom = 1.0
 
-[node name="root" type="Node2D"]
+[node name="root" type="Node2D" unique_id=890682335]
 visibility_layer = 3
 
-[node name="Level" type="Node2D" parent="."]
+[node name="Level" type="Node2D" parent="." unique_id=2118506810]
 visibility_layer = 3
 script = ExtResource("1_j5px3")
 metadata/_custom_type_script = "uid://6tsnng1yc534"
 
-[node name="Camera" type="Node2D" parent="."]
+[node name="Camera" type="Node2D" parent="." unique_id=622299509]
 script = ExtResource("2_twpsu")
 metadata/_custom_type_script = "uid://dyag5xrvgqmps"
 
-[node name="DebugPath" type="Node2D" parent="."]
+[node name="DebugPath" type="Node2D" parent="." unique_id=312163967]
 script = ExtResource("3_kycxp")
 metadata/_custom_type_script = "uid://dbjxic6v0lmsn"
 
-[node name="StencilViewport" type="SubViewport" parent="."]
+[node name="StencilViewport" type="SubViewport" parent="." unique_id=302488709]
 disable_3d = true
 transparent_bg = true
 canvas_cull_mask = 4293918723
 size = Vector2i(3840, 2160)
 script = ExtResource("3_lrqlo")
 
-[node name="PostProcessCanvasLayer-1" type="CanvasLayer" parent="."]
+[node name="PostProcessCanvasLayer-1" type="CanvasLayer" parent="." unique_id=2118530863]
 script = ExtResource("4_jh1ax")
 
-[node name="StencilColorRect" type="ColorRect" parent="PostProcessCanvasLayer-1"]
+[node name="StencilColorRect" type="ColorRect" parent="PostProcessCanvasLayer-1" unique_id=1458842093]
 material = SubResource("ShaderMaterial_sqa0i")
 
-[node name="UICanvasLayer-WorldSpace-2" type="CanvasLayer" parent="."]
+[node name="UICanvasLayer-WorldSpace-2" type="CanvasLayer" parent="." unique_id=78963653]
 layer = 2
 follow_viewport_enabled = true
 
-[node name="MousePointer" parent="UICanvasLayer-WorldSpace-2" instance=ExtResource("4_5sfjl")]
+[node name="MousePointer" parent="UICanvasLayer-WorldSpace-2" unique_id=348092259 instance=ExtResource("4_5sfjl")]
 
-[node name="UICanvasLayer-ScreenSpace-3" type="CanvasLayer" parent="."]
+[node name="UICanvasLayer-ScreenSpace-3" type="CanvasLayer" parent="." unique_id=54543899]
 layer = 3
 
-[node name="DevFpsLabel" type="Label" parent="UICanvasLayer-ScreenSpace-3"]
+[node name="DevFpsLabel" type="Label" parent="UICanvasLayer-ScreenSpace-3" unique_id=1297960500]
 offset_right = 1.0
 offset_bottom = 45.0
 script = ExtResource("8_5sfjl")

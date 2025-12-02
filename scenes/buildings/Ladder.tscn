@@ -5,17 +5,17 @@
 [ext_resource type="Script" uid="uid://pqnih1ekj0u5" path="res://src/utils/GridPatternPreview.gd" id="2_8ecwd"]
 [ext_resource type="Resource" uid="uid://ba83ntoh2g74g" path="res://scenes/buildings/LadderBuildingData.tres" id="2_ftl2j"]
 
-[node name="Ladder" type="Node2D"]
+[node name="Ladder" type="Node2D" unique_id=1108454729]
 script = ExtResource("1_q77c0")
 building_data = ExtResource("2_ftl2j")
 metadata/_custom_type_script = "uid://c08mmaccrjyck"
 
-[node name="GridPatternPreview" type="Node2D" parent="."]
+[node name="GridPatternPreview" type="Node2D" parent="." unique_id=780724971]
 z_index = 1
 script = ExtResource("2_8ecwd")
 metadata/_custom_type_script = "uid://pqnih1ekj0u5"
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=694442011]
 position = Vector2(0, -64)
 scale = Vector2(0.6, 0.5)
 texture = ExtResource("1_0b2n0")
