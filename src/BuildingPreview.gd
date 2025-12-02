@@ -20,7 +20,7 @@ var preview_scene: Node2D = null
 var preview_tween: Tween = null
 
 # Constant Colors
-const modulate_valid: Color = Color(1.0, 1.0, 1.0, 1.0)
+const modulate_valid: Color = Color.WHITE
 const modulate_invalid: Color = Color(1.1, 0.5, 0.5, 1.0)
 
 # Current Effects, set to maximums when shaking/flashing, tweened to zero

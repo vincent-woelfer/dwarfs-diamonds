@@ -10,15 +10,18 @@ extends GridObject2D
 var build_process: float = 0.0
 var is_complete: bool = false
 
+# Color modulation for unfinished vs finished buildings and highlighted-for-destroy 
+var internal_modulate: Color = Color.WHITE
+var external_modulate: Color = Color.WHITE
 
-func setup_building(grid_pos_: Vector2i, building_data_: BuildingData) -> void:
+func setup_building_as_uncompleted(grid_pos_: Vector2i, building_data_: BuildingData) -> void:
 	super.setup(grid_pos_, Vector2.ZERO)
 
 	# Instantiate building data (incl patterns) at position
 	self.building_data = building_data_.instantiate_building_data(grid_pos)
 
 	self.z_index = Enum.ZIndex.BUILDINGS
-	self.modulate = Colors.building_modulate_unfinished
+	set_modulate_custom(Colors.building_modulate_unfinished, true)
 	self.light_mask = Colors.building_light_mask_unfinished
 
 	# Initial Position
@@ -33,13 +36,26 @@ func update_build_process(building_speed_with_delta: float) -> void:
 	build_process = clamp(build_process + building_with_duration, 0.0, 1.0)
 
 	if build_process >= 1.0:
-		_complete()
+		_complete_construction()
 
-		
-func _complete() -> void:
+
+func destroy_building() -> void:
+	# TOOD ?
+	pass
+
+
+func set_modulate_custom(color: Color, is_internal: bool) -> void:
+	if is_internal:
+		internal_modulate = color
+	else:
+		external_modulate = color
+	self.modulate = internal_modulate * external_modulate
+
+
+func _complete_construction() -> void:
 	print_rich("Building %s completed at %s" % [building_data.name, grid_pos])
 	is_complete = true
-	self.modulate = Colors.building_modulate_finished
+	set_modulate_custom(Colors.building_modulate_finished, true)
 	self.light_mask = Colors.building_light_mask_finished
 
 	# Update nav for all building cells

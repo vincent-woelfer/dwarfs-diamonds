@@ -91,41 +91,26 @@ func increase_mining_process(mining_speed_with_delta: float) -> void:
 
 	if mining_process >= 1.0:
 		# This in turn emits Signal_GlobalCellMiningCompleted which this and all other MiningComponents listen to
-		Actions.destroy_cell(self) # calls destroy()
+		Actions.destroy_cell(self) # calls destroy_cell()
 
 ## Destroy cell itself (terrain)
-func destroy() -> void:
+func destroy_cell() -> void:
 	if not is_solid:
 		return
 
 	is_solid = false
-	# TODO
-	# has_ladder = false
 	mining_process = 0.0
 	if grid_pos.y <= Global.SKY_HEIGHT:
 		type = Enum.CellType.SKY
 
 	queue_nav_update()
 	audio_player.play()
-
 	visual.set_dirty()
 
 
-func build_platform() -> void:
-	if is_solid:
-		return
-
-	is_solid = true
-	# TODO
-	# has_ladder = false
-	type = Enum.CellType.BUILDING
-	mining_process = 0.0
-	
-	queue_nav_update()
-
-	visual.set_dirty()
-
-
+###################################
+# Building Management - Called by Global Actions add/remove building
+###################################
 func add_building(building: BuildingBase) -> void:
 	if building in buildings:
 		return

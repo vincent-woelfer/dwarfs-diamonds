@@ -2,17 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dy4mfbu4tvgp4"
-path="res://.godot/imported/MousePointer.svg-e35db44fe346acf1e98353a7f0c2fd7a.ctex"
+uid="uid://d4h8eyfvbov4y"
+path="res://.godot/imported/MousePointerBuildingDestroy.svg-b103a0e2fe9f39262efd41b261d26703.ctex"
 metadata={
-"has_editor_variant": true,
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/class_icons/MousePointer.svg"
-dest_files=["res://.godot/imported/MousePointer.svg-e35db44fe346acf1e98353a7f0c2fd7a.ctex"]
+source_file="res://assets/vector_graphics/MousePointerBuildingDestroy.svg"
+dest_files=["res://.godot/imported/MousePointerBuildingDestroy.svg-b103a0e2fe9f39262efd41b261d26703.ctex"]
 
 [params]
 
@@ -40,5 +39,5 @@ process/hdr_clamp_exposure=false
 process/size_limit=0
 detect_3d/compress_to=1
 svg/scale=1.0
-editor/scale_with_editor_scale=true
-editor/convert_colors_with_editor_theme=true
+editor/scale_with_editor_scale=false
+editor/convert_colors_with_editor_theme=false

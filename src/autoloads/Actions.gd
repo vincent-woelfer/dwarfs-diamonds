@@ -14,7 +14,7 @@ extends Node2D
 
 # Normally called by MiningComponent
 func destroy_cell(cell: Cell) -> void:
-	cell.destroy()
+	cell.destroy_cell()
 
 	# Signal MiningComponets that mining was completed
 	EventBus.Signal_GlobalCellDestroyed.emit(cell)
@@ -47,22 +47,45 @@ func place_building(cell: Cell, building_data: BuildingData, finish_instantly: b
 	assert(building_data != null)
 	assert(building_data.is_placeable_at(cell.grid_pos))
 
+	# Log
 	var finish_instant_string := " (instantly)" if finish_instantly else ""
 	print_rich("Placing building: %s at %s%s" % [building_data.name, cell.grid_pos, finish_instant_string])
 
+	# Instantiate building
 	var building_instance := building_data.instantiate_scene() as BuildingBase
-	building_instance.setup_building(cell.grid_pos, building_data)
+	building_instance.setup_building_as_uncompleted(cell.grid_pos, building_data)
 
 	# Also adds as child
 	Global.level.building_manager.register_building(building_instance)
 
-	# Add to all cells covered by building
+	# Add to all cells covered by building -> updates their navmesh
 	for pos in building_instance.building_data.pattern_building.get_world_positions():
 		var covered_cell: Cell = Global.level.get_cell(pos)
 		if covered_cell != null:
 			covered_cell.add_building(building_instance)
 
 	if finish_instantly:
-		building_instance._complete()
+		building_instance._complete_construction()
 
 	return building_instance
+
+
+func remove_building(building: BuildingBase) -> void:
+	# Validate - actual validation already took place, just to catch any issues here
+	assert(building != null)
+
+	# Log
+	var building_status := " (was under construction)" if not building.is_complete else ""
+	print_rich("Removing building: %s at %s%s" % [building.building_data.name, building.grid_pos, building_status])
+
+	# Call building destroy logic
+	building.destroy_building()
+
+	# Removes as child, calls queue_free	
+	Global.level.building_manager.remove_building(building)
+
+	# Remove from all cells covered by building -> updates their navmesh
+	for pos in building.building_data.pattern_building.get_world_positions():
+		var covered_cell: Cell = Global.level.get_cell(pos)
+		if covered_cell != null:
+			covered_cell.remove_building(building)

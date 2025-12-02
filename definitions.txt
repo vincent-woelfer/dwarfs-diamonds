@@ -5,7 +5,7 @@
 
 ================== CELL ==================
 - cell starts top-left = (0,0) within cell
-- cell has a grid-pos (Vector2i) 
+- cell has a grid-pos (Vector2i)
 - cell has a world-pos (Vector2) -> top-left of cell. But most of the times, cell-center (top-left + CellSize * 0.5) is used
 
 
