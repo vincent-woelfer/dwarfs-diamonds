@@ -2,63 +2,69 @@ class_name BuildingComponent
 extends Node2D
 
 ## Emitted when building completed
-signal Signal_OnBuildingCompleted()
+signal Signal_OnBuildingCompleted(building: BuildingBase)
 
 # per second
 @export var building_speed: float = 1.0
 
 # internal
 var _curr_building_cell: Cell = null
-# var _curr_building_building: 
+var _curr_building_from_cell: Cell = null
+var _curr_building_building: BuildingBase = null
 
 # ########################################################################################################################
 # # PUBLIC METHODS
 # ########################################################################################################################
-# func start_mining(cell: Cell) -> void:
-# 	if cell in _currently_mining_cells or cell == null or not cell.is_solid:
-# 		return
+func start_building(cell: Cell, cell_from: Cell, building: BuildingBase) -> void:
+	if is_currently_building():
+		return
 
-# 	if _currently_mining_cells.size() >= max_simultaneous_mining_cells:
-# 		return
+	if cell == null or cell_from == null or building == null:
+		return
 
-# 	_currently_mining_cells.append(cell)
+	# Verify that the building is being built on the correct cell
+	assert(cell.buildings.count(building) == 1)
 
-
-# func stop_mining_cell(cell: Cell) -> void:
-# 	if cell in _currently_mining_cells:
-# 		_currently_mining_cells.erase(cell)
-
-# func stop_mining_all_cells() -> void:
-# 	_currently_mining_cells.clear()
+	_curr_building_cell = cell
+	_curr_building_from_cell = cell_from
+	_curr_building_building = building
 
 
-# func is_currently_mining() -> bool:
-# 	return not _currently_mining_cells.is_empty()
+func stop_building() -> void:
+	_curr_building_cell = null
+	_curr_building_from_cell = null
+	_curr_building_building = null
+
+
+func is_currently_building() -> bool:
+	if _curr_building_cell == null:
+		assert(_curr_building_from_cell == null and _curr_building_building == null)
+		return false
+		
+	return _curr_building_building != null
 
 
 # ########################################################################################################################
 # # PRIVATE METHODS
 # ########################################################################################################################
 # func _ready() -> void:
-# 	# SIGNALS
-# 	EventBus.Signal_GlobalCellDestroyed.connect(_on_global_cell_mining_completed)
+	# SIGNALS
 
+	
+func _physics_process(delta: float) -> void:
+	# Exit if not building
+	if not is_currently_building():
+		return
 
-# ## Called by Signal_CellMiningCompleted for EVERY mined cell in the game
-# func _on_global_cell_mining_completed(mined_cell: Cell) -> void:
-# 	# Check if this component was mining that cell
-# 	if mined_cell in _currently_mining_cells:
-# 		_currently_mining_cells.erase(mined_cell)
-# 		Signal_OnMiningCompleted.emit(mined_cell)
+	# Check for errors
+	if _curr_building_building == null:
+		stop_building()
+		return
+	
+	# Actual Building
+	_curr_building_building.update_build_process(building_speed * delta)
 
-		
-# func _physics_process(delta: float) -> void:
-# 	for mining_cell in _currently_mining_cells:
-# 		# Was cell destroyed by other means? This should NOT happen since we catch this with the global signal, but just in case
-# 		if not mining_cell.is_solid:
-# 			assert(false)
-# 			_currently_mining_cells.erase(mining_cell)
-# 			continue
-
-# 		# Actual Mining
-# 		mining_cell.increase_mining_process(building_speed * delta)
+	# Check if building completed
+	if _curr_building_building.is_complete:
+		Signal_OnBuildingCompleted.emit(_curr_building_building)
+		stop_building()

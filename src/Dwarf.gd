@@ -5,6 +5,7 @@ extends GridObject2D
 @onready var light: PointLight2D = $PointLight2D
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var mining_comp: MiningComponent = $MiningComponent
+@onready var building_comp: BuildingComponent = $BuildingComponent
 @onready var movement_comp: MovementComponent = $MovementComponent
 @onready var audio_player: AudioStreamPlayer2D = $AudioStreamPlayer2D
 
@@ -18,7 +19,7 @@ var job_with_path: JobWithPath
 var num_torches: int = 50
 
 # State machine
-enum State {IDLE, MOVING, MINING, FALLING, DYING}
+enum State {IDLE, MOVING, MINING, BUILDING, FALLING, DYING}
 var sm: StateMachine
 func _physics_process(delta: float) -> void:
 	sm.physics_process(delta)
@@ -53,6 +54,8 @@ func _ready() -> void:
 	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
 
 	mining_comp.Signal_OnMiningCompleted.connect(_on_mining_completed)
+	
+	building_comp.Signal_OnBuildingCompleted.connect(_on_building_completed)
 
 	movement_comp.Signal_MovementDirectionChanged.connect(_on_movement_direction_changed)
 	movement_comp.Signal_OnFinishedPath.connect(_on_finished_path)
@@ -71,6 +74,28 @@ func _physics_process_idle(delta: float) -> void:
 
 func _enter_mining() -> void:
 	mining_comp.start_mining(job_with_path.job.center_cell)
+
+	# Look at cell
+	var dir_to_cell: Vector2i = (job_with_path.job.center_cell.grid_pos - grid_pos)
+	if dir_to_cell.x != 0:
+		animated_sprite.flip_h = dir_to_cell.x < 0
+
+
+func _enter_building(building: BuildingBase) -> void:
+	if building == null:
+		push_error("%s cannot enter building state with null building, aborting" % [self])
+		sm.transition_to(State.IDLE)
+		return
+
+	var cell: Cell = Global.level.get_cell(building.grid_pos)
+	var cell_from: Cell = self.curr_cell
+
+	if cell == null or cell_from == null:
+		push_error("%s cannot enter building state with null cells, aborting" % [self])
+		sm.transition_to(State.IDLE)
+		return
+
+	building_comp.start_building(cell, cell_from, building)
 
 	# Look at cell
 	var dir_to_cell: Vector2i = (job_with_path.job.center_cell.grid_pos - grid_pos)
@@ -130,9 +155,22 @@ func _on_finished_path() -> void:
 		print_rich("%s reached %s and starts picking up rubble" % [self, job_with_path.job.center_cell])
 		# TODO
 
-	elif job_with_path.job.job_type == Job.Type.BUILD_LADDER:
-		print_rich("%s reached %s and starts building ladder" % [self, job_with_path.job.center_cell])
-		# TODO
+	elif job_with_path.job.job_type == Job.Type.BUILD:
+		print_rich("%s reached %s and starts building" % [self, job_with_path.job.center_cell])
+		# Find building to build
+		var building_to_build: BuildingBase = null
+		for building in job_with_path.job.center_cell.buildings:
+			if not building.is_complete:
+				building_to_build = building
+				break
+
+		if building_to_build != null:
+			sm.transition_to(State.BUILDING, building_to_build)
+		else:
+			print_rich("%s reached %s but found no building to build, abandoning job" % [self, job_with_path.job.center_cell])
+			_abandon_job()
+			sm.transition_to(State.IDLE)
+
 
 	else:
 		print_rich("%s reached %s but job type %s is unhandled, abandoning job" % [self, job_with_path.job.center_cell, Enum.to_str(Job.Type, job_with_path.job.job_type)])
@@ -190,7 +228,7 @@ func _on_started_falling() -> void:
 
 ## Triggered by MiningComponent
 func _on_mining_completed(mined_cell: Cell) -> void:
-	print_rich("%s completed %s" % [self, job_with_path.job])
+	print_rich("%s completed mining %s" % [self, job_with_path.job])
 
 	# Complete job
 	if job_with_path != null:
@@ -205,6 +243,27 @@ func _on_mining_completed(mined_cell: Cell) -> void:
 	# Transition back to idle but dont override falling state
 	if sm.state != State.FALLING:
 		sm.transition_to(State.IDLE)
+
+
+## Triggered by BuildingComponent
+func _on_building_completed(building: BuildingBase) -> void:
+	# Dont access job here, is already deleted
+	print_rich("%s completed building %s" % [self, building])
+
+	# Complete job
+	if job_with_path != null:
+		job_with_path.job.complete(self)
+
+		# Clear job reference
+		if job_with_path.path != null:
+			job_with_path.path.free()
+
+		job_with_path = null
+
+	# Transition back to idle but dont override falling state
+	if sm.state != State.FALLING:
+		sm.transition_to(State.IDLE)
+
 
 ## Triggered by Job. When job is deleted - not for the dwarf calling job.complete
 func on_job_deleted() -> void:

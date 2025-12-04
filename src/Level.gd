@@ -186,6 +186,6 @@ func get_cell(grid_pos: Vector2i) -> Cell:
 
 
 # TODO improve accuracy for irregular polygon shapes
-func get_cell_at_world_pos(world_pos: Vector2) -> Cell:
+func sample_cell_at_world_pos(world_pos: Vector2) -> Cell:
 	var grid_pos := Vector2i(floori(world_pos.x / Global.CELL_SIZE), floori(world_pos.y / Global.CELL_SIZE))
 	return get_cell(grid_pos)

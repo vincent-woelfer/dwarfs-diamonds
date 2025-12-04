@@ -16,6 +16,13 @@ func add_job(job: Job) -> void:
 				assert(false, "JobManager: Not adding duplicate mining job for cell " % job.center_cell)
 				return
 
+	# Prevent duplicate build jobs for same building
+	if job.job_type == Job.Type.BUILD:
+		for existing_job in _jobs:
+			if existing_job.job_type == Job.Type.BUILD and existing_job.building == job.building:
+				assert(false, "JobManager: Not adding duplicate build job for building " % job.building)
+				return
+
 	job.update_workable_from_cells()
 	_jobs.append(job)
 
@@ -72,10 +79,10 @@ func get_new_job_for_worker(dwarf: Dwarf) -> JobWithPath:
 			score += (Global.CELL_SIZE * 50)
 
 		# Penalize mining job directly below dwarf (only slightly, prefer horizontally adjacent ones)
+		# This is to avoid dwarfs digging straight down below themselves too often
 		if job.job_type == Job.Type.MINE:
 			if dwarf.grid_pos == job.center_cell.grid_pos - Vector2i(0, 1):
 				score += 1.0
-			
 
 		scored_jobs.append(ScoredJob.new(job, path, score))
 

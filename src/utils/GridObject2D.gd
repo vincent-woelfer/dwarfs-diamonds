@@ -27,7 +27,7 @@ func update_grid_pos(new_grid_pos: Vector2i) -> void:
 		
 
 func sample_grid_pos() -> Vector2:
-	return Global.level.get_cell_at_world_pos(global_position + sample_offset).grid_pos
+	return Global.level.sample_cell_at_world_pos(global_position + sample_offset).grid_pos
 
 
 # Callback

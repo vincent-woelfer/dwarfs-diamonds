@@ -135,7 +135,7 @@ func _follow_mouse_pointer() -> void:
 	self.position = Global.camera.mouse_pos_world_space()
 
 	prev_center_cell = curr_center_cell
-	curr_center_cell = Global.level.get_cell_at_world_pos(self.global_position)
+	curr_center_cell = Global.level.sample_cell_at_world_pos(self.global_position)
 
 func _actions_mode_change() -> bool:
 	if Input.is_action_just_pressed("mouse_neutral"):
@@ -199,12 +199,12 @@ func _highlight_buildings_under_mouse_for_destruction() -> void:
 	# Hightlight current
 	if curr_center_cell != null:
 		for building in curr_center_cell.buildings:
-			building.set_modulate_custom(Colors.building_modulate_external_destroy, false)
+			building.set_modulate_external(Colors.building_modulate_external_destroy)
 
 	# Un-highlight previous ONLY IF different from current
 	if prev_center_cell != null and prev_center_cell != curr_center_cell:
 		for building in prev_center_cell.buildings:
-			building.set_modulate_custom(Color.WHITE, false)
+			building.set_modulate_external(Color.WHITE)
 
 
 ## Called when exiting building destroy mode
@@ -212,11 +212,11 @@ func _unhighlight_all_buildings() -> void:
 	# Un-highlight current & previous
 	if curr_center_cell != null:
 		for building in curr_center_cell.buildings:
-			building.set_modulate_custom(Color.WHITE, false)
+			building.set_modulate_external(Color.WHITE)
 
 	if prev_center_cell != null:
 		for building in prev_center_cell.buildings:
-			building.set_modulate_custom(Color.WHITE, false)
+			building.set_modulate_external(Color.WHITE)
 
 ## Update selected cells based on mouse position and selection pattern
 func _update_selected_cells() -> void:
@@ -260,7 +260,7 @@ func _sample_cells_at_mouse_pos(world_pos: Vector2) -> Array[Cell]:
 	var selected_cells: Array[Cell] = []
 
 	# Central cell
-	var cell := Global.level.get_cell_at_world_pos(world_pos)
+	var cell := Global.level.sample_cell_at_world_pos(world_pos)
 	Util.array_append_unique_not_null(selected_cells, cell)
 
 	# Apply pattern
@@ -268,7 +268,7 @@ func _sample_cells_at_mouse_pos(world_pos: Vector2) -> Array[Cell]:
 		if offset == Vector2i.ZERO:
 			continue
 
-		cell = Global.level.get_cell_at_world_pos(world_pos + (offset as Vector2) * Global.CELL_SIZE)
+		cell = Global.level.sample_cell_at_world_pos(world_pos + (offset as Vector2) * Global.CELL_SIZE)
 		Util.array_append_unique_not_null(selected_cells, cell)
 
 	return selected_cells

@@ -1,16 +1,17 @@
-[gd_scene load_steps=6 format=3 uid="uid://rjy3skkrbgma"]
+[gd_scene load_steps=7 format=3 uid="uid://rjy3skkrbgma"]
 
 [ext_resource type="Texture2D" uid="uid://1ugg66bw4erc" path="res://assets/sprites/gradient.png" id="1_d170h"]
 [ext_resource type="SpriteFrames" uid="uid://1pxkf0jq8fyl" path="res://assets/sprites/dwarf_sprite_frames.tres" id="1_ms7vq"]
 [ext_resource type="Script" uid="uid://cmcygcrc8o3af" path="res://src/Dwarf.gd" id="1_po7l6"]
 [ext_resource type="Script" uid="uid://sfmxn54qwmtl" path="res://src/components/MiningComponent.gd" id="3_ms7vq"]
+[ext_resource type="Script" uid="uid://csprtkohva8lk" path="res://src/components/BuildingComponent.gd" id="5_56axy"]
 [ext_resource type="Script" uid="uid://12nby18asb05" path="res://src/components/MovementComponent.gd" id="5_o7n6f"]
 
-[node name="Dwarf" type="Node2D"]
+[node name="Dwarf" type="Node2D" unique_id=1095445124]
 z_index = 5
 script = ExtResource("1_po7l6")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=739565940]
 light_mask = 0
 z_index = -1
 texture_filter = 1
@@ -19,7 +20,7 @@ scale = Vector2(5, 5)
 sprite_frames = ExtResource("1_ms7vq")
 frame_progress = 0.9780393
 
-[node name="PointLight2D" type="PointLight2D" parent="."]
+[node name="PointLight2D" type="PointLight2D" parent="." unique_id=2112066260]
 z_index = 2
 position = Vector2(0, -64)
 color = Color(0.9882353, 0.8039216, 0.43137255, 1)
@@ -28,11 +29,15 @@ shadow_enabled = true
 shadow_filter_smooth = 64.0
 texture = ExtResource("1_d170h")
 
-[node name="MiningComponent" type="Node2D" parent="."]
+[node name="MiningComponent" type="Node2D" parent="." unique_id=2016677839]
 script = ExtResource("3_ms7vq")
 metadata/_custom_type_script = "uid://sfmxn54qwmtl"
 
-[node name="MovementComponent" type="Node2D" parent="."]
+[node name="BuildingComponent" type="Node2D" parent="." unique_id=1928705458]
+script = ExtResource("5_56axy")
+metadata/_custom_type_script = "uid://csprtkohva8lk"
+
+[node name="MovementComponent" type="Node2D" parent="." unique_id=1591218661]
 script = ExtResource("5_o7n6f")
 
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=1179723817]

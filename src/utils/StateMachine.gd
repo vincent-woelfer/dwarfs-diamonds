@@ -39,7 +39,7 @@ func set_state_exitable(state_value: int, exitable: bool) -> void:
     state_exitable[state_value] = exitable
 
 
-func transition_to(next_state: int) -> void:
+func transition_to(next_state: int, ...enter_args: Array) -> void:
     if not _is_state_valid(next_state):
         push_error("Invalid state %d!" % next_state)
         return
@@ -52,10 +52,14 @@ func transition_to(next_state: int) -> void:
         return
 
     var prev_state := state
-    _call_state_func("_exit_", state)
+    _call_state_func("_exit_", state, [])
 
     state = next_state
-    _call_state_func("_enter_", state)
+
+    if enter_args.is_empty():
+        _call_state_func("_enter_", state, [])
+    else:
+        _call_state_func("_enter_", state, enter_args)
 
     Signal_StateChanged.emit(prev_state, next_state)
 
@@ -66,11 +70,11 @@ func transition_to(next_state: int) -> void:
 
 
 func process(delta: float) -> void:
-    _call_state_func("_process_", state, delta)
+    _call_state_func("_process_", state, [delta])
 
 
 func physics_process(delta: float) -> void:
-    _call_state_func("_physics_process_", state, delta)
+    _call_state_func("_physics_process_", state, [delta])
 
 
 # --- Internal helpers ---
@@ -78,14 +82,11 @@ func _is_state_valid(state_value: int) -> bool:
     return state_value >= 0 and state_value < state_names.size()
 
 
-func _call_state_func(prefix: String, state_value: int, arg: Variant = null) -> void:
+func _call_state_func(prefix: String, state_value: int, var_args: Array) -> void:
     var state_name := _state_to_name(state_value)
     var func_name := prefix + state_name
     if owner.has_method(func_name):
-        if arg == null:
-            owner.call(func_name)
-        else:
-            owner.call(func_name, arg)
+        owner.callv(func_name, var_args)
 
 
 # Converts typed enum value to lowercase name (e.g. State.IDLE → "idle")

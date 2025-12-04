@@ -6,7 +6,7 @@ extends RefCounted
 ########################################################################################################################
 enum Type {
 	MINE,
-	BUILD_LADDER,
+	BUILD,
 	RUBBLE,
 }
 
@@ -21,8 +21,16 @@ var workable_from_poses: Array[Vector2i] = []
 # Currently assigned dwarfs
 var assigned_dwarfs: Array[Dwarf] = []
 
-# Only for rubbles: reference to the rubble to be picked up
+
+###################################
+# For RUBBLE jobs
+###################################
 var rubble: Rubble = null
+
+###################################
+# For BUILD jobs
+###################################
+var building: BuildingBase = null
 
 
 ########################################################################################################################
@@ -31,7 +39,7 @@ var rubble: Rubble = null
 func get_capacity() -> int:
 	if job_type == Job.Type.MINE:
 		return 2
-	elif job_type == Job.Type.BUILD_LADDER:
+	elif job_type == Job.Type.BUILD:
 		return 1
 	elif job_type == Job.Type.RUBBLE:
 		return 1
@@ -79,7 +87,8 @@ func delete() -> void:
 
 
 func complete(dwarf: Dwarf) -> void:
-	unassign_dwarf(dwarf)
+	if dwarf != null:
+		unassign_dwarf(dwarf)
 
 	# Delete for other dwarfs TODO should we not call finish for them?
 	# TODO FIX THIS
@@ -100,10 +109,10 @@ func update_workable_from_cells() -> void:
 			if n_cell.is_standable(false):
 				workable_from_poses.append(n_cell.grid_pos)
 
-	# BUILD LADDER
-	elif job_type == Job.Type.BUILD_LADDER:
-		for n_offset: Vector2i in Util.neighbours_cardinal:
-			var n_cell: Cell = center_cell.get_neighbour(n_offset)
+	# BUILD
+	elif job_type == Job.Type.BUILD:
+		for n_grid_pos: Vector2i in building.building_data.pattern_build_from.get_world_positions():
+			var n_cell: Cell = Global.level.get_cell(n_grid_pos)
 
 			if n_cell == null:
 				continue
@@ -147,8 +156,23 @@ func estimate_remaining_time() -> float:
 
 		return remaining_time
 
-	elif job_type == Job.Type.BUILD_LADDER:
-		# Only one dwarf can do this job
+	elif job_type == Job.Type.BUILD:
+		var remaining_time: float = MAX_REMAINING_TIME_ESTIMATE
+		for dwarf in assigned_dwarfs:
+			# If at least one dwarf is already building -> use its speed
+			if dwarf.sm.state == Dwarf.State.BUILDING:
+				var remaining_process: float = 1.0 - building.build_process
+				var time := remaining_process / dwarf.building_comp.building_speed
+				remaining_time = min(remaining_time, time)
+
+			# Dwarf still walking to job
+			else:
+				if dwarf.job_with_path and dwarf.job_with_path.path:
+					# Estimate time based on path length and walking speed
+					var path_length: float = dwarf.job_with_path.path.get_remaining_length_world_space()
+					var walking_speed := dwarf.movement_comp.movement_capabilities.get_speed(Enum.MoveMode.WALK)
+					var time := path_length / walking_speed
+					remaining_time = min(remaining_time, time + 5.0) # +5s buffer for starting building
 		return 0.0
 
 	elif job_type == Job.Type.RUBBLE:

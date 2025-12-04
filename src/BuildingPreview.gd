@@ -40,7 +40,7 @@ func _process(delta: float) -> void:
 
 	# Mouse position follows automatically via Node2D position
 	# Update position snapped to grid and current cell
-	curr_cell = Global.level.get_cell_at_world_pos(global_position)
+	curr_cell = Global.level.sample_cell_at_world_pos(global_position)
 
 	# Abort if no current cell
 	if curr_cell == null:

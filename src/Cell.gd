@@ -204,6 +204,8 @@ func get_neighbour(grid_offset: Vector2i) -> Cell:
 	assert(Util.are_neighbours(Vector2i(0, 0), grid_offset))
 	return Global.level.get_cell(grid_pos + grid_offset)
 
+func get_cell_relative(grid_offset: Vector2i) -> Cell:
+	return Global.level.get_cell(grid_pos + grid_offset)
 
 func get_nav_id() -> int:
 	return Util.hash(grid_pos)
