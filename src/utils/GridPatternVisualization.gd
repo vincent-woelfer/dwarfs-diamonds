@@ -1,8 +1,8 @@
 ########################################################################################################################
-# TOOL SCRIPT
+# TOOL SCRIPT - used both in editor and in-game for debugging
 ########################################################################################################################
 @tool
-class_name GridPatternPreview
+class_name GridPatternVisualization
 extends Node2D
 
 # Scanned grid patterns and their colors
@@ -74,10 +74,10 @@ func _process(_delta: float) -> void:
 		if parent_node:
 			_scan_node(parent_node)
 			if Engine.is_editor_hint():
-				print("%s: GridPatternPreview updated with %d pattern(s)" % [parent_node.name, grid_patterns.size()])
+				print("%s: GridPatternVisualization updated with %d pattern(s)" % [parent_node.name, grid_patterns.size()])
 		else:
 			if Engine.is_editor_hint():
-				print("null-parent: GridPatternPreview updated with %d pattern(s)" % [grid_patterns.size()])
+				print("null-parent: GridPatternVisualization updated with %d pattern(s)" % [grid_patterns.size()])
 
 		_update_is_visible()
 	

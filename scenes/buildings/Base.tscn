@@ -1,21 +1,26 @@
 [gd_scene load_steps=5 format=3 uid="uid://chdft8rydes8j"]
 
 [ext_resource type="Script" uid="uid://bhjn3adn1kpal" path="res://src/buildings/Base.gd" id="1_s2aw1"]
-[ext_resource type="Script" uid="uid://pqnih1ekj0u5" path="res://src/utils/GridPatternPreview.gd" id="2_uh53p"]
+[ext_resource type="Script" uid="uid://uaku1nl7twil" path="res://src/utils/GridPatternVisualization.gd" id="2_uh53p"]
 [ext_resource type="Resource" uid="uid://db45xsffb66e5" path="res://scenes/buildings/BaseBuildingData.tres" id="2_wkd27"]
 [ext_resource type="Texture2D" uid="uid://lotg8jqf047v" path="res://assets/sprites/base_1.png" id="4_uh53p"]
 
-[node name="Base" type="Node2D"]
+[node name="Base" type="Node2D" unique_id=27426480]
 script = ExtResource("1_s2aw1")
 building_data = ExtResource("2_wkd27")
 metadata/_custom_type_script = "uid://c08mmaccrjyck"
 
-[node name="GridPatternPreview" type="Node2D" parent="."]
+[node name="GridPatternVisualization" type="Node2D" parent="." unique_id=255300677]
 z_index = 1
 script = ExtResource("2_uh53p")
-metadata/_custom_type_script = "uid://pqnih1ekj0u5"
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="GroundPoly" type="Polygon2D" parent="." unique_id=249616805]
+position = Vector2(-7.6293945e-06, 1.5258789e-05)
+scale = Vector2(1.0000001, 1.0000001)
+color = Color(0.093125604, 0.07686857, 0.07144936, 1)
+polygon = PackedVector2Array(288, -8, -160, -8, -176, 16, 304, 16)
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1810778407]
 position = Vector2(64.00001, -132.7125)
 scale = Vector2(0.42812502, 0.4337295)
 texture = ExtResource("4_uh53p")

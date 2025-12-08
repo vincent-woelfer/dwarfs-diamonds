@@ -2,9 +2,9 @@
 
 [ext_resource type="Texture2D" uid="uid://lotg8jqf047v" path="res://assets/sprites/base_1.png" id="1_vo7qm"]
 
-[node name="BasePreview" type="Node2D"]
+[node name="BasePreview" type="Node2D" unique_id=592767360]
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1894978593]
 position = Vector2(64.00001, -132.7125)
 scale = Vector2(0.42812502, 0.4337295)
 texture = ExtResource("1_vo7qm")

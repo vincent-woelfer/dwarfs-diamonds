@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://b8geavf5qgxbi" path="res://assets/sprites/ladder.png" id="1_0b2n0"]
 [ext_resource type="Script" uid="uid://c08mmaccrjyck" path="res://src/buildings/Ladder.gd" id="1_q77c0"]
-[ext_resource type="Script" uid="uid://pqnih1ekj0u5" path="res://src/utils/GridPatternPreview.gd" id="2_8ecwd"]
+[ext_resource type="Script" uid="uid://pqnih1ekj0u5" path="res://src/utils/GridPatternVisualization.gd" id="2_8ecwd"]
 [ext_resource type="Resource" uid="uid://ba83ntoh2g74g" path="res://scenes/buildings/LadderBuildingData.tres" id="2_ftl2j"]
 
 [node name="Ladder" type="Node2D" unique_id=1108454729]
@@ -10,7 +10,7 @@ script = ExtResource("1_q77c0")
 building_data = ExtResource("2_ftl2j")
 metadata/_custom_type_script = "uid://c08mmaccrjyck"
 
-[node name="GridPatternPreview" type="Node2D" parent="." unique_id=780724971]
+[node name="GridPatternVisualization" type="Node2D" parent="." unique_id=780724971]
 z_index = 1
 script = ExtResource("2_8ecwd")
 metadata/_custom_type_script = "uid://pqnih1ekj0u5"

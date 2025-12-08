@@ -366,15 +366,17 @@ var _debug_draw_proxy := DebugDrawProxy.new(self)
 var _debug_draw_proxy_absolute := DebugDrawProxy.new(self, false)
 
 const debug_state_colors := {
-	State.IDLE: Color.WHITE,
-	State.MOVING: Color(1.0, 1.0, 0.0),
-	State.MINING: Color(1.0, 0.0, 0.0),
-	State.FALLING: Color(1.0, 0.0, 1.0),
-	State.DYING: Color(0.0, 0.0, 0.0),
+	State.IDLE: Color.WHITE, # White
+	State.MOVING: Color(1.0, 1.0, 0.0), # Yellow
+	State.MINING: Color(1.0, 0.0, 0.0), # Red
+	State.BUILDING: Color(0.0, 1.0, 0.0), # GREEN
+	State.FALLING: Color(1.0, 0.0, 1.0), # Magenta
+	State.DYING: Color(0.0, 0.0, 0.0), # Black
 }
 
 const debug_label_width := 0.9 * Global.CELL_SIZE
-const debug_offset := Vector2(0.0, -0.8) * Global.CELL_SIZE_VEC + Vector2(-debug_label_width / 2.0, 0.0)
+const debug_label_offset := Vector2(0.0, -0.8) * Global.CELL_SIZE_VEC + Vector2(-debug_label_width / 2.0, 0.0)
+const debug_occupied_cell_alpha := 0.1
 
 var debug_font := ThemeDB.fallback_font
 var debug_font_size := 22
@@ -384,11 +386,11 @@ func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 	# Status Text
 	var color_actual: Color = debug_state_colors.get(sm.state, Colors.FALLBACK_COLOR)
 	var text: String = Enum.to_str(Dwarf.State, sm.state)
-	ui_layer.draw_string(debug_font, debug_offset, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, color_actual)
+	ui_layer.draw_string(debug_font, debug_label_offset, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, color_actual)
 
 
 func _debug_draw_in_ui_absolute(ui_layer: CanvasItem) -> void:
-	# Occupied Cell
+	# Draw Occupied Cell
 	var cell_to_draw: Cell = curr_cell
 
 	if cell_to_draw != null:
@@ -397,7 +399,7 @@ func _debug_draw_in_ui_absolute(ui_layer: CanvasItem) -> void:
 		for i in range(cell_poly_points.size()):
 			cell_poly_points[i] += offset
 
-		ui_layer.draw_colored_polygon(cell_poly_points, Colors.with_alpha(dwarf_color, 0.3))
+		ui_layer.draw_colored_polygon(cell_poly_points, Colors.with_alpha(dwarf_color, debug_occupied_cell_alpha))
 
 
 func _dev_toogle_light(is_light_on: bool) -> void:
