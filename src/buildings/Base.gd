@@ -1,4 +1,4 @@
-@tool
+@tool # because BuildingBase is @tool
 class_name Base
 extends BuildingBase
 

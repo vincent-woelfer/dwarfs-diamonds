@@ -155,7 +155,7 @@ func _on_finished_path() -> void:
 		return
 
 	elif job_with_path.job.job_type == Job.Type.BUILD:
-		print_rich("%s reached %s and starts building" % [self, job_with_path.job.center_cell])
+		print_rich("%s reached %s and starts building %s" % [self, job_with_path.job.center_cell, job_with_path.job.building])
 		# Find building to build - just pick first incomplete one on this cell
 		var building_to_build: BuildingBase = null
 		for building in job_with_path.job.center_cell.buildings:
@@ -245,7 +245,7 @@ func _on_mining_completed(mined_cell: Cell) -> void:
 ## Triggered by BuildingComponent
 func _on_building_completed(building: BuildingBase) -> void:
 	# Dont access job here, is already deleted
-	print_rich("%s completed building %s" % [self, building])
+	print_rich("%s completed %s" % [self, building])
 
 	# Complete job
 	if job_with_path != null:
@@ -263,6 +263,7 @@ func _on_building_completed(building: BuildingBase) -> void:
 
 
 ## Triggered by Job. When job is deleted - not for the dwarf calling job.complete
+## TODO improve this. currently most jobs delete themselves upon completion which triggers this.
 func on_job_deleted() -> void:
 	if job_with_path == null:
 		return

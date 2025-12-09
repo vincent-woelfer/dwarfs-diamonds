@@ -14,10 +14,16 @@ var is_complete: bool = false
 var internal_modulate: Color = Color.WHITE
 var external_modulate: Color = Color.WHITE
 
+# Build job associated with this building
 var build_job: Job = null
+
+# For dev
+var building_color: Color
 
 func setup_building_as_uncompleted(grid_pos_: Vector2i, building_data_: BuildingData) -> void:
 	super.setup(grid_pos_, Vector2.ZERO)
+
+	building_color = Colors.get_rand_building_color()
 
 	# Instantiate building data (incl patterns) at position
 	self.building_data = building_data_.instantiate_building_data(grid_pos)
@@ -68,7 +74,7 @@ func _complete_construction() -> void:
 	if is_complete:
 		return
 
-	print_rich("Building %s completed at %s" % [building_data.name, grid_pos])
+	print_rich("Completed %s" % [self])
 	is_complete = true
 
 	# Complete build job
@@ -89,9 +95,15 @@ func _complete_construction() -> void:
 		if cell != null:
 			cell.queue_nav_update()
 
+
 func _flash(color: Color, duration: float) -> void:
 	var start_color: Color = internal_modulate
 	var tween: Tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tween.tween_callback(func() -> void: _set_modulate_internal(color))
 	tween.tween_interval(duration)
 	tween.tween_callback(func() -> void: _set_modulate_internal(start_color))
+
+
+func _to_string() -> String:
+	var print_color := Colors.to_print_color(building_color)
+	return Util.color_string("%s(@ %s)" % [building_data.name, grid_pos], print_color)
