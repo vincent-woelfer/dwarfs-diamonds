@@ -17,6 +17,8 @@ var _curr_building_from_cell: Cell = null
 ## The building instance being constructed
 var _curr_building_building: BuildingBase = null
 
+var _audio_player: AudioStreamPlayer2D = null
+
 # ########################################################################################################################
 # # PUBLIC METHODS
 # ########################################################################################################################
@@ -33,11 +35,17 @@ func start_building(cell: Cell, cell_from: Cell, building: BuildingBase) -> void
 	_curr_building_from_cell = cell_from
 	_curr_building_building = building
 
+	_audio_player = Audio.play_at_pos("hammering_looped", building.global_position)
+
 
 func stop_building() -> void:
 	_curr_building_cell = null
 	_curr_building_from_cell = null
 	_curr_building_building = null
+
+	if _audio_player != null:
+		Audio.stop_player(_audio_player)
+		_audio_player = null
 
 
 func is_currently_building() -> bool:

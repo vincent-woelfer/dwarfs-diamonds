@@ -11,25 +11,38 @@ signal Signal_OnMiningCompleted(mined_cell: Cell)
 # internal
 var _currently_mining_cells: Array[Cell] = []
 
+var _audio_player: AudioStreamPlayer2D = null
+
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################
 func start_mining(cell: Cell) -> void:
 	if cell in _currently_mining_cells or cell == null or not cell.is_solid:
 		return
-
 	if _currently_mining_cells.size() >= max_simultaneous_mining_cells:
 		return
 
 	_currently_mining_cells.append(cell)
+
+	if _audio_player == null:
+		var audio_name: String = "mining_%d_looped" % randi_range(1, 3)
+		_audio_player = Audio.play_at_pos(audio_name, cell.global_position)
 
 
 func stop_mining_cell(cell: Cell) -> void:
 	if cell in _currently_mining_cells:
 		_currently_mining_cells.erase(cell)
 
+	if _currently_mining_cells.is_empty() and _audio_player != null:
+		Audio.stop_player(_audio_player)
+		_audio_player = null
+
 func stop_mining_all_cells() -> void:
 	_currently_mining_cells.clear()
+
+	if _audio_player != null:
+		Audio.stop_player(_audio_player)
+		_audio_player = null
 
 
 func is_currently_mining() -> bool:
@@ -48,7 +61,7 @@ func _ready() -> void:
 func _on_global_cell_mining_completed(mined_cell: Cell) -> void:
 	# Check if this component was mining that cell
 	if mined_cell in _currently_mining_cells:
-		_currently_mining_cells.erase(mined_cell)
+		stop_mining_cell(mined_cell)
 		Signal_OnMiningCompleted.emit(mined_cell)
 
 		
@@ -57,7 +70,7 @@ func _physics_process(delta: float) -> void:
 		# Was cell destroyed by other means? This should NOT happen since we catch this with the global signal, but just in case
 		if not mining_cell.is_solid:
 			assert(false)
-			_currently_mining_cells.erase(mining_cell)
+			stop_mining_cell(mining_cell)
 			continue
 
 		# Actual Mining
