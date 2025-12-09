@@ -47,6 +47,12 @@ func remove_mining_job_for_cell(cell: Cell) -> void:
 func get_new_job_for_worker(dwarf: Dwarf) -> JobWithPath:
 	assert(dwarf != null)
 	var start_pos: Vector2i = dwarf.grid_pos
+
+	# Check if we are in a connected cell
+	if not Global.level.nav_manager.is_cell_enabled(start_pos):
+		HexLog.print_throttled(dwarf, "%s is in a disconnected cell, pathfinding is disabled!" % [dwarf])
+		return null
+
 	var walking_speed := dwarf.movement_comp.movement_capabilities.get_speed(Enum.MoveMode.WALK)
 
 	# Update all jobs first
@@ -129,14 +135,12 @@ func _on_nav_updated() -> void:
 ########################################################################################################################
 var _debug_draw_proxy := DebugDrawProxy.new(self)
 
-const debug_size_point := 7.0
-
-# Multiple jobs per cell are displaced from top to bot
+# Multiple jobs per cell are placed from top to bottom with an offset
 const debug_offset_start := Vector2(-0.44, -0.35) * Global.CELL_SIZE_VEC
 const debug_offset_inc := Vector2(0.0, 0.12) * Global.CELL_SIZE_VEC
 
 var debug_font := ThemeDB.fallback_font
-var debug_font_size := 13
+var debug_font_size := 14
 
 func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 	var num_already_drawn_per_cell: Dictionary[Vector2i, int] = {}
@@ -157,6 +161,7 @@ func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
 		ui_layer.draw_string(debug_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, debug_font_size, color)
 
 
+## Get offset for each text entry to avoid overlapping
 func _debug_get_offset(idx: int) -> Vector2:
 	return debug_offset_start + debug_offset_inc * idx
 

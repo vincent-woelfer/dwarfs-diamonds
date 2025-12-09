@@ -311,11 +311,6 @@ func _abandon_job() -> void:
 
 
 func _find_new_job() -> void:
-	# Check if we are in a connected cell
-	if not Global.level.nav_manager.is_cell_enabled(grid_pos):
-		HexLog.print_throttled(self, "%s is in a disconnected cell!" % [self])
-		return
-
 	# Try to get a new job	
 	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_worker(self)
 
