@@ -48,11 +48,15 @@ func stop_player(player: AudioStreamPlayer2D) -> void:
 ########################################################################################################################
 # Pool of audio players to play sounds
 var _players: Array[AudioStreamPlayer2D] = []
+var _default_number_of_players: int = 4
 
 func _ready() -> void:
 	# Pre-allocate a small pool
-	for i in 4:
+	for i in range(_default_number_of_players):
 		_create_new_player()
+
+	# Cleanup timers every x seconds
+	add_child(Util.timer(2.0, _cleanup_idle_players))
 
 
 func _get_audio_stream(audio_name: String) -> AudioStream:
@@ -63,7 +67,6 @@ func _get_audio_stream(audio_name: String) -> AudioStream:
 	return null
 
 
-# TODO maybe cleanup players that are not used after a while
 func _get_free_player() -> AudioStreamPlayer2D:
 	# Return idle player or create a new one
 	for p in _players:
@@ -72,8 +75,22 @@ func _get_free_player() -> AudioStreamPlayer2D:
 
 	return _create_new_player()
 
+
 func _create_new_player() -> AudioStreamPlayer2D:
 	var p := AudioStreamPlayer2D.new()
 	add_child(p)
 	_players.append(p)
 	return p
+
+
+func _cleanup_idle_players() -> void:
+	if _players.size() <= _default_number_of_players:
+		return
+
+	for p: AudioStreamPlayer2D in _players.duplicate():
+		if not p.playing:
+			_players.erase(p)
+			p.queue_free()
+
+		if _players.size() <= _default_number_of_players:
+			break
