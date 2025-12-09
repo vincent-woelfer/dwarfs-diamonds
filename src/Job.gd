@@ -54,7 +54,6 @@ func get_capacity() -> int:
 func is_workable() -> bool:
 	if assigned_dwarfs.size() >= get_capacity():
 		return false
-
 	if workable_from_poses.is_empty():
 		return false
 
@@ -66,7 +65,6 @@ func assign_dwarf(dwarf: Dwarf) -> bool:
 
 	if dwarf in assigned_dwarfs:
 		return false
-
 	if assigned_dwarfs.size() >= get_capacity():
 		return false
 
@@ -132,7 +130,7 @@ func update_workable_from_cells() -> void:
 
 ## Estimates remaining time in seconds. For now only works when dwarf already arrived at job.
 ## Used for other dwarfs to decide whether to take this job or not.
-const MAX_REMAINING_TIME_ESTIMATE: float = 1000.0
+const MAX_REMAINING_TIME_ESTIMATE: float = 60.0 * 5.0 # 5 minutes
 func estimate_remaining_time() -> float:
 	if assigned_dwarfs.is_empty():
 		return MAX_REMAINING_TIME_ESTIMATE
