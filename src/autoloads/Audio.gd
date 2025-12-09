@@ -13,6 +13,7 @@ static var sounds: Dictionary[String, AudioStream] = {
 	"mining_1_looped": preload("res://assets/audio/mining_1_looped.wav"),
 	"mining_2_looped": preload("res://assets/audio/mining_2_looped.wav"),
 	"mining_3_looped": preload("res://assets/audio/mining_3_looped.wav"),
+	"rubble_impact": preload("res://assets/audio/rubble_impact.wav"),
 }
 
 

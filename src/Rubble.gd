@@ -5,6 +5,7 @@ extends GridObject2D
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var movement_comp: MovementComponent = $MovementComponent
 
+# The pickup job associated with this rubble
 var pickup_job: Job = null
 
 func setup(grid_pos_: Vector2i, sample_offset_: Vector2 = Global.VERT_OFFSET_SMALL) -> void:
@@ -54,8 +55,6 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 
 func _on_movement_direction_changed(new_dir: Vector2) -> void:
 	pass
-	# if new_dir.x != 0:
-		# animated_sprite.flip_h = new_dir.x < 0
 
 
 func _on_started_falling() -> void:
@@ -66,6 +65,5 @@ func _on_landed(fall_height_cells: int) -> void:
 	# Trigger on cell entered anew to update job status
 	_on_new_cell_entered(curr_cell)
 
-	# if fall_height_cells > 1:
-		# audio_player.stream = Audio.sounds.get("dwarf_on_landing")
-		# audio_player.play()
+	if fall_height_cells >= 1:
+		Audio.play_at_pos("rubble_impact", global_position)

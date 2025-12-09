@@ -17,6 +17,7 @@ var _curr_building_from_cell: Cell = null
 ## The building instance being constructed
 var _curr_building_building: BuildingBase = null
 
+# Reference to the used audio player
 var _audio_player: AudioStreamPlayer2D = null
 
 # ########################################################################################################################

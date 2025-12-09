@@ -11,6 +11,7 @@ signal Signal_OnMiningCompleted(mined_cell: Cell)
 # internal
 var _currently_mining_cells: Array[Cell] = []
 
+# Reference to the used audio player
 var _audio_player: AudioStreamPlayer2D = null
 
 ########################################################################################################################

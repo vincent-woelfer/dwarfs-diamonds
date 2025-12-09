@@ -3,6 +3,8 @@ extends Node2D
 
 ################ Signals ################
 signal Signal_OnStartedFalling()
+
+# fall_height_cells can be 0 (e.g. after spawning in mid-air in same cell)
 signal Signal_OnLanded(fall_height_cells: int)
 
 signal Signal_OnFinishedPath()
