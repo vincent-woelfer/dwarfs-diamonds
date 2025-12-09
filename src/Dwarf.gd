@@ -325,16 +325,17 @@ func _find_new_job() -> void:
 
 	var success: bool = false
 	if movement_comp.assign_path(new_job_with_path.path):
-		if job_with_path.job.assign_dwarf(self):
+		if new_job_with_path.job.assign_dwarf(self):
 			success = true
 			job_with_path = new_job_with_path
-		
 			job_with_path.path.set_debug_draw_color(dwarf_color)
 		
 			sm.transition_to(State.MOVING)
 			print_rich("%s started %s" % [self, job_with_path.job])
 
 	if not success:
+		# Cleanup on failure
+		movement_comp.abort_path()
 		print_rich("%s failed to assign job/path to %s, remaining idle" % [self, new_job_with_path.job])
 
 

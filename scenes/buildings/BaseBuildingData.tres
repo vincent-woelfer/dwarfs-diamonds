@@ -26,7 +26,7 @@ metadata/_custom_type_script = "uid://bdgg1wxcmv4go"
 [resource]
 script = ExtResource("2_eniya")
 name = "Base"
-build_time = 3.0
+build_time = 4.0
 pattern_building = SubResource("Resource_4ifjn")
 pattern_build_from = SubResource("Resource_eniya")
 pattern_entrance = SubResource("Resource_erhpy")
