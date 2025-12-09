@@ -117,6 +117,7 @@ func _enter_dying() -> void:
 	audio_player.pitch_scale = 1.8
 	audio_player.play()
 
+
 func _physics_process_dying(delta: float) -> void:
 	# Wait for sound to finish then free. Dont use await as this is called in physics process
 	if not audio_player.playing:
@@ -125,7 +126,7 @@ func _physics_process_dying(delta: float) -> void:
 ########################################################################################################################
 # SIGNAL HANDLERS
 ########################################################################################################################
-## Triggered by MovementComponent
+## Triggered by MovementComponent - used for debugging
 func _on_movement_state_changed(prev_state: int, next_state: int) -> void:
 	pass
 	# print_rich("%s MovementComponent state changed from %s to %s" % [self,
@@ -150,14 +151,16 @@ func _on_finished_path() -> void:
 	if job_with_path.job.job_type == Job.Type.MINE:
 		print_rich("%s reached %s and starts mining" % [self, job_with_path.job.center_cell])
 		sm.transition_to(State.MINING)
+		return
 	
 	elif job_with_path.job.job_type == Job.Type.RUBBLE:
 		print_rich("%s reached %s and starts picking up rubble" % [self, job_with_path.job.center_cell])
 		# TODO
+		return
 
 	elif job_with_path.job.job_type == Job.Type.BUILD:
 		print_rich("%s reached %s and starts building" % [self, job_with_path.job.center_cell])
-		# Find building to build
+		# Find building to build - just pick first incomplete one on this cell
 		var building_to_build: BuildingBase = null
 		for building in job_with_path.job.center_cell.buildings:
 			if not building.is_complete:
@@ -170,7 +173,8 @@ func _on_finished_path() -> void:
 			print_rich("%s reached %s but found no building to build, abandoning job" % [self, job_with_path.job.center_cell])
 			_abandon_job()
 			sm.transition_to(State.IDLE)
-
+			
+		return
 
 	else:
 		print_rich("%s reached %s but job type %s is unhandled, abandoning job" % [self, job_with_path.job.center_cell, Enum.to_str(Job.Type, job_with_path.job.job_type)])
@@ -202,8 +206,7 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 	if new_cell == null:
 		return
 
-	# Place Torch
-	# -> Only place if idle or walking
+	# Place Torch but only place if idle or walking
 	if sm.state != State.IDLE and sm.state != State.MOVING:
 		return
 
@@ -308,27 +311,31 @@ func _abandon_job() -> void:
 
 
 func _find_new_job() -> void:
-	# Try to get a new job
+	# Check if we are in a connected cell
+	if not Global.level.nav_manager.is_cell_enabled(grid_pos):
+		HexLog.print_throttled(self, "%s is in a disconnected cell!" % [self])
+		return
+
+	# Try to get a new job	
 	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_worker(self)
 
-	if new_job_with_path != null:
-		if movement_comp.assign_path(new_job_with_path.path):
+	if new_job_with_path == null:
+		HexLog.print_throttled(self, "%s found no job, remains idle" % [self], 0.5)
+		return
+
+	var success: bool = false
+	if movement_comp.assign_path(new_job_with_path.path):
+		if job_with_path.job.assign_dwarf(self):
+			success = true
 			job_with_path = new_job_with_path
-			job_with_path.job.assign_dwarf(self)
+		
 			job_with_path.path.set_debug_draw_color(dwarf_color)
-			
+		
 			sm.transition_to(State.MOVING)
 			print_rich("%s started %s" % [self, job_with_path.job])
 
-		else:
-			print_rich("%s could not assign path to %s, remains idle" % [self, new_job_with_path.job])
-
-	else:
-		HexLog.print_throttled(self, "%s found no job, remains idle" % [self], 0.5)
-
-		# Check if we are even in a connected cell
-		if not Global.level.nav_manager.is_cell_enabled(grid_pos):
-			HexLog.print_throttled(self, "%s is in a disconnected cell!" % [self])
+	if not success:
+		print_rich("%s failed to assign job/path to %s, remaining idle" % [self, new_job_with_path.job])
 
 
 func _validate_current_path() -> void:

@@ -40,6 +40,9 @@ func get_capacity() -> int:
 	if job_type == Job.Type.MINE:
 		return 2
 	elif job_type == Job.Type.BUILD:
+		# Only work on big buildings with multiple dwarfs
+		if building != null and building.building_data.build_time > 5.0 and building.build_process == 0.0 and workable_from_poses.size() >= 2:
+			return 2
 		return 1
 	elif job_type == Job.Type.RUBBLE:
 		return 1
