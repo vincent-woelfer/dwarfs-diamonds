@@ -39,5 +39,3 @@ metadata/_custom_type_script = "uid://csprtkohva8lk"
 
 [node name="MovementComponent" type="Node2D" parent="." unique_id=1591218661]
 script = ExtResource("5_o7n6f")
-
-[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="." unique_id=1179723817]

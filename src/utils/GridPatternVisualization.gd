@@ -70,14 +70,14 @@ func _process(_delta: float) -> void:
 	if needs_rescan:
 		# Only need to rescan in editor, in-game patterns are static once created
 		needs_rescan = Engine.is_editor_hint()
+		var old_patterns := grid_patterns.duplicate()
 		var parent_node := get_parent()
+
 		if parent_node:
 			_scan_node(parent_node)
-			if Engine.is_editor_hint():
+
+			if old_patterns != grid_patterns and Engine.is_editor_hint():
 				print("%s: GridPatternVisualization updated with %d pattern(s)" % [parent_node.name, grid_patterns.size()])
-		else:
-			if Engine.is_editor_hint():
-				print("null-parent: GridPatternVisualization updated with %d pattern(s)" % [grid_patterns.size()])
 
 		_update_is_visible()
 	

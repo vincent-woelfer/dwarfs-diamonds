@@ -24,6 +24,7 @@ config/icon="uid://bvweshv8pstvs"
 Global="*res://src/autoloads/Global.gd"
 EventBus="*res://src/autoloads/EventBus.gd"
 Enum="*res://src/autoloads/Enum.gd"
+Audio="*uid://dqo51adk8dslw"
 Actions="*res://src/autoloads/Actions.gd"
 
 [debug]

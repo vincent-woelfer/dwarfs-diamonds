@@ -9,10 +9,6 @@ var visual: CellVisuals
 var deco_elements: Array[DecoTorch] = []
 var buildings: Array[BuildingBase] = []
 
-# Audio
-var audio_player: AudioStreamPlayer2D
-
-
 var torch_scene := preload('res://scenes/deco/DecoTorch.tscn')
 
 ########################################################################################################################
@@ -104,7 +100,7 @@ func destroy_cell() -> void:
 		type = Enum.CellType.SKY
 
 	queue_nav_update()
-	audio_player.play()
+	Audio.play_at_pos("cell_on_destroy", global_position)
 	visual.set_dirty()
 
 
@@ -187,10 +183,6 @@ func _ready() -> void:
 
 	visual = CellVisuals.new(self)
 	add_child(visual)
-
-	audio_player = AudioStreamPlayer2D.new()
-	add_child(audio_player)
-	audio_player.stream = Audio.sounds.get("cell_on_destroy")
 
 
 func _to_string() -> String:

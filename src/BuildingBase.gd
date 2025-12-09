@@ -69,16 +69,19 @@ func _complete_construction() -> void:
 		return
 
 	print_rich("Building %s completed at %s" % [building_data.name, grid_pos])
+	is_complete = true
 
+	# Complete build job
 	build_job.complete(null)
 	Global.level.job_manager.remove_job(build_job)
 	
-	is_complete = true
+	# Update visual
 	_set_modulate_internal(Colors.building_modulate_finished)
 	self.light_mask = Colors.building_light_mask_finished
 
-	# Flash effect
+	# Flash & audio effect
 	_flash(Color(3, 3, 3), 0.25)
+	Audio.play_at_pos("building_complete", global_position)
 
 	# Update nav for all building cells
 	for pos in building_data.pattern_building.get_world_positions():

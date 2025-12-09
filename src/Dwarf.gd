@@ -7,7 +7,6 @@ extends GridObject2D
 @onready var mining_comp: MiningComponent = $MiningComponent
 @onready var building_comp: BuildingComponent = $BuildingComponent
 @onready var movement_comp: MovementComponent = $MovementComponent
-@onready var audio_player: AudioStreamPlayer2D = $AudioStreamPlayer2D
 
 # Static ID generator
 static var next_dwarf_id: int = 0
@@ -113,15 +112,12 @@ func _enter_dying() -> void:
 	light.enabled = false
 
 	# Play death sound
-	audio_player.stream = Audio.sounds.get("dwarf_on_landing")
-	audio_player.pitch_scale = 1.8
-	audio_player.play()
+	Audio.play_at_pos_with_pitch("dwarf_on_landing", global_position, 1.8)
 
 
 func _physics_process_dying(delta: float) -> void:
-	# Wait for sound to finish then free. Dont use await as this is called in physics process
-	if not audio_player.playing:
-		queue_free()
+	queue_free()
+
 
 ########################################################################################################################
 # SIGNAL HANDLERS
@@ -185,9 +181,7 @@ func _on_finished_path() -> void:
 ## Triggered by MovementComponent
 func _on_landed(fall_height_cells: int) -> void:
 	if fall_height_cells > 1:
-		audio_player.stream = Audio.sounds.get("dwarf_on_landing")
-		audio_player.pitch_scale = 1.4
-		audio_player.play()
+		Audio.play_at_pos_with_pitch("dwarf_on_landing", global_position, 1.4)
 
 	if fall_height_cells > 5:
 		sm.transition_to(State.DYING)
