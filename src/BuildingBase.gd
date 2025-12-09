@@ -74,7 +74,7 @@ func _complete_construction() -> void:
 	if is_complete:
 		return
 
-	print_rich("Completed %s" % [self])
+	print_rich("%s completed" % [self])
 	is_complete = true
 
 	# Complete build job
@@ -106,4 +106,4 @@ func _flash(color: Color, duration: float) -> void:
 
 func _to_string() -> String:
 	var print_color := Colors.to_print_color(building_color)
-	return Util.color_string("%s(@ %s)" % [building_data.name, grid_pos], print_color)
+	return Util.color_string("%s @ %s" % [building_data.name, grid_pos], print_color)

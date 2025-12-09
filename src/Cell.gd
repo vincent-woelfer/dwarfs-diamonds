@@ -186,7 +186,8 @@ func _ready() -> void:
 
 
 func _to_string() -> String:
-	return "Cell(pos=%s, type=%s)" % [grid_pos, Enum.to_str(Enum.CellType, type)]
+	var print_color := Colors.to_print_color(Color.BROWN)
+	return Util.color_string("Cell(pos=%s, type=%s)" % [grid_pos, Enum.to_str(Enum.CellType, type)], print_color)
 	
 
 ########################################################################################################################
