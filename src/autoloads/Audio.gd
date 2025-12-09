@@ -7,6 +7,7 @@ extends Node
 static var sounds: Dictionary[String, AudioStream] = {
 	"cell_on_destroy": preload("res://assets/audio/dirt_block_break.mp3"),
     "dwarf_on_landing": preload("res://assets/audio/ouch.wav"),
+	"building_placed": preload("res://assets/audio/building_placed.wav"),
 	"building_complete": preload("res://assets/audio/building_complete.wav"),
 }
 

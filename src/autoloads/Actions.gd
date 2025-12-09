@@ -66,6 +66,9 @@ func place_building(cell: Cell, building_data: BuildingData, finish_instantly: b
 
 	if finish_instantly:
 		building_instance._complete_construction()
+	else:
+		# Play sound effect
+		Audio.play_at_pos("building_placed", building_instance.global_position)
 
 	return building_instance
 
