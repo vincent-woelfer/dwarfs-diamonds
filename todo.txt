@@ -1,6 +1,28 @@
 ============ Implement ============
-carry component
+- FIX JOBS being deleted/unasigned when completed. 
+LOG:
+Dwarf-0 (MOVING @ (9, 4)) started Job(RUBBLE - DOING (1/1) @ (9, 4))
+Dwarf-0 (MOVING @ (9, 4)) reached Cell(pos=(9, 4), type=C) and starts picking up rubble
+Dwarf-0 (MOVING @ (9, 4))'s job was deleted
+Dwarf-0 (MOVING @ (9, 4)) abandoning Job(RUBBLE - DOING (1/1) @ (9, 4))
+Dwarf-0 (IDLE @ (9, 4)) picked up Rubble
+SCRIPT ERROR: Assertion failed.
+          at: Job.unassign_dwarf (res://src/Job.gd:78)
+          GDScript backtrace (most recent call first):
+              [0] unassign_dwarf (res://src/Job.gd:78)
+              [1] complete (res://src/Job.gd:92)
+              [2] _perform_job (res://src/Dwarf.gd:183)
+              [3] _on_finished_path (res://src/Dwarf.gd:152)
+              [4] _physics_process_following_path (res://src/components/MovementComponent.gd:146)
+              [5] _call_state_func (res://src/utils/StateMachine.gd:92)
+              [6] physics_process (res://src/utils/StateMachine.gd:80)
+              [7] _physics_process (res://src/components/MovementComponent.gd:78)
+Dwarf-0 (IDLE @ (9, 4)) found no job, remains idle
 
+
+
+
+- Add "can do this job" check 
 Together with mining component, add check "can do this job" which is used when filtering for jobs
 
 
