@@ -11,6 +11,7 @@ signal Signal_OnDropped()
 # Internal state
 var is_being_carried: bool = false
 var carrier: CarryComponent = null
+var pick_up_animation_finished: bool = false
 
 # Own parent
 @onready var parent: GridObject2D = get_parent()

@@ -60,7 +60,7 @@ func _can_be_picked_up() -> bool:
 
 
 func _on_new_cell_entered(new_cell: Cell) -> void:
-	if new_cell == null:
+	if new_cell == null or carryable_item_comp.is_being_carried:
 		return
 
 	if pickup_job != null:

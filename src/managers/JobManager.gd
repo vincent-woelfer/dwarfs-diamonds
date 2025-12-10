@@ -107,8 +107,8 @@ func get_new_job_for_worker(dwarf: Dwarf) -> JobWithPath:
 			if dwarf.grid_pos == job.center_cell.grid_pos - Vector2i(0, 1):
 				score += 1.0
 
-		# Dont prioritize rubble/pickup jobs
-		if job.job_type == Job.Type.RUBBLE:
+		# Dont prioritize rubble/pickup jobs (unless same cell)
+		if job.job_type == Job.Type.RUBBLE and dwarf.grid_pos != job.center_cell.grid_pos:
 			score += 2 * Global.CELL_SIZE
 
 		scored_jobs.append(ScoredJob.new(job, path, score))

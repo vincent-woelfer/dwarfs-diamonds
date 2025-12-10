@@ -5,7 +5,7 @@ extends Node2D
 # signal Signal_OnBuildingCompleted(building: BuildingBase)
 
 
-@export var carry_capacity: float = 10.0
+@export var carry_capacity: float = 2.0
 
 # internal
 var _curr_carried_items: Array[CarryableItemComponent] = []
@@ -29,6 +29,7 @@ func pickup(item: CarryableItemComponent) -> bool:
 	# Modify item
 	item.is_being_carried = true
 	item.carrier = self
+	item.pick_up_animation_finished = false
 	item.on_picked_up()
 
 	return true
@@ -64,6 +65,9 @@ func drop(item: CarryableItemComponent) -> void:
 	item.on_dropped()
 	item.is_being_carried = false
 	item.carrier = null
+
+	# Set item position to be inside cell
+	item.parent.global_position = parent.global_position
 
 
 func drop_all() -> void:
@@ -106,7 +110,23 @@ func _physics_process(delta: float) -> void:
 	for i in _curr_carried_items.size():
 		var item: CarryableItemComponent = _curr_carried_items[i]
 		var item_parent: GridObject2D = item.parent
-		item_parent.global_position = _get_carried_item_position(i)
+		var target_pos: Vector2 = _get_carried_item_position(i)
+
+		# Lerp if animation not finished, snap once securely attached
+		if item.pick_up_animation_finished:
+			item_parent.global_position = target_pos
+		else:
+			var speed: float = 8.0
+			var threshold: float = Global.CELL_SIZE * 0.05
+
+			item_parent.global_position = item_parent.global_position.lerp(target_pos, delta * speed)
+			if item_parent.global_position.distance_to(target_pos) <= threshold:
+				item.pick_up_animation_finished = true
+				item_parent.global_position = target_pos
+		
+		# Also update item-parent grid pos to match carrier
+		item_parent.update_grid_pos(parent.grid_pos)
+
 
 ## Returns global position
 func _get_carried_item_position(idx: int) -> Vector2:
@@ -121,5 +141,6 @@ func _get_carried_item_position(idx: int) -> Vector2:
 
 	var base_pos: Vector2 = parent.global_position + Vector2(horizontal_offset, -vertical_offset_base)
 
-	var offset_y_per_item: float = idx * (Global.CELL_SIZE * 0.1)
+	var offset_y_per_item: float = idx * Global.CELL_SIZE * 0.15
+
 	return base_pos + Vector2(0.0, offset_y_per_item)

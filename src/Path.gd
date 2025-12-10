@@ -127,11 +127,11 @@ func get_num_cells() -> int:
 	return _grid_points.size()
 
 
-## Returns length of path in grid space (cells), accounting for diagonal movement
+## Returns length of path in world space, accounting for diagonal movement
 func get_total_length_world_space() -> float:
 	return _get_total_length_grid_space() * Global.CELL_SIZE
 
-## Returns length of path in grid space (cells), accounting for diagonal movement
+## Returns length of path in world space, accounting for diagonal movement
 func get_remaining_length_world_space() -> float:
 	return _get_remaining_length_grid_space() * Global.CELL_SIZE
 

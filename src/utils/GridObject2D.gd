@@ -42,6 +42,6 @@ func sample_grid_pos() -> Vector2:
 	return Global.level.sample_cell_at_world_pos(global_position + _grid_pos_sample_offset).grid_pos
 
 
-# Callback
+# Callback - > Should check if item is beeing carried and ignore in this case
 func _on_new_cell_entered(new_cell: Cell) -> void:
 	pass

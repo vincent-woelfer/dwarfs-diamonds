@@ -127,10 +127,10 @@ func _physics_process_following_path(delta: float) -> void:
 	# Check if we have a path
 	if path == null:
 		# This should never happen! Maybe emit signal as error handling, otherwise we get stuck here
-		# Signal_OnFinishedPath.emit()
 		assert(false)
 		print_rich("MovementComponent from %s: FOLLOWING_PATH but path=null!" % [parent])
 		sm.transition_to(State.NOT_MOVING)
+		Signal_OnFinishedPath.emit()
 		return
 
 	# Follow path

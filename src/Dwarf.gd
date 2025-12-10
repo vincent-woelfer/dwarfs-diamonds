@@ -137,6 +137,10 @@ func _enter_dying() -> void:
 
 ## Triggered by MovementComponent
 func _on_finished_path() -> void:
+	if job_with_path == null:
+		_abandon_job_enter_idle()
+		return
+
 	job_with_path.path.free()
 	job_with_path.path = null
 
