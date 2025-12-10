@@ -28,7 +28,9 @@ func add_job(job: Job) -> void:
 
 
 func remove_job(job: Job) -> void:
-	assert(job != null)
+	if job == null:
+		return
+		
 	assert(job in _jobs)
 
 	job.delete()

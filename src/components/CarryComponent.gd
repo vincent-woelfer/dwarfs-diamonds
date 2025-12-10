@@ -35,6 +35,7 @@ func pickup(item: CarryableItemComponent) -> bool:
 
 	return true
 
+
 ## Just performs checks whether the item can be picked up
 func can_pickup(item: CarryableItemComponent) -> bool:
 	# Perform basic checks
@@ -83,6 +84,19 @@ func get_carried_total_weight() -> float:
 	return _curr_total_weight
 
 
+func get_all_pickupable_items_in_range() -> Array[CarryableItemComponent]:
+	var items: Array[CarryableItemComponent] = []
+	for item: CarryableItemComponent in Global.get_group(Global.GROUP_CARRYABLE_ITEMS):
+		# For performance, first check grid pos
+		if item.parent.grid_pos != parent.grid_pos:
+			continue
+
+		if can_pickup(item):
+			items.append(item)
+
+	return items
+
+
 # ########################################################################################################################
 # # PRIVATE METHODS
 # ########################################################################################################################
@@ -92,21 +106,3 @@ func _ready() -> void:
 	assert(parent != null)
 	assert(parent is GridObject2D)
 
-	
-func _physics_process(delta: float) -> void:
-	# Exit if not building
-	if not is_currently_building():
-		return
-
-	# Check for errors
-	if _curr_building_building == null:
-		stop_building()
-		return
-	
-	# Actual Building
-	_curr_building_building.update_build_process(building_speed * delta)
-
-	# Check if building completed - this works for multiple dwarfs building the same building, each is calling this method for themselfes
-	if _curr_building_building.is_complete:
-		Signal_OnBuildingCompleted.emit(_curr_building_building)
-		stop_building()

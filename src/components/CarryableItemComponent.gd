@@ -1,3 +1,4 @@
+@abstract
 class_name CarryableItemComponent
 extends Node2D
 
@@ -11,21 +12,27 @@ var carrier: CarryComponent = null
 var parent: GridObject2D = null
 
 
+# Since this is a component the parent can not override this method.
+# Therefore we check by duck-typing whether the parent has additional pick-up requirements.
 func can_be_picked_up() -> bool:
-    return not is_being_carried
+    var parent_allow_pickup := true
 
+    if parent.has_method("_can_be_picked_up"):
+        @warning_ignore("UNSAFE_METHOD_ACCESS")
+        parent_allow_pickup = parent._can_be_picked_up()
+
+    return parent_allow_pickup and (!is_being_carried)
 
 ########################################################################################################################
 # Only for additional logic specific to this item. Override in subclasses. 
 # is_being_carried + carrier will be handled by CarryComponent.
 ########################################################################################################################
+# Overrite to add any logic needed when picked up
 func on_picked_up() -> void:
-    # TODO add any logic needed when picked up
     pass
 
-
+# Overrite to add any logic needed when dropped
 func on_dropped() -> void:
-    # TODO add any logic needed when dropped
     pass
 
 
@@ -39,3 +46,7 @@ func _ready() -> void:
     parent = get_parent()
     assert(parent != null)
     assert(parent is GridObject2D)
+
+
+func _to_string() -> String:
+    return parent.to_string()

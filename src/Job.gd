@@ -123,8 +123,8 @@ func update_workable_from_cells() -> void:
 
 	# RUBBLE
 	elif job_type == Job.Type.RUBBLE:
-		# Can only pick up rubble when not falling
-		if rubble.can_pickup():
+		# Can only pick up rubble when not falling. TODO maybe check carryable item component instead
+		if rubble._can_be_picked_up():
 			workable_from_poses.append(center_cell.grid_pos)
 		
 

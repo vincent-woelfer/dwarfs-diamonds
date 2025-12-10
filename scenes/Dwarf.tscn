@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://rjy3skkrbgma"]
+[gd_scene load_steps=8 format=3 uid="uid://rjy3skkrbgma"]
 
 [ext_resource type="Texture2D" uid="uid://1ugg66bw4erc" path="res://assets/sprites/gradient.png" id="1_d170h"]
 [ext_resource type="SpriteFrames" uid="uid://1pxkf0jq8fyl" path="res://assets/sprites/dwarf_sprite_frames.tres" id="1_ms7vq"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://sfmxn54qwmtl" path="res://src/components/MiningComponent.gd" id="3_ms7vq"]
 [ext_resource type="Script" uid="uid://csprtkohva8lk" path="res://src/components/BuildingComponent.gd" id="5_56axy"]
 [ext_resource type="Script" uid="uid://12nby18asb05" path="res://src/components/MovementComponent.gd" id="5_o7n6f"]
+[ext_resource type="Script" uid="uid://ca0ir7bdht3kr" path="res://src/components/CarryComponent.gd" id="7_2lrks"]
 
 [node name="Dwarf" type="Node2D" unique_id=1095445124]
 z_index = 5
@@ -39,3 +40,7 @@ metadata/_custom_type_script = "uid://csprtkohva8lk"
 
 [node name="MovementComponent" type="Node2D" parent="." unique_id=1591218661]
 script = ExtResource("5_o7n6f")
+
+[node name="CarryComponent" type="Node2D" parent="." unique_id=935967982]
+script = ExtResource("7_2lrks")
+metadata/_custom_type_script = "uid://ca0ir7bdht3kr"
