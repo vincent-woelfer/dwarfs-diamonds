@@ -222,7 +222,7 @@ func _calculate_floor_points() -> void:
 		if Util.are_cardinal_neighbours(from.grid_pos, to.grid_pos):
 			if from.grid_pos.x == to.grid_pos.x:
 				# Vertical -> connect directly, only floor-center of to cell
-				p.append(to.poly_point(Enum.PolyPoint.BOT))
+				p.append(to.get_poly_point(Enum.PolyPoint.BOT))
 				map.append(to_idx)
 
 				var upwards: bool = from.grid_pos.y > to.grid_pos.y
@@ -235,14 +235,14 @@ func _calculate_floor_points() -> void:
 				# Horizontal -> connect directly, exit-floor-point of from + enter-floor-point + center of to
 				if from.grid_pos.x < to.grid_pos.x:
 					# to the right
-					p.append(from.poly_point(Enum.PolyPoint.BOT_RIGHT))
-					p.append(to.poly_point(Enum.PolyPoint.BOT_LEFT))
-					p.append(to.poly_point(Enum.PolyPoint.BOT))
+					p.append(from.get_poly_point(Enum.PolyPoint.BOT_RIGHT))
+					p.append(to.get_poly_point(Enum.PolyPoint.BOT_LEFT))
+					p.append(to.get_poly_point(Enum.PolyPoint.BOT))
 				else:
 					# to the left
-					p.append(from.poly_point(Enum.PolyPoint.BOT_LEFT))
-					p.append(to.poly_point(Enum.PolyPoint.BOT_RIGHT))
-					p.append(to.poly_point(Enum.PolyPoint.BOT))
+					p.append(from.get_poly_point(Enum.PolyPoint.BOT_LEFT))
+					p.append(to.get_poly_point(Enum.PolyPoint.BOT_RIGHT))
+					p.append(to.get_poly_point(Enum.PolyPoint.BOT))
 				
 				# Mapping is the same in both cases
 				map.append(from_idx)
@@ -260,21 +260,21 @@ func _calculate_floor_points() -> void:
 			if upwards:
 				if to_the_right:
 					# in front of wall
-					p.append(from.poly_point(Enum.PolyPoint.BOT_RIGHT) - dwarf_width)
-					p.append(from.poly_point(Enum.PolyPoint.RIGHT) - dwarf_width)
-					p.append(from.poly_point(Enum.PolyPoint.TOP_RIGHT) - dwarf_width)
+					p.append(from.get_poly_point(Enum.PolyPoint.BOT_RIGHT) - dwarf_width)
+					p.append(from.get_poly_point(Enum.PolyPoint.RIGHT) - dwarf_width)
+					p.append(from.get_poly_point(Enum.PolyPoint.TOP_RIGHT) - dwarf_width)
 					# on top of to-cell
-					p.append(to.poly_point(Enum.PolyPoint.BOT_LEFT))
-					p.append(to.poly_point(Enum.PolyPoint.BOT))
+					p.append(to.get_poly_point(Enum.PolyPoint.BOT_LEFT))
+					p.append(to.get_poly_point(Enum.PolyPoint.BOT))
 
 				elif not to_the_right:
 					# in front of wall
-					p.append(from.poly_point(Enum.PolyPoint.BOT_LEFT) + dwarf_width)
-					p.append(from.poly_point(Enum.PolyPoint.LEFT) + dwarf_width)
-					p.append(from.poly_point(Enum.PolyPoint.TOP_LEFT) + dwarf_width)
+					p.append(from.get_poly_point(Enum.PolyPoint.BOT_LEFT) + dwarf_width)
+					p.append(from.get_poly_point(Enum.PolyPoint.LEFT) + dwarf_width)
+					p.append(from.get_poly_point(Enum.PolyPoint.TOP_LEFT) + dwarf_width)
 					# on top of to-cell
-					p.append(to.poly_point(Enum.PolyPoint.BOT_RIGHT))
-					p.append(to.poly_point(Enum.PolyPoint.BOT))
+					p.append(to.get_poly_point(Enum.PolyPoint.BOT_RIGHT))
+					p.append(to.get_poly_point(Enum.PolyPoint.BOT))
 				
 				# Mapping is the same in both cases
 				map.append_array([from_idx, from_idx, from_idx])
@@ -285,23 +285,23 @@ func _calculate_floor_points() -> void:
 			elif not upwards:
 				if to_the_right:
 					# on top of from-cell
-					p.append(from.poly_point(Enum.PolyPoint.BOT_RIGHT))
+					p.append(from.get_poly_point(Enum.PolyPoint.BOT_RIGHT))
 					# in front of wall
-					p.append(to.poly_point(Enum.PolyPoint.TOP_LEFT) + dwarf_width)
-					p.append(to.poly_point(Enum.PolyPoint.LEFT) + dwarf_width)
+					p.append(to.get_poly_point(Enum.PolyPoint.TOP_LEFT) + dwarf_width)
+					p.append(to.get_poly_point(Enum.PolyPoint.LEFT) + dwarf_width)
 					# on top of to-cell
-					p.append(to.poly_point(Enum.PolyPoint.BOT_LEFT) + dwarf_width)
-					p.append(to.poly_point(Enum.PolyPoint.BOT))
+					p.append(to.get_poly_point(Enum.PolyPoint.BOT_LEFT) + dwarf_width)
+					p.append(to.get_poly_point(Enum.PolyPoint.BOT))
 
 				elif not to_the_right:
 					# on top of from-cell
-					p.append(from.poly_point(Enum.PolyPoint.BOT_LEFT))
+					p.append(from.get_poly_point(Enum.PolyPoint.BOT_LEFT))
 					# in front of wall
-					p.append(to.poly_point(Enum.PolyPoint.TOP_RIGHT) - dwarf_width)
-					p.append(to.poly_point(Enum.PolyPoint.RIGHT) - dwarf_width)
+					p.append(to.get_poly_point(Enum.PolyPoint.TOP_RIGHT) - dwarf_width)
+					p.append(to.get_poly_point(Enum.PolyPoint.RIGHT) - dwarf_width)
 					# on top of to-cell
-					p.append(to.poly_point(Enum.PolyPoint.BOT_RIGHT) - dwarf_width)
-					p.append(to.poly_point(Enum.PolyPoint.BOT))
+					p.append(to.get_poly_point(Enum.PolyPoint.BOT_RIGHT) - dwarf_width)
+					p.append(to.get_poly_point(Enum.PolyPoint.BOT))
 				
 				# Mapping is the same in both cases
 				map.append(from_idx)

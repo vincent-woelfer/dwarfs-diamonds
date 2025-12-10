@@ -6,10 +6,8 @@ var type: Enum.CellType
 var grid_pos: Vector2i
 var visual: CellVisuals
 
-var deco_elements: Array[DecoTorch] = []
+var deco_elements: Array[DecoBase] = []
 var buildings: Array[BuildingBase] = []
-
-var torch_scene := preload('res://scenes/deco/DecoTorch.tscn')
 
 ########################################################################################################################
 # GROUND TRUTH BOOL STATUS FLAGS
@@ -140,24 +138,22 @@ func set_marked_for_mining(should_mine: bool) -> bool:
 
 
 ## For now always torch
-func add_deco_element() -> void:
+func add_deco_element(new_deco: DecoBase) -> void:
 	if not deco_elements.is_empty():
 		return
 
-	var new_deco: DecoTorch = torch_scene.instantiate()
 	new_deco.place_in_cell(self)
-
 	deco_elements.append(new_deco)
 	add_child(new_deco)
 	visual.set_dirty()
 
 
 ## Returns a single poly point in world-space absolute
-func poly_point(point: Enum.PolyPoint) -> Vector2:
+func get_poly_point(point: Enum.PolyPoint) -> Vector2:
 	return visual.get_poly_point(point) + global_position
 
 func get_floor_point() -> Vector2:
-	return poly_point(Enum.PolyPoint.BOT)
+	return get_poly_point(Enum.PolyPoint.BOT)
 
 ########################################################################################################################
 # PRIVATE METHODS

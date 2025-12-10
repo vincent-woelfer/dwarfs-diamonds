@@ -1,5 +1,6 @@
+@tool
 class_name DecoTorch
-extends GridObject2D
+extends DecoBase
 
 @onready var light: Light2D = $PointLight2D
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
@@ -32,13 +33,13 @@ func _ready() -> void:
 
     
 func place_in_cell(cell: Cell) -> void:
-    super.setup(cell.grid_pos, Vector2.ZERO)
+    super.place_in_cell(cell)
 
     # Left/right random offset
     # self.position.x = randf_range(0.2, 0.8) * Global.CELL_SIZE
     self.position.x = Global.CELL_SIZE / 2.0
 
-    # On floor
+    # On wall
     self.position.y = Global.CELL_SIZE / 2.0
 
 

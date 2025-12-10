@@ -65,7 +65,7 @@ func _ready() -> void:
 			var percentage_with_preplaced_torch := 0.2
 			var place_torch := Util.rand_from_coords(grid_pos, 1) < percentage_with_preplaced_torch
 			if not cell.is_solid and place_torch and should_contain_torch(grid_pos):
-				cell.add_deco_element()
+				cell.add_deco_element(DecoBase.torch_scene.instantiate() as DecoBase)
 
 
 	# DWARF

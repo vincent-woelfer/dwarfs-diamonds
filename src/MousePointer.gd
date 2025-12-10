@@ -16,10 +16,6 @@ var mouse_pointer_size: Vector2 = Vector2(32, 32)
 var mouse_pointer_texture_normal: Texture2D = preload("res://assets/vector_graphics/MousePointerNormal.svg") as Texture2D
 var mouse_pointer_texture_building_destroy: Texture2D = preload("res://assets/vector_graphics/MousePointerBuildingDestroy.svg") as Texture2D
 
-# Preloaded Building Data
-var ladder_building_data: BuildingData = preload("res://scenes/buildings/LadderBuildingData.tres") as BuildingData
-var base_building_data: BuildingData = preload("res://scenes/buildings/BaseBuildingData.tres") as BuildingData
-
 # Variables
 var selection_pattern: GridPattern
 
@@ -143,11 +139,11 @@ func _actions_mode_change() -> bool:
 		return true
 
 	elif Input.is_action_just_pressed("mouse_place_building_ladder"):
-		_transition_to_building_placement(ladder_building_data)
+		_transition_to_building_placement(BuildingManager.ladder_building_data)
 		return true
 
 	elif Input.is_action_just_pressed("mouse_place_building_base"):
-		_transition_to_building_placement(base_building_data)
+		_transition_to_building_placement(BuildingManager.base_building_data)
 		return true
 
 	elif Input.is_action_just_pressed("mouse_building_destroy"):

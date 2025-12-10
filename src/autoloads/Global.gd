@@ -37,14 +37,32 @@ const CellMiningHardness := {
 }
 
 # Relevant Game Objects
-@onready var camera: Camera = _get_from_root("Camera")
-@onready var level: Level = _get_from_root("Level")
+@onready var camera: Camera
+@onready var level: Level
 
-# TODO verify this works
-@onready var post_process_canvas_layer: PostProcessCanvasLayer = _get_from_root("PostProcessCanvasLayer-1")
-@onready var stencil_viewport: StencilViewport = _get_from_root("StencilViewport")
-@onready var ui_canvas_layer_world_space: CanvasLayer = _get_from_root("UICanvasLayer-WorldSpace-2")
-@onready var ui_canvas_layer_screen_space: CanvasLayer = _get_from_root("UICanvasLayer-ScreenSpace-3")
+# Relevant UI Objects
+@onready var stencil_viewport: StencilViewport
+@onready var post_process_canvas_layer: PostProcessCanvasLayer
+@onready var ui_canvas_layer_world_space: CanvasLayer
+@onready var ui_canvas_layer_screen_space: CanvasLayer
+
+
+func _load_global_references() -> void:
+	if Engine.is_editor_hint():
+		HexLog.print_banner_with_text("Global autoload: skipping reference loading in editor.")
+		return
+
+	# Relevant Game Objects
+	camera = _get_from_root("Camera")
+	level = _get_from_root("Level")
+
+	# Relevant UI Objects
+	stencil_viewport = _get_from_root("StencilViewport")
+	post_process_canvas_layer = _get_from_root("PostProcessCanvasLayer-1")
+	ui_canvas_layer_world_space = _get_from_root("UICanvasLayer-WorldSpace-2")
+	ui_canvas_layer_screen_space = _get_from_root("UICanvasLayer-ScreenSpace-3")
+
+	HexLog.print_banner_with_text("Loaded Global references. Level: %s" % level)
 
 
 func _ready() -> void:
@@ -57,11 +75,9 @@ func _ready() -> void:
 		# Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		# Input.mouse_mode = Input.MOUSE_MODE_CONFINED
 
-
-func _process(delta: float) -> void:
-	pass
-		
+	_load_global_references()
 	
+		
 # React to keyboard inputs to directly trigger events
 func _input(event: InputEvent) -> void:
 	if not Engine.is_editor_hint():
@@ -87,5 +103,7 @@ func _on_window_size_changed() -> void:
 
 
 func _get_from_root(path: String) -> Variant:
-	# TODO verify this works
-	return get_tree().root.get_node("root/%s" % path)
+	# This does not work in editor rn because this is an autoload
+	# The second "root/" is the name of the main scene node, NOT the scene tree root
+	const main_scene_name := "root"
+	return get_tree().root.get_node("%s/%s" % [main_scene_name, path])
