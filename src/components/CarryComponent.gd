@@ -66,7 +66,7 @@ func drop(item: CarryableItemComponent) -> void:
 	item.is_being_carried = false
 	item.carrier = null
 
-	# Set item position to be inside cell
+	# Set item position to be inside cell of carrier
 	item.parent.global_position = parent.global_position
 
 
