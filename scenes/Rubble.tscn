@@ -6,7 +6,6 @@
 [ext_resource type="Script" uid="uid://12nby18asb05" path="res://src/components/MovementComponent.gd" id="5_ogmlh"]
 
 [node name="Rubble" type="Node2D" unique_id=1896315996]
-z_index = 5
 script = ExtResource("1_dy5u4")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=758708384]
@@ -19,4 +18,3 @@ script = ExtResource("5_ogmlh")
 
 [node name="CarryableItemComponent" type="Node2D" parent="." unique_id=1879016142]
 script = ExtResource("4_cnnc0")
-metadata/_custom_type_script = "uid://byab8uhnbyngm"

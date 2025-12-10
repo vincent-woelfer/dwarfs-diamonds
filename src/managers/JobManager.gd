@@ -18,10 +18,22 @@ func add_job(job: Job) -> void:
 
 	# Prevent duplicate build jobs for same building
 	if job.job_type == Job.Type.BUILD:
+		assert(job.building != null)
+
 		for existing_job in _jobs:
 			if existing_job.job_type == Job.Type.BUILD and existing_job.building == job.building:
 				assert(false, "JobManager: Not adding duplicate build job for building " % job.building)
 				return
+
+	# Prevent duplicate rubble jobs for same rubble
+	if job.job_type == Job.Type.RUBBLE:
+		assert(job.rubble != null)
+
+		for existing_job in _jobs:
+			if existing_job.job_type == Job.Type.RUBBLE and existing_job.rubble == job.rubble:
+				assert(false, "JobManager: Not adding duplicate rubble job for rubble " % job.rubble)
+				return
+	
 
 	job.update_workable_from_cells()
 	_jobs.append(job)
@@ -73,7 +85,10 @@ func get_new_job_for_worker(dwarf: Dwarf) -> JobWithPath:
 		if not path:
 			continue
 
-		# Score job - lower is better		 
+		###################################
+		### Score job - lower is better ###
+		### Unit = world space distance (because path length is the default score)
+		###################################
 		var remaining_time := job.estimate_remaining_time()
 		var path_length := path.get_total_length_world_space()
 		var score: float = path_length
@@ -82,15 +97,19 @@ func get_new_job_for_worker(dwarf: Dwarf) -> JobWithPath:
 		if path_length / walking_speed > remaining_time:
 			continue
 
-		# Penalize jobs which are already being worked on
+		# Penalize jobs which are already being worked on / are close to being finished
 		if remaining_time < Job.MAX_REMAINING_TIME_ESTIMATE:
-			score += (Global.CELL_SIZE * 50)
+			score += 2 * Global.CELL_SIZE
 
 		# Penalize mining job directly below dwarf (only slightly, prefer horizontally adjacent ones)
 		# This is to avoid dwarfs digging straight down below themselves too often
 		if job.job_type == Job.Type.MINE:
 			if dwarf.grid_pos == job.center_cell.grid_pos - Vector2i(0, 1):
 				score += 1.0
+
+		# Dont prioritize rubble/pickup jobs
+		if job.job_type == Job.Type.RUBBLE:
+			score += 2 * Global.CELL_SIZE
 
 		scored_jobs.append(ScoredJob.new(job, path, score))
 
@@ -106,7 +125,7 @@ func get_new_job_for_worker(dwarf: Dwarf) -> JobWithPath:
 	print_rich(Util.color_string("\nJobManager: Scoring jobs for %s (lower is better):" % [dwarf], print_color))
 	for j in scored_jobs:
 		print_rich(Util.color_string("- Score: %6.0f" % [j.score], print_color) + (" - %s" % [j.job]))
-	print() # New line
+	print() # New line as separator
 
 	return JobWithPath.new(scored_jobs[0].job, scored_jobs[0].path)
 	
@@ -124,7 +143,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	# To many places, just call every frame. This is because the jobs themselfs can also change
-	_debug_draw_proxy.queue_redraw()
+	_debug_draw_proxy_relative.queue_redraw()
 
 
 # Not really required, this only keeps jobs up to date for debug drawing
@@ -135,7 +154,7 @@ func _on_nav_updated() -> void:
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
-var _debug_draw_proxy := DebugDrawProxy.new(self)
+var _debug_draw_proxy_relative := DebugDrawProxy.new(self)
 
 # Multiple jobs per cell are placed from top to bottom with an offset
 const debug_offset_start := Vector2(-0.44, -0.35) * Global.CELL_SIZE_VEC
@@ -144,7 +163,7 @@ const debug_offset_inc := Vector2(0.0, 0.12) * Global.CELL_SIZE_VEC
 var debug_font := ThemeDB.fallback_font
 var debug_font_size := 14
 
-func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
+func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
 	var num_already_drawn_per_cell: Dictionary[Vector2i, int] = {}
 
 	for job in _jobs:
@@ -170,5 +189,5 @@ func _debug_get_offset(idx: int) -> Vector2:
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("dev_toogle_jobs_draw"):
-		_debug_draw_proxy.visible = not _debug_draw_proxy.visible
-		_debug_draw_proxy.queue_redraw()
+		_debug_draw_proxy_relative.visible = not _debug_draw_proxy_relative.visible
+		_debug_draw_proxy_relative.queue_redraw()

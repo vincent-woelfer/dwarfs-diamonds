@@ -138,11 +138,11 @@ func get_remaining_length_world_space() -> float:
 
 func set_debug_draw_enabled(enabled: bool) -> void:
 	debug_draw = enabled
-	_debug_draw_proxy.queue_redraw()
+	_debug_draw_proxy_relative.queue_redraw()
 
 func set_debug_draw_color(color: Color) -> void:
 	debug_color = color
-	_debug_draw_proxy.queue_redraw()
+	_debug_draw_proxy_relative.queue_redraw()
 
 ########################################################################################################################
 # INTERNAL API
@@ -191,7 +191,7 @@ func _update_next_indices(new_next_floor: int) -> void:
 	# Update center idx accordingly
 	_next_center_idx = _floor_to_grid_point_map[_next_floor_idx]
 
-	_debug_draw_proxy.queue_redraw()
+	_debug_draw_proxy_relative.queue_redraw()
 
 ## Calculates floor-points based on _grid_points.
 ## Also fills _floor_to_grid_point_map.
@@ -337,7 +337,7 @@ func _get_remaining_length_grid_space() -> float:
 # DEBUG DRAWING
 ########################################################################################################################
 var debug_draw: bool = false
-var _debug_draw_proxy := DebugDrawProxy.new(self)
+var _debug_draw_proxy_relative := DebugDrawProxy.new(self)
 
 # Only drawn if added to scene tree
 var debug_color := Color.ORANGE
@@ -346,7 +346,7 @@ var debug_draw_follow_points := true
 var debug_offset_follow_points := Vector2(0.0, -0.05) * Global.CELL_SIZE_VEC
 
 
-func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
+func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
 	if not debug_draw:
 		return
 

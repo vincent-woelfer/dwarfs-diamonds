@@ -11,7 +11,6 @@ building_data = ExtResource("2_wkd27")
 metadata/_custom_type_script = "uid://c08mmaccrjyck"
 
 [node name="GridPatternVisualization" type="Node2D" parent="." unique_id=255300677]
-z_index = 1
 script = ExtResource("2_uh53p")
 
 [node name="GroundPoly" type="Polygon2D" parent="." unique_id=249616805]

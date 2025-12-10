@@ -5,11 +5,9 @@
 [ext_resource type="SpriteFrames" uid="uid://bm6t0ves04cib" path="res://assets/sprites/torch-8bit_sprite_frames.tres" id="3_mylgo"]
 
 [node name="DecoTorch" type="Node2D"]
-z_index = 1
 script = ExtResource("1_j5u86")
 
 [node name="PointLight2D" type="PointLight2D" parent="."]
-z_index = 1
 position = Vector2(0, -64)
 color = Color(0.9882353, 0.8039216, 0.43137255, 1)
 energy = 0.5

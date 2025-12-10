@@ -12,7 +12,7 @@ signal Signal_OnFinishedPath()
 signal Signal_MovementDirectionChanged(new_dir: Vector2)
 
 ################ Definitions ################
-enum State {NOT_MOVING, FOLLOWING_PATH, FALLING}
+enum State {NOT_MOVING, FOLLOWING_PATH, FALLING, CARRIED}
 var sm: StateMachine
 
 ################ Configuration ################
@@ -34,21 +34,19 @@ var fall_start_y: int
 func is_falling() -> bool:
 	return sm.state == State.FALLING
 
+func is_being_carried() -> bool:
+	return sm.state == State.CARRIED
 
 func assign_path(new_path: Path) -> bool:
-	if new_path == null or sm.state == State.FALLING:
+	if new_path == null or sm.state == State.FALLING or sm.state == State.CARRIED:
 		return false
 
 	# Hide OLD path, even if reference still stored elsewhere
 	if path:
 		path.debug_draw = false
-
-	path = new_path
-	path.start_following_from_pos(parent.global_position, true)
-	sm.transition_to(State.FOLLOWING_PATH)
-
+	
+	sm.transition_to(State.FOLLOWING_PATH, new_path)
 	return true
-
 
 func abort_path() -> void:
 	# Hide path, even if reference still stored elsewhere
@@ -60,20 +58,40 @@ func abort_path() -> void:
 	if sm.state == State.FOLLOWING_PATH:
 		sm.transition_to(State.NOT_MOVING)
 
+
+# used by CarryableItemComponent when picked up / dropped
+func picked_up() -> void:
+	sm.transition_to(State.CARRIED)
+func dropped() -> void:
+	sm.transition_to(State.NOT_MOVING)
+
 ########################################################################################################################
 # PRIVATE
 ########################################################################################################################
-
 func _ready() -> void:
 	sm = StateMachine.new(self, State, State.NOT_MOVING)
 
+	assert(parent != null)
+	assert(parent is GridObject2D)
 
 func _physics_process(delta: float) -> void:
-	# Do this in all states
-	_update_on_ground_check()
-
 	sm.physics_process(delta)
 
+########################################################################################################################
+# STATE MACHINE HANDLERS
+########################################################################################################################
+###################################
+# Falling
+###################################
+func _enter_falling() -> void:
+	curr_falling_speed = movement_capabilities.falling_starting_speed
+	fall_start_y = parent.grid_pos.y
+	Signal_OnStartedFalling.emit()
+
+func _exit_falling() -> void:
+	# TODO this triggers when beeing grabbed while falling
+	var fall_height_cells: int = abs(fall_start_y - parent.grid_pos.y)
+	Signal_OnLanded.emit(fall_height_cells)
 
 func _physics_process_falling(delta: float) -> void:
 	curr_falling_speed = min(curr_falling_speed + movement_capabilities.falling_acceleration * delta, movement_capabilities.falling_max_speed)
@@ -82,8 +100,30 @@ func _physics_process_falling(delta: float) -> void:
 	# Sample grid pos
 	parent.update_grid_pos(parent.sample_grid_pos())
 
+	_update_on_ground_check()
 
+###################################
+# Following Path
+###################################
+func _enter_following_path(new_path: Path) -> void:
+	if new_path == null:
+		print_rich("MovementComponent from %s: FOLLOWING_PATH but new_path=null!" % [parent])
+		sm.transition_to(State.NOT_MOVING)
+		return
+
+	path = new_path
+	path.debug_draw = true
+	path.start_following_from_pos(parent.global_position, true)
+
+func _exit_following_path() -> void:
+	if path:
+		path.debug_draw = false
+	path = null
+	
 func _physics_process_following_path(delta: float) -> void:
+	if _update_on_ground_check():
+		return
+
 	# Check if we have a path
 	if path == null:
 		# This should never happen! Maybe emit signal as error handling, otherwise we get stuck here
@@ -104,19 +144,24 @@ func _physics_process_following_path(delta: float) -> void:
 	# Check if we reached the end of the path
 	if path.reached_end():
 		Signal_OnFinishedPath.emit()
-		path = null
 		sm.transition_to(State.NOT_MOVING)
 		
+###################################
+# Being Carried
+###################################
+# Nothing, this state basically disables the movement component and hands over movement to the carrier
 
-func _get_curr_move_mode() -> Enum.MoveMode:
-	if path:
-		return path.get_curr_move_mode()
-	else:
-		return Enum.MoveMode.WALK
+###################################
+# Not Moving
+###################################
+func _physics_process_not_moving(delta: float) -> void:
+	_update_on_ground_check()
 
-
-# Check if we should start/stop falling
-func _update_on_ground_check() -> void:
+########################################################################################################################
+# INTERNAL HELPERS
+########################################################################################################################
+# Check if we should start/stop falling. Returns true if state changed
+func _update_on_ground_check() -> bool:
 	var can_stand_in_current_cell := parent.curr_cell.is_standable(_get_can_use_ladders())
 	var move_mode := _get_curr_move_mode()
 
@@ -124,10 +169,10 @@ func _update_on_ground_check() -> void:
 	if not is_falling():
 		if can_stand_in_current_cell or (move_mode != Enum.MoveMode.WALK):
 			# Nothing to do            
-			return
+			return false
 		else:
 			sm.transition_to(State.FALLING)
-			return
+			return true
 
 	# Currently falling -> require cell to land on but also position inside of current cell to be on floor
 	else:
@@ -136,29 +181,17 @@ func _update_on_ground_check() -> void:
 			# Snap position to floor
 			parent.global_position.y = y_cell_floor
 			sm.transition_to(State.NOT_MOVING)
-			return
+			return true
 		else:
 			# Still falling
-			return
+			return false
 
 
-func _enter_falling() -> void:
-	curr_falling_speed = movement_capabilities.falling_starting_speed
-	fall_start_y = parent.grid_pos.y
-	Signal_OnStartedFalling.emit()
-
-
-func _exit_falling() -> void:
-	var fall_height_cells: int = abs(fall_start_y - parent.grid_pos.y)
-	Signal_OnLanded.emit(fall_height_cells)
-
-
-func _enter_not_moving() -> void:
-	# Stopped moving
+func _get_curr_move_mode() -> Enum.MoveMode:
 	if path:
-		path.debug_draw = false
-	path = null
-
+		return path.get_curr_move_mode()
+	else:
+		return Enum.MoveMode.WALK
 
 func _get_can_use_ladders() -> bool:
 	if is_falling():

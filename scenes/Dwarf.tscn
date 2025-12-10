@@ -9,12 +9,10 @@
 [ext_resource type="Script" uid="uid://ca0ir7bdht3kr" path="res://src/components/CarryComponent.gd" id="7_2lrks"]
 
 [node name="Dwarf" type="Node2D" unique_id=1095445124]
-z_index = 5
 script = ExtResource("1_po7l6")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=739565940]
 light_mask = 0
-z_index = -1
 texture_filter = 1
 position = Vector2(0, -64.99999)
 scale = Vector2(5, 5)
@@ -22,7 +20,6 @@ sprite_frames = ExtResource("1_ms7vq")
 frame_progress = 0.9780393
 
 [node name="PointLight2D" type="PointLight2D" parent="." unique_id=2112066260]
-z_index = 2
 position = Vector2(0, -64)
 color = Color(0.9882353, 0.8039216, 0.43137255, 1)
 energy = 0.2

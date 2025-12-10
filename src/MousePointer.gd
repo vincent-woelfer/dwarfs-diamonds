@@ -38,7 +38,7 @@ func _physics_process(delta: float) -> void:
 func _ready() -> void:
 	sm = StateMachine.new(self, State, State.NEUTRAL)
 
-	self.z_index = Enum.ZIndex.MOUSE_POINTER
+	self.z_index = Enum.ZIndex.UI_MOUSE_POINTER
 
 	# Default selection pattern is single cell
 	selection_pattern = GridPattern.new([Vector2i.ZERO])

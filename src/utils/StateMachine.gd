@@ -64,7 +64,10 @@ func transition_to(next_state: int, ...enter_args: Array) -> void:
     Signal_StateChanged.emit(prev_state, next_state)
 
     # Debug redraw
-    var debug_draw_proxy: DebugDrawProxy = owner.get("_debug_draw_proxy")
+    var debug_draw_proxy: DebugDrawProxy = owner.get("_debug_draw_proxy_relative")
+    if debug_draw_proxy != null:
+        debug_draw_proxy.queue_redraw()
+    debug_draw_proxy = owner.get("_debug_draw_proxy_absolute")
     if debug_draw_proxy != null:
         debug_draw_proxy.queue_redraw()
 

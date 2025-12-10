@@ -9,7 +9,6 @@ script = ExtResource("1_q77c0")
 metadata/_custom_type_script = "uid://c08mmaccrjyck"
 
 [node name="GridPatternVisualization" type="Node2D" parent="." unique_id=780724971]
-z_index = 1
 script = ExtResource("2_8ecwd")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=694442011]

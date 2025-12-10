@@ -26,6 +26,9 @@ func _process(delta: float) -> void:
 		self.global_position = Vector2.ZERO
 
 
+const method_draw_in_ui_relative := "_debug_draw_in_ui_relative"
+const method_draw_in_ui_absolute := "_debug_draw_in_ui_absolute"
+
 func _draw() -> void:
 	if not target:
 		queue_free()
@@ -33,17 +36,19 @@ func _draw() -> void:
 
 	# Relative draw call
 	if follow_target:
-		if target.has_method("_debug_draw_in_ui"):
+		if target.has_method(method_draw_in_ui_relative):
 			if self.visible:
 				@warning_ignore("UNSAFE_METHOD_ACCESS")
-				target._debug_draw_in_ui(self)
-
+				target._debug_draw_in_ui_relative(self)
 		else:
-			push_error("DebugDrawProxy: Target %s does not have method _debug_draw_in_ui" % [target])
+			push_error("DebugDrawProxy: Target %s does not have method %s" % [target, method_draw_in_ui_relative])
 
 	# Absolute draw call
 	else:
-		if target.has_method("_debug_draw_in_ui_absolute"):
+		if target.has_method(method_draw_in_ui_absolute):
 			if self.visible:
 				@warning_ignore("UNSAFE_METHOD_ACCESS")
 				target._debug_draw_in_ui_absolute(self)
+		else:
+			push_error("DebugDrawProxy: Target %s does not have method %s" % [target, method_draw_in_ui_absolute])
+

@@ -32,9 +32,12 @@ enum ProcessPriority {
 
 enum ZIndex {
 	CELL = 0,
+	GRID_PATTERN_VISUALIZATION = 10,
+	DECO = 50,
 	BUILDINGS = 100,
 	DWARFS = 200,
-	MOUSE_POINTER = 300,
+	RUBBLE = 250,
+	UI_MOUSE_POINTER = 1000,
 }
 
 

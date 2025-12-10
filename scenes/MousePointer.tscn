@@ -20,6 +20,5 @@ metadata/_custom_type_script = "uid://sfmxn54qwmtl"
 
 [node name="BuildingPreview" type="Node2D" parent="." unique_id=1868332407]
 light_mask = 0
-z_index = 400
 script = ExtResource("3_ky82m")
 metadata/_custom_type_script = "uid://coltev41qn6yk"

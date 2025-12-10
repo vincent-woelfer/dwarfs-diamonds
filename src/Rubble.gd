@@ -17,6 +17,8 @@ func _ready() -> void:
 	global_position = Global.level.get_cell(grid_pos).get_floor_point()
 	global_position.y -= Global.CELL_SIZE * 0.3 # Let rubble fall a bit on spawn
 
+	self.z_index = Enum.ZIndex.RUBBLE
+
 	movement_comp.movement_capabilities.can_use_ladders = false
 	movement_comp.movement_capabilities.can_use_ladders_when_falling = false
 
@@ -27,10 +29,21 @@ func _ready() -> void:
 	movement_comp.Signal_OnStartedFalling.connect(_on_started_falling)
 	movement_comp.Signal_OnLanded.connect(_on_landed)
 
-	# Start falling	immediately
-	movement_comp.sm.transition_to(MovementComponent.State.FALLING)
+	# CarryableItemComponent + MovementComponent signals
+	carryable_item_comp.Signal_OnPickedUp.connect(movement_comp.picked_up)
+	carryable_item_comp.Signal_OnDropped.connect(movement_comp.dropped)
 
 	# Add pickup job
+	pickup_job = Job.new(Job.Type.RUBBLE, curr_cell)
+	pickup_job.rubble = self
+	Global.level.job_manager.add_job(pickup_job)
+
+
+func _on_picked_up() -> void:
+	Global.level.job_manager.remove_job(pickup_job)
+	pickup_job = null
+
+func _on_dropped() -> void:
 	pickup_job = Job.new(Job.Type.RUBBLE, curr_cell)
 	pickup_job.rubble = self
 	Global.level.job_manager.add_job(pickup_job)
@@ -39,7 +52,6 @@ func _ready() -> void:
 # TODO unused
 func delete() -> void:
 	Global.level.job_manager.remove_job(pickup_job)
-
 	queue_free()
 
 # used by CarryableItemComponent to check whether this rubble can be picked up
@@ -51,8 +63,9 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 	if new_cell == null:
 		return
 
-	pickup_job.center_cell = new_cell
-	pickup_job.update_workable_from_cells()
+	if pickup_job != null:
+		pickup_job.center_cell = new_cell
+		pickup_job.update_workable_from_cells()
 
 
 func _on_started_falling() -> void:

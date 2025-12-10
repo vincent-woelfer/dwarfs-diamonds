@@ -102,7 +102,7 @@ func _update_cell_connections() -> void:
 		_update_cell_connection(cell_pair)
 
 	# Redraw for debug purposes
-	_debug_draw_proxy.queue_redraw()
+	_debug_draw_proxy_relative.queue_redraw()
 
 	var duration := Time.get_ticks_msec() - start_time
 	if duration > 1:
@@ -220,7 +220,7 @@ func _is_id_enabled(id: int) -> bool:
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
-var _debug_draw_proxy := DebugDrawProxy.new(self)
+var _debug_draw_proxy_relative := DebugDrawProxy.new(self)
 
 const debug_colors := {
 	# Points
@@ -242,7 +242,7 @@ const debug_arrow_width := 10.0
 # Downward from cell-center
 const debug_point_offset := Vector2(0.0, 0.4) * Global.CELL_SIZE_VEC
 
-func _debug_draw_in_ui(ui_layer: CanvasItem) -> void:
+func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
 	if not _astar:
 		return
 
@@ -305,5 +305,5 @@ func _draw_arrow(ui_layer: CanvasItem, from_pos: Vector2, to_pos: Vector2, color
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("dev_toogle_nav_draw"):
-		_debug_draw_proxy.visible = not _debug_draw_proxy.visible
-		_debug_draw_proxy.queue_redraw()
+		_debug_draw_proxy_relative.visible = not _debug_draw_proxy_relative.visible
+		_debug_draw_proxy_relative.queue_redraw()
