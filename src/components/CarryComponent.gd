@@ -11,38 +11,86 @@ extends Node2D
 var _curr_carried_items: Array[CarryableItemComponent] = []
 var _curr_total_weight: float = 0.0
 
+var parent: GridObject2D = null
 
 # ########################################################################################################################
 # # PUBLIC METHODS
 # ########################################################################################################################
 
-
+## Actually picks up the item if possible, returns false otherwise
 func pickup(item: CarryableItemComponent) -> bool:
-	if item == null or item.is_being_carried:
+	if not can_pickup(item):
 		return false
 
+	# Modify self
+	_curr_carried_items.append(item)
+	_curr_total_weight += item.weight
+
+	# Modify item
+	item.is_being_carried = true
+	item.carrier = self
+	item.on_picked_up()
+
+	# TODO add acutal pickup code here
+
+	return true
+
+## Just performs checks whether the item can be picked up
+func can_pickup(item: CarryableItemComponent) -> bool:
+	# Perform basic checks
+	if item == null or not item.can_be_picked_up():
+		return false
+
+	# Check weight capacity
 	var new_total_weight := _curr_total_weight + item.weight
 	if new_total_weight > carry_capacity:
 		return false
 
-	_curr_carried_items.append(item)
-	_curr_total_weight = new_total_weight
-	item.is_being_carried = true
+	# Check pickup range (currently same cell)
+	if item.parent.grid_pos != parent.grid_pos:
+		return false
+
 	return true
+
+
+func drop(item: CarryableItemComponent) -> void:
+	if item == null or not _curr_carried_items.has(item):
+		return
+
+	# Modify self
+	_curr_carried_items.erase(item)
+	_curr_total_weight -= item.weight
+
+	# Modify item
+	item.is_being_carried = false
+	item.carrier = null
+	item.on_dropped()
+
+	# TODO add actual drop code here
+
+
+func drop_all() -> void:
+	# Duplicate the array to allow modification during iteration
+	for item: CarryableItemComponent in _curr_carried_items.duplicate():
+		drop(item)
+
 
 func is_carrying() -> bool:
 	return not _curr_carried_items.is_empty()
 
 
-func get_carried_weight() -> float:
+func get_carried_total_weight() -> float:
 	return _curr_total_weight
 
 
 # ########################################################################################################################
 # # PRIVATE METHODS
 # ########################################################################################################################
-# func _ready() -> void:
-	# SIGNALS
+func _ready() -> void:
+	# Get and verify parent
+	parent = get_parent()
+	assert(parent != null)
+	assert(parent is GridObject2D)
 
 	
 func _physics_process(delta: float) -> void:

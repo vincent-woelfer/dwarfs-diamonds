@@ -20,9 +20,9 @@ var _curr_building_building: BuildingBase = null
 # Reference to the used audio player
 var _audio_player: AudioStreamPlayer2D = null
 
-# ########################################################################################################################
-# # PUBLIC METHODS
-# ########################################################################################################################
+########################################################################################################################
+# PUBLIC METHODS
+########################################################################################################################
 func start_building(cell: Cell, cell_from: Cell, building: BuildingBase) -> void:
 	# Check for errors
 	if is_currently_building() or (cell == null or cell_from == null or building == null):

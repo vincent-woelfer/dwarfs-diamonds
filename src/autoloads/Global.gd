@@ -36,6 +36,10 @@ const CellMiningHardness := {
 	Enum.CellType.BUILDING: 3.0,
 }
 
+# Group Names
+const GROUP_CARRYABLE_ITEMS: String = "carryable_items"
+
+
 # Relevant Game Objects
 @onready var camera: Camera
 @onready var level: Level
@@ -107,3 +111,7 @@ func _get_from_root(path: String) -> Variant:
 	# The second "root/" is the name of the main scene node, NOT the scene tree root
 	const main_scene_name := "root"
 	return get_tree().root.get_node("%s/%s" % [main_scene_name, path])
+
+
+func get_group(group_name: String) -> Array:
+	return get_tree().get_nodes_in_group(group_name)
