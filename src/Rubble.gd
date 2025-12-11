@@ -9,9 +9,6 @@ extends GridObject2D
 # The pickup job associated with this rubble
 var pickup_job: Job = null
 
-func setup(grid_pos_: Vector2i, sample_offset_: Vector2 = Global.VERT_OFFSET_SMALL) -> void:
-	super.setup(grid_pos_, sample_offset_)
-
 
 func _ready() -> void:
 	global_position = Global.level.get_cell(grid_pos).get_floor_point()

@@ -27,12 +27,30 @@ func pickup(item: CarryableItemComponent) -> bool:
 	_curr_total_weight += item.weight
 
 	# Modify item
-	item.is_being_carried = true
-	item.carrier = self
-	item.pick_up_animation_finished = false
-	item.on_picked_up()
+	item.on_picked_up(self)
 
 	return true
+
+
+func drop(item: CarryableItemComponent) -> void:
+	if item == null or not _curr_carried_items.has(item):
+		return
+
+	# Modify self
+	_curr_carried_items.erase(item)
+	_curr_total_weight -= item.weight
+
+	# Modify item
+	item.on_dropped()
+
+	# Set item position to be inside cell of carrier
+	item.parent.global_position = parent.global_position
+
+
+func drop_all() -> void:
+	# Duplicate the array to allow modification during iteration
+	for item: CarryableItemComponent in _curr_carried_items.duplicate():
+		drop(item)
 
 
 ## Can this carrier pick up the given item right now
@@ -69,29 +87,6 @@ func can_carry_at_all(item: CarryableItemComponent) -> bool:
 	return true
 
 
-func drop(item: CarryableItemComponent) -> void:
-	if item == null or not _curr_carried_items.has(item):
-		return
-
-	# Modify self
-	_curr_carried_items.erase(item)
-	_curr_total_weight -= item.weight
-
-	# Modify item
-	item.on_dropped()
-	item.is_being_carried = false
-	item.carrier = null
-
-	# Set item position to be inside cell of carrier
-	item.parent.global_position = parent.global_position
-
-
-func drop_all() -> void:
-	# Duplicate the array to allow modification during iteration
-	for item: CarryableItemComponent in _curr_carried_items.duplicate():
-		drop(item)
-
-
 func is_carrying() -> bool:
 	return not _curr_carried_items.is_empty()
 
@@ -100,6 +95,8 @@ func get_carried_total_weight() -> float:
 	return _curr_total_weight
 
 
+## Returns all pickupable items in range (currently same cell)
+## The weight is only checked for each item alone, this doesnt mean all items can be picked up together
 func get_all_pickupable_items_in_range() -> Array[CarryableItemComponent]:
 	var items: Array[CarryableItemComponent] = []
 	for item: CarryableItemComponent in Global.get_group(Global.GROUP_CARRYABLE_ITEMS):

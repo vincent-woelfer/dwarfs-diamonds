@@ -28,10 +28,6 @@ func _physics_process(delta: float) -> void:
 ########################################################################################################################
 # SETUP & OWN PROCESSING
 ########################################################################################################################
-
-func setup(grid_pos_: Vector2i, sample_offset_: Vector2 = Global.VERT_OFFSET_SMALL) -> void:
-	super.setup(grid_pos_, sample_offset_)
-
 func _ready() -> void:
 	sm = StateMachine.new(self, State, State.IDLE)
 	sm.set_state_exitable(State.DYING, false)

@@ -20,7 +20,7 @@ const LEVEL_SIZE_VEC: Vector2 = Vector2(LEVEL_WIDTH, LEVEL_HEIGHT)
 # Both will never be smaller than the base mouse_size (3840x2160), one will always be larger or exact base mouse_size.
 
 ## For sampling grid_position from world_position
-const VERT_OFFSET_SMALL := Vector2(0, -CELL_SIZE * 0.5)
+const VERT_SAMPLE_OFFSET_SMALL := Vector2(0, -CELL_SIZE * 0.5)
 
 const VEC_LEFT := Vector2(-1, 0)
 const VEC_RIGHT := Vector2(1, 0)

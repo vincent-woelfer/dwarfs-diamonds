@@ -9,6 +9,7 @@ signal Signal_OnLanded(fall_height_cells: int)
 
 signal Signal_OnFinishedPath()
 
+# For flipping sprite based on movement direction
 signal Signal_MovementDirectionChanged(new_dir: Vector2)
 
 ################ Definitions ################
@@ -124,6 +125,7 @@ func _physics_process_following_path(delta: float) -> void:
 	if _update_on_ground_check():
 		return
 
+	# TODO this still happens
 	# Check if we have a path
 	if path == null:
 		# This should never happen! Maybe emit signal as error handling, otherwise we get stuck here
@@ -160,7 +162,8 @@ func _physics_process_not_moving(delta: float) -> void:
 ########################################################################################################################
 # INTERNAL HELPERS
 ########################################################################################################################
-# Check if we should start/stop falling. Returns true if state changed
+
+## Check if we should start/stop falling. Returns true if state changed
 func _update_on_ground_check() -> bool:
 	var can_stand_in_current_cell := parent.curr_cell.is_standable(_get_can_use_ladders())
 	var move_mode := _get_curr_move_mode()
