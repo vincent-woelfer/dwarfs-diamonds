@@ -57,6 +57,18 @@ func is_currently_building() -> bool:
 	return _curr_building_building != null
 
 
+## Can this building component build this building at all?
+## Used to filter jobs
+func can_build_at_all(building: BuildingBase) -> bool:
+	if building == null:
+		return false
+
+	if building.is_complete:
+		return false
+
+	return true
+
+
 # ########################################################################################################################
 # # PRIVATE METHODS
 # ########################################################################################################################

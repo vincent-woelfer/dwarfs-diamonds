@@ -19,7 +19,7 @@ var pick_up_animation_finished: bool = false
 
 # Since this is a component the parent can not override this method.
 # Therefore we check by duck-typing whether the parent has additional pick-up requirements.
-func can_be_picked_up() -> bool:
+func can_be_picked_up_right_now() -> bool:
     var parent_allow_pickup := true
 
     if parent.has_method("_can_be_picked_up"):

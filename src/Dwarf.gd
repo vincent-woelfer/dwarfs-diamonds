@@ -327,7 +327,7 @@ func _abandon_job_enter_idle(transition_to_idle: bool = true) -> void:
 
 func _find_new_job() -> void:
 	# Try to get a new job	
-	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_worker(self)
+	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_dwarf(self)
 
 	if new_job_with_path == null:
 		HexLog.print_throttled(self, "%s found no job, remains idle" % [self], 0.5)

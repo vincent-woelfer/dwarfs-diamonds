@@ -35,10 +35,28 @@ func pickup(item: CarryableItemComponent) -> bool:
 	return true
 
 
-## Just performs checks whether the item can be picked up
+## Can this carrier pick up the given item right now
 func can_pickup(item: CarryableItemComponent) -> bool:
 	# Perform basic checks
-	if item == null or not item.can_be_picked_up():
+	if item == null or not item.can_be_picked_up_right_now():
+		return false
+
+	# Check can_carry_at_all
+	if not can_carry_at_all(item):
+		return false
+
+	# Check pickup range (currently same cell)
+	if item.parent.grid_pos != parent.grid_pos:
+		return false
+
+	return true
+
+
+## Can this carry component carry the given item at all (ignoring range etc)
+## Used to filter jobs
+func can_carry_at_all(item: CarryableItemComponent) -> bool:
+	# Perform basic checks
+	if item == null:
 		return false
 
 	# Check weight capacity
@@ -46,9 +64,7 @@ func can_pickup(item: CarryableItemComponent) -> bool:
 	if new_total_weight > carry_capacity:
 		return false
 
-	# Check pickup range (currently same cell)
-	if item.parent.grid_pos != parent.grid_pos:
-		return false
+	# TODO check other restrictions?
 
 	return true
 

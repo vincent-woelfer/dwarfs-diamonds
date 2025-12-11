@@ -1,18 +1,21 @@
 class_name Job
 extends RefCounted
 
-########################################################################################################################
+###################################
 # ENUM DEFINITIONS
-########################################################################################################################
+###################################
 enum Type {
 	MINE,
 	BUILD,
 	RUBBLE,
 }
 
+###################################
+# SHARED VARIABLES
+###################################
 var job_type: Job.Type
 
-# "Center"-Cell of this job (e.g. the cell to be mined)
+# "Center"-Cell of this job (e.g. the cell to be mined, or the cell containing the rubble)
 var center_cell: Cell
 
 # All cells from which this job can be worked on (e.g. for mining: all free neighbouring cells)
@@ -23,9 +26,15 @@ var assigned_dwarfs: Array[Dwarf] = []
 
 
 ###################################
+# For MINE jobs
+###################################
+
+
+###################################
 # For RUBBLE jobs
 ###################################
 var rubble: Rubble = null
+var carryable_item: CarryableItemComponent = null
 
 ###################################
 # For BUILD jobs
@@ -51,6 +60,7 @@ func get_capacity() -> int:
 	return 0
 
 
+## Basic checks whether this job is blocked or ready
 func is_workable() -> bool:
 	if assigned_dwarfs.size() >= get_capacity():
 		return false
@@ -80,6 +90,7 @@ func unassign_dwarf(dwarf: Dwarf) -> void:
 	assigned_dwarfs.erase(dwarf)
 
 
+# TODO IMPROVE JOB COMPLETEION/DELETION
 ## Dont use for finishing jobs
 func delete() -> void:
 	for dwarf in assigned_dwarfs:
@@ -204,7 +215,7 @@ func _init(type_: Job.Type, cell_: Cell) -> void:
 ## info[1] = status string
 ## info[2] = status color
 func get_debug_info() -> Array:
-	var info: Array
+	var info: Array[Variant] = []
 	info.resize(3)
 
 	# Job Type

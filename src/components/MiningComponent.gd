@@ -50,6 +50,16 @@ func is_currently_mining() -> bool:
 	return not _currently_mining_cells.is_empty()
 
 
+## Can this mining component mine this cell at all?
+## Used to filter jobs
+func can_mine_at_all(cell: Cell) -> bool:
+	if cell == null or not cell.is_solid:
+		return false
+
+	# TODO other restrictions
+
+	return true
+
 ########################################################################################################################
 # PRIVATE METHODS
 ########################################################################################################################

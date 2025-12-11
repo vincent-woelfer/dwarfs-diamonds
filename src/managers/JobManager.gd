@@ -58,7 +58,9 @@ func remove_mining_job_for_cell(cell: Cell) -> void:
 			return
 
 
-func get_new_job_for_worker(dwarf: Dwarf) -> JobWithPath:
+## Get best job for dwarf according to various criteria
+## THE MAIN FUNCTION OF THE JOB MANAGER
+func get_new_job_for_dwarf(dwarf: Dwarf) -> JobWithPath:
 	assert(dwarf != null)
 	var start_pos: Vector2i = dwarf.grid_pos
 
@@ -67,52 +69,24 @@ func get_new_job_for_worker(dwarf: Dwarf) -> JobWithPath:
 		HexLog.print_throttled(dwarf, "%s is in a disconnected cell, pathfinding is disabled!" % [dwarf])
 		return null
 
-	var walking_speed := dwarf.movement_comp.movement_capabilities.get_speed(Enum.MoveMode.WALK)
-
 	# Update all jobs first
+	# TODO benchmark this, if it becomes a bottleneck we can add a dirty flag to only update when needed
 	for job in _jobs:
 		job.update_workable_from_cells()
 
-
-	# Score all jobs according to various criteria (mostly distance for now)
+	# Filter jobs and score all remaining jobs according to various criteria (mostly distance for now)
+	var workable_jobs: Array[Job] = _filter_workable_jobs_(dwarf)
 	var scored_jobs: Array[ScoredJob] = []
 
-	for job: Job in _jobs:
-		if not job.is_workable():
-			continue
-
+	for job: Job in workable_jobs:
 		var path: Path = Global.level.nav_manager.find_path_to_one_of(start_pos, job.workable_from_poses)
 		if not path:
 			continue
 
-		###################################
-		### Score job - lower is better ###
-		### Unit = world space distance (because path length is the default score)
-		###################################
-		var remaining_time := job.estimate_remaining_time()
-		var path_length := path.get_total_length_world_space()
-		var score: float = path_length
-
-		# Dont start jobs that will be finished when we arrive
-		if path_length / walking_speed > remaining_time:
-			continue
-
-		# Penalize jobs which are already being worked on / are close to being finished
-		if remaining_time < Job.MAX_REMAINING_TIME_ESTIMATE:
-			score += 2 * Global.CELL_SIZE
-
-		# Penalize mining job directly below dwarf (only slightly, prefer horizontally adjacent ones)
-		# This is to avoid dwarfs digging straight down below themselves too often
-		if job.job_type == Job.Type.MINE:
-			if dwarf.grid_pos == job.center_cell.grid_pos - Vector2i(0, 1):
-				score += 1.0
-
-		# Dont prioritize rubble/pickup jobs (unless same cell)
-		if job.job_type == Job.Type.RUBBLE and dwarf.grid_pos != job.center_cell.grid_pos:
-			score += 2 * Global.CELL_SIZE
-
-		scored_jobs.append(ScoredJob.new(job, path, score))
-
+		var scored_job: ScoredJob = _score_job(job, path, dwarf)
+		if scored_job != null:
+			scored_jobs.append(scored_job)
+		
 	# No valid jobs
 	if scored_jobs.is_empty():
 		return null
@@ -150,6 +124,62 @@ func _process(delta: float) -> void:
 func _on_nav_updated() -> void:
 	for job in _jobs:
 		job.update_workable_from_cells()
+
+
+func _filter_workable_jobs_(dwarf: Dwarf) -> Array[Job]:
+	var filtered_jobs: Array[Job] = []
+	for job: Job in _jobs:
+		if not job.is_workable():
+			continue
+
+		# Check if this dwarf / their components have the capabilities to do this job at all
+		if job.job_type == Job.Type.MINE:
+			if not dwarf.mining_comp.can_mine_at_all(job.center_cell):
+				continue
+			
+		if job.job_type == Job.Type.BUILD:
+			if not dwarf.building_comp.can_build_at_all(job.building):
+				continue
+
+		if job.job_type == Job.Type.RUBBLE:
+			if not dwarf.carry_comp.can_carry_at_all(job.carryable_item):
+				continue
+		
+		# Job is workable for this dwarf -> add to output
+		filtered_jobs.append(job)
+
+	return filtered_jobs
+
+
+## Score job - lower is better
+## Unit = world space distance (because path length is the default score)
+## Returns null if job should not be considered at all
+func _score_job(job: Job, path: Path, dwarf: Dwarf) -> ScoredJob:
+	var walking_speed := dwarf.movement_comp.movement_capabilities.get_speed(Enum.MoveMode.WALK)
+	
+	var remaining_time := job.estimate_remaining_time()
+	var path_length := path.get_total_length_world_space()
+	var score: float = path_length
+
+	# Dont start jobs that will be finished before we arrive
+	if path_length / walking_speed > remaining_time:
+		return null
+
+	# Penalize jobs which are already being worked on / are close to being finished
+	if remaining_time < Job.MAX_REMAINING_TIME_ESTIMATE:
+		score += 2 * Global.CELL_SIZE
+
+	# Penalize mining job directly below dwarf (only slightly, prefer horizontally adjacent ones)
+	# This is to avoid dwarfs digging straight down below themselves too often
+	if job.job_type == Job.Type.MINE:
+		if dwarf.grid_pos == job.center_cell.grid_pos - Vector2i(0, 1):
+			score += 1.0
+
+	# Dont prioritize rubble/pickup jobs (unless same cell)
+	if job.job_type == Job.Type.RUBBLE and dwarf.grid_pos != job.center_cell.grid_pos:
+		score += 2 * Global.CELL_SIZE
+
+	return ScoredJob.new(job, path, score)
 
 ########################################################################################################################
 # DEBUG DRAWING
