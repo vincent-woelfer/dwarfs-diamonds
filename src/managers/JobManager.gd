@@ -1,38 +1,34 @@
 class_name JobManager
 extends Node2D
 
-var _jobs: Array[Job] = []
+var _jobs: Array[Job] = [] # Ensure Job class is properly defined elsewhere
 
 ########################################################################################################################
-# PUBLIC METHODS
+# PUBLIC METHODS - ADD / REMOVE JOBS
 ########################################################################################################################
 func add_job(job: Job) -> void:
 	assert(job != null)
 
-	# Prevent duplicate mining jobs for same cell
-	if job.job_type == Job.Type.MINE:
-		for existing_job in _jobs:
-			if existing_job.job_type == Job.Type.MINE and existing_job.center_cell == job.center_cell:
-				assert(false, "JobManager: Not adding duplicate mining job for cell " % job.center_cell)
-				return
+	match job.job_type:
+		Job.Type.MINE:
+			for existing_job in _jobs:
+				if existing_job.job_type == Job.Type.MINE and existing_job.center_cell == job.center_cell:
+					assert(false, "JobManager: Not adding duplicate mining job for cell " % job.center_cell)
+					return
 
-	# Prevent duplicate build jobs for same building
-	if job.job_type == Job.Type.BUILD:
-		assert(job.building != null)
+		Job.Type.BUILD:
+			assert(job.building != null)
+			for existing_job in _jobs:
+				if existing_job.job_type == Job.Type.BUILD and existing_job.building == job.building:
+					assert(false, "JobManager: Not adding duplicate build job for building " % job.building)
+					return
 
-		for existing_job in _jobs:
-			if existing_job.job_type == Job.Type.BUILD and existing_job.building == job.building:
-				assert(false, "JobManager: Not adding duplicate build job for building " % job.building)
-				return
-
-	# Prevent duplicate rubble jobs for same rubble
-	if job.job_type == Job.Type.RUBBLE:
-		assert(job.rubble != null)
-
-		for existing_job in _jobs:
-			if existing_job.job_type == Job.Type.RUBBLE and existing_job.rubble == job.rubble:
-				assert(false, "JobManager: Not adding duplicate rubble job for rubble " % job.rubble)
-				return
+		Job.Type.RUBBLE:
+			assert(job.rubble != null)
+			for existing_job in _jobs:
+				if existing_job.job_type == Job.Type.RUBBLE and existing_job.rubble == job.rubble:
+					assert(false, "JobManager: Not adding duplicate rubble job for rubble " % job.rubble)
+					return
 	
 
 	job.update_workable_from_cells()
@@ -57,6 +53,9 @@ func remove_mining_job_for_cell(cell: Cell) -> void:
 			_jobs.erase(job)
 			return
 
+########################################################################################################################
+# PUBLIC METHODS - GET NEW JOB FOR DWARF
+########################################################################################################################
 
 ## Get best job for dwarf according to various criteria
 ## THE MAIN FUNCTION OF THE JOB MANAGER
@@ -75,7 +74,7 @@ func get_new_job_for_dwarf(dwarf: Dwarf) -> JobWithPath:
 		job.update_workable_from_cells()
 
 	# Filter jobs and score all remaining jobs according to various criteria (mostly distance for now)
-	var workable_jobs: Array[Job] = _filter_workable_jobs_(dwarf)
+	var workable_jobs: Array[Job] = _filter_workable_jobs_for_dwarf(dwarf)
 	var scored_jobs: Array[ScoredJob] = []
 
 	for job: Job in workable_jobs:
@@ -107,11 +106,8 @@ func get_new_job_for_dwarf(dwarf: Dwarf) -> JobWithPath:
 ########################################################################################################################
 # PRIVATE METHODS
 ########################################################################################################################
-func _init() -> void:
-	self.process_priority = Enum.ProcessPriority.JOBS
-
-
 func _ready() -> void:
+	self.process_priority = Enum.ProcessPriority.JOBS
 	EventBus.Signal_NavUpdated.connect(_on_nav_updated)
 
 
@@ -126,24 +122,25 @@ func _on_nav_updated() -> void:
 		job.update_workable_from_cells()
 
 
-func _filter_workable_jobs_(dwarf: Dwarf) -> Array[Job]:
+func _filter_workable_jobs_for_dwarf(dwarf: Dwarf) -> Array[Job]:
 	var filtered_jobs: Array[Job] = []
 	for job: Job in _jobs:
 		if not job.is_workable():
 			continue
-
-		# Check if this dwarf / their components have the capabilities to do this job at all
-		if job.job_type == Job.Type.MINE:
-			if not dwarf.mining_comp.can_mine_at_all(job.center_cell):
-				continue
 			
-		if job.job_type == Job.Type.BUILD:
-			if not dwarf.building_comp.can_build_at_all(job.building):
-				continue
+		# Check if this dwarf / their components have the capabilities to do this job at all
+		match job.job_type:
+			Job.Type.MINE:
+				if dwarf.mining_comp == null or not dwarf.mining_comp.can_mine_at_all(job.center_cell):
+					continue
 
-		if job.job_type == Job.Type.RUBBLE:
-			if not dwarf.carry_comp.can_carry_at_all(job.carryable_item):
-				continue
+			Job.Type.BUILD:
+				if dwarf.building_comp == null or not dwarf.building_comp.can_build_at_all(job.building):
+					continue
+
+			Job.Type.RUBBLE:
+				if dwarf.carry_comp == null or not dwarf.carry_comp.can_carry_at_all(job.carryable_item):
+					continue
 		
 		# Job is workable for this dwarf -> add to output
 		filtered_jobs.append(job)

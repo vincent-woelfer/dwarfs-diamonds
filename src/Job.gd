@@ -33,6 +33,7 @@ var assigned_dwarfs: Array[Dwarf] = []
 ###################################
 # For RUBBLE jobs
 ###################################
+# TODO generalize to carryable item jobs?
 var rubble: Rubble = null
 var carryable_item: CarryableItemComponent = null
 
@@ -46,15 +47,18 @@ var building: BuildingBase = null
 # PUBLIC METHODS
 ########################################################################################################################
 func get_capacity() -> int:
-	if job_type == Job.Type.MINE:
-		return 2
-	elif job_type == Job.Type.BUILD:
-		# Only work on big buildings with multiple dwarfs
-		if building != null and building.building_data.build_time >= 4.0 and building.build_process == 0.0 and workable_from_poses.size() >= 2:
-			return 2
-		return 1
-	elif job_type == Job.Type.RUBBLE:
-		return 1
+	match job_type:
+		Job.Type.MINE:
+			return 2 # Up to 2 dwarfs can mine simultaneously
+			
+		Job.Type.BUILD:
+			# Only allow multiple dwarfs for big buildings
+			if building != null and building.building_data.build_time >= 4.0 and building.build_process == 0.0 and workable_from_poses.size() >= 2:
+				return 2
+			return 1
+
+		Job.Type.RUBBLE:
+			return 1
 
 	assert(false)
 	return 0
@@ -134,8 +138,7 @@ func update_workable_from_cells() -> void:
 
 	# RUBBLE
 	elif job_type == Job.Type.RUBBLE:
-		# Can only pick up rubble when not falling. TODO maybe check carryable item component instead
-		if rubble._can_be_picked_up():
+		if rubble.carryable_item_comp.can_be_picked_up_right_now():
 			workable_from_poses.append(center_cell.grid_pos)
 		
 
@@ -147,49 +150,49 @@ func estimate_remaining_time() -> float:
 		return MAX_REMAINING_TIME_ESTIMATE
 
 	# Simple estimate based on job type
-	if job_type == Job.Type.MINE:
-		var remaining_time: float = MAX_REMAINING_TIME_ESTIMATE
+	var remaining_time: float = MAX_REMAINING_TIME_ESTIMATE
+	
+	match job_type:
+		Job.Type.MINE:
+			for dwarf in assigned_dwarfs:
+				# If at least one dwarf is already mining -> use its speed
+				if dwarf.sm.state == Dwarf.State.MINING:
+					var remaining_process: float = 1.0 - center_cell.mining_process
+					var time := remaining_process / dwarf.mining_comp.mining_speed
+					remaining_time = min(remaining_time, time)
 
-		for dwarf in assigned_dwarfs:
-			# If at least one dwarf is already mining -> use its speed
-			if dwarf.sm.state == Dwarf.State.MINING:
-				var remaining_process: float = 1.0 - center_cell.mining_process
-				var time := remaining_process / dwarf.mining_comp.mining_speed
-				remaining_time = min(remaining_time, time)
+				# Dwarf still walking to job
+				else:
+					if dwarf.job_with_path and dwarf.job_with_path.path:
+						# Estimate time based on path length and walking speed
+						var path_length: float = dwarf.job_with_path.path.get_remaining_length_world_space()
+						var walking_speed := dwarf.movement_comp.movement_capabilities.get_speed(Enum.MoveMode.WALK)
+						var time := path_length / walking_speed
+						remaining_time = min(remaining_time, time + 5.0) # +5s buffer for starting mining
 
-			# Dwarf still walking to job
-			else:
-				if dwarf.job_with_path and dwarf.job_with_path.path:
-					# Estimate time based on path length and walking speed
-					var path_length: float = dwarf.job_with_path.path.get_remaining_length_world_space()
-					var walking_speed := dwarf.movement_comp.movement_capabilities.get_speed(Enum.MoveMode.WALK)
-					var time := path_length / walking_speed
-					remaining_time = min(remaining_time, time + 5.0) # +5s buffer for starting mining
+			return remaining_time
 
-		return remaining_time
+		Job.Type.BUILD:
+			for dwarf in assigned_dwarfs:
+				# If at least one dwarf is already building -> use its speed
+				if dwarf.sm.state == Dwarf.State.BUILDING:
+					var remaining_process: float = 1.0 - building.build_process
+					var time := remaining_process / dwarf.building_comp.building_speed
+					remaining_time = min(remaining_time, time)
 
-	elif job_type == Job.Type.BUILD:
-		var remaining_time: float = MAX_REMAINING_TIME_ESTIMATE
-		for dwarf in assigned_dwarfs:
-			# If at least one dwarf is already building -> use its speed
-			if dwarf.sm.state == Dwarf.State.BUILDING:
-				var remaining_process: float = 1.0 - building.build_process
-				var time := remaining_process / dwarf.building_comp.building_speed
-				remaining_time = min(remaining_time, time)
+				# Dwarf still walking to job
+				else:
+					if dwarf.job_with_path and dwarf.job_with_path.path:
+						# Estimate time based on path length and walking speed
+						var path_length: float = dwarf.job_with_path.path.get_remaining_length_world_space()
+						var walking_speed := dwarf.movement_comp.movement_capabilities.get_speed(Enum.MoveMode.WALK)
+						var time := path_length / walking_speed
+						remaining_time = min(remaining_time, time + 5.0) # +5s buffer for starting building
+			return 0.0
 
-			# Dwarf still walking to job
-			else:
-				if dwarf.job_with_path and dwarf.job_with_path.path:
-					# Estimate time based on path length and walking speed
-					var path_length: float = dwarf.job_with_path.path.get_remaining_length_world_space()
-					var walking_speed := dwarf.movement_comp.movement_capabilities.get_speed(Enum.MoveMode.WALK)
-					var time := path_length / walking_speed
-					remaining_time = min(remaining_time, time + 5.0) # +5s buffer for starting building
-		return 0.0
-
-	elif job_type == Job.Type.RUBBLE:
-		# Only one dwarf can do this job
-		return 0.0
+		Job.Type.RUBBLE:
+			# Only one dwarf can do this job
+			return 0.0
 
 
 	# Other job types not implemented yet
@@ -211,8 +214,8 @@ func _init(type_: Job.Type, cell_: Cell) -> void:
 ########################################################################################################################
 # DEBUG
 ########################################################################################################################
-## info[0] = job type string
-## info[1] = status string
+## info[0] = job type string (MINE, BUILD, etc)
+## info[1] = status string (BLOCKED, READY, DOING (x/y))
 ## info[2] = status color
 func get_debug_info() -> Array:
 	var info: Array[Variant] = []

@@ -65,11 +65,11 @@ func can_mine_at_all(cell: Cell) -> bool:
 ########################################################################################################################
 func _ready() -> void:
 	# SIGNALS
-	EventBus.Signal_GlobalCellDestroyed.connect(_on_global_cell_mining_completed)
+	EventBus.Signal_GlobalCellDestroyed.connect(_on_global_any_cell_mining_completed)
 
 
 ## Called by Signal_CellMiningCompleted for EVERY mined cell in the game
-func _on_global_cell_mining_completed(mined_cell: Cell) -> void:
+func _on_global_any_cell_mining_completed(mined_cell: Cell) -> void:
 	# Check if this component was mining that cell
 	if mined_cell in _currently_mining_cells:
 		stop_mining_cell(mined_cell)
