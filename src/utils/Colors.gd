@@ -105,3 +105,12 @@ static var building_light_mask_finished: int = 1
 static var building_light_mask_unfinished: int = 0
 
 static var building_modulate_external_destroy: Color = Color(1.2, 0.0, 0.0, 1.0) # red
+
+
+########################################################################################################################
+# JOB COLORS
+########################################################################################################################
+static var JOB_COLOR_ARCHIVED: Color = Color.SLATE_BLUE.lerp(Color.BLUE, 0.5)
+static var JOB_COLOR_BLOCKED: Color = Color.RED.lerp(Color.ORANGE_RED, 0.4)
+static var JOB_COLOR_READY: Color = Color.YELLOW
+static var JOB_COLOR_DOING: Color = Color.GREEN

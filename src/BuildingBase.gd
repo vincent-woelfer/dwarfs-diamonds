@@ -55,7 +55,8 @@ func update_build_process(building_speed_with_delta: float) -> void:
 
 
 func destroy_building() -> void:
-	Global.level.job_manager.remove_job(build_job)
+	if build_job != null:
+		build_job.archive()
 
 	# TOOD ?
 	pass
@@ -78,8 +79,7 @@ func _complete_construction() -> void:
 	is_complete = true
 
 	# Complete build job
-	build_job.complete(null)
-	Global.level.job_manager.remove_job(build_job)
+	build_job.archive()
 	
 	# Update visual
 	_set_modulate_internal(Colors.building_modulate_finished)
@@ -106,4 +106,4 @@ func _flash(color: Color, duration: float) -> void:
 
 func _to_string() -> String:
 	var print_color := Colors.to_print_color(building_color)
-	return Util.color_string("%s @ %s" % [building_data.name, grid_pos], print_color)
+	return Util.color_string("%s @%s" % [building_data.name, grid_pos], print_color)

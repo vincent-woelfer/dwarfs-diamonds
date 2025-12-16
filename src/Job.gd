@@ -24,6 +24,10 @@ var workable_from_poses: Array[Vector2i] = []
 # Currently assigned dwarfs
 var assigned_dwarfs: Array[Dwarf] = []
 
+# Only active jobs are listed in job-manager.
+# Non-active means completed or aborted and are only used for dwarfs to reference them in their finished-job callback.
+var is_active: bool
+
 
 ###################################
 # For MINE jobs
@@ -94,23 +98,24 @@ func unassign_dwarf(dwarf: Dwarf) -> void:
 	assigned_dwarfs.erase(dwarf)
 
 
-# TODO IMPROVE JOB COMPLETEION/DELETION
-## Dont use for finishing jobs
-func delete() -> void:
+## Maybe rename to "archive" or "deactivate"?
+## Calls job-manager.remove_job internally.
+## Singals all working dwarfs (also the one finishing this job) that the job is finished.
+func archive() -> void:
+	# Ensure this is only triggered once
+	if not is_active:
+		push_error("Trying to archive job %s but was archived before (is_active=false)" % [self])
+		return
+		
+	is_active = false
+
+	# This requires is_active=false
+	Global.level.job_manager.remove_job(self)
+	
 	for dwarf in assigned_dwarfs:
-		dwarf.on_job_deleted()
-	assigned_dwarfs.clear()
+		dwarf.on_job_finished()
 
-
-func complete(dwarf: Dwarf) -> void:
-	if dwarf != null:
-		unassign_dwarf(dwarf)
-
-	# Delete for other dwarfs TODO should we not call finish for them?
-	# TODO FIX THIS
-	delete()
-
-
+	
 func update_workable_from_cells() -> void:
 	workable_from_poses.clear()
 
@@ -205,6 +210,7 @@ func estimate_remaining_time() -> float:
 ########################################################################################################################
 func _init(type_: Job.Type, cell_: Cell) -> void:
 	assert(cell_ != null)
+	is_active = true
 
 	self.job_type = type_
 	self.center_cell = cell_
@@ -215,7 +221,7 @@ func _init(type_: Job.Type, cell_: Cell) -> void:
 # DEBUG
 ########################################################################################################################
 ## info[0] = job type string (MINE, BUILD, etc)
-## info[1] = status string (BLOCKED, READY, DOING (x/y))
+## info[1] = status string (BLOCKED, READY, DOING (x/y), ARCHIVED)
 ## info[2] = status color
 func get_debug_info() -> Array:
 	var info: Array[Variant] = []
@@ -224,17 +230,22 @@ func get_debug_info() -> Array:
 	# Job Type
 	info[0] = Enum.to_str(Job.Type, job_type)
 
+	if not is_active:
+		info[1] = "ARCHIVED"
+		info[2] = Colors.JOB_COLOR_ARCHIVED
+		return info
+
 	# "Status"
 	if workable_from_poses.is_empty():
 		info[1] = "BLOCKED"
-		info[2] = Color.RED
+		info[2] = Colors.JOB_COLOR_BLOCKED
 	else:
 		if assigned_dwarfs.is_empty():
 			info[1] = "READY"
-			info[2] = Color.BLUE
+			info[2] = Colors.JOB_COLOR_READY
 		else:
-			info[1] = "DOING (%d/%d)" % [assigned_dwarfs.size(), get_capacity()]
-			info[2] = Color.GREEN
+			info[1] = "DOING %d/%d" % [assigned_dwarfs.size(), get_capacity()]
+			info[2] = Colors.JOB_COLOR_DOING
 
 	return info
 
@@ -243,4 +254,4 @@ func _to_string() -> String:
 	var info := get_debug_info()
 	var color: Color = info[2]
 	color = Colors.to_print_color(color)
-	return Util.color_string("Job(%s - %s @ %s)" % [info[0], info[1], center_cell.grid_pos], color)
+	return Util.color_string("Job(%s - %s @%s)" % [info[0], info[1], center_cell.grid_pos], color)

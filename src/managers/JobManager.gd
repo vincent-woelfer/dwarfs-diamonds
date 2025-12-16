@@ -8,6 +8,9 @@ var _jobs: Array[Job] = [] # Ensure Job class is properly defined elsewhere
 ########################################################################################################################
 func add_job(job: Job) -> void:
 	assert(job != null)
+	assert(job not in _jobs)
+	assert(job.center_cell != null)
+	assert(job.is_active)
 
 	match job.job_type:
 		Job.Type.MINE:
@@ -35,13 +38,15 @@ func add_job(job: Job) -> void:
 	_jobs.append(job)
 
 
+## ONLY called by the job itself
 func remove_job(job: Job) -> void:
 	if job == null:
 		return
-		
+
+	# Must be archived beforehand
+	assert(job.is_active == false)
 	assert(job in _jobs)
 
-	job.delete()
 	_jobs.erase(job)
 
 
@@ -49,8 +54,7 @@ func remove_job(job: Job) -> void:
 func remove_mining_job_for_cell(cell: Cell) -> void:
 	for job in _jobs:
 		if job.job_type == Job.Type.MINE and job.center_cell == cell:
-			job.delete()
-			_jobs.erase(job)
+			job.archive() # Calls remove_job internally
 			return
 
 ########################################################################################################################
@@ -127,7 +131,7 @@ func _filter_workable_jobs_for_dwarf(dwarf: Dwarf) -> Array[Job]:
 	for job: Job in _jobs:
 		if not job.is_workable():
 			continue
-			
+
 		# Check if this dwarf / their components have the capabilities to do this job at all
 		match job.job_type:
 			Job.Type.MINE:

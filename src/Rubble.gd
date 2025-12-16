@@ -41,18 +41,14 @@ func _ready() -> void:
 
 # Add/remove pickup job on pick up / drop
 func _on_picked_up() -> void:
-	Global.level.job_manager.remove_job(pickup_job)
+	pickup_job.archive()
 	pickup_job = null
+
 func _on_dropped() -> void:
 	pickup_job = Job.new(Job.Type.RUBBLE, curr_cell)
 	pickup_job.rubble = self
 	Global.level.job_manager.add_job(pickup_job)
 
-
-# TODO unused
-func delete() -> void:
-	Global.level.job_manager.remove_job(pickup_job)
-	queue_free()
 
 # used by CarryableItemComponent to check whether this rubble can be picked up
 func _can_be_picked_up() -> bool:

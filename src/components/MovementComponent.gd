@@ -42,7 +42,7 @@ func assign_path(new_path: Path) -> bool:
 	if new_path == null or sm.state == State.FALLING or sm.state == State.CARRIED:
 		return false
 
-	# Hide OLD path, even if reference still stored elsewhere
+	# Hide OLD path, in case reference still stored elsewhere
 	if path:
 		path.debug_draw = false
 	
@@ -90,7 +90,7 @@ func _enter_falling() -> void:
 	Signal_OnStartedFalling.emit()
 
 func _exit_falling() -> void:
-	# TODO this triggers when beeing grabbed while falling
+	# TODO this also triggers when beeing grabbed while falling
 	var fall_height_cells: int = abs(fall_start_y - parent.grid_pos.y)
 	Signal_OnLanded.emit(fall_height_cells)
 

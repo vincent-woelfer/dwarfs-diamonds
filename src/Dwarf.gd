@@ -36,7 +36,6 @@ func _ready() -> void:
 	dwarf_id = next_dwarf_id
 	next_dwarf_id += 1
 	dwarf_color = Colors.get_rand_dwarf_color(dwarf_id)
-
 	self.z_index = Enum.ZIndex.DWARFS
 
 	# Apply Color
@@ -70,22 +69,28 @@ func _look_into_dir(dir: Vector2) -> void:
 ########################################################################################################################
 # STATE MACHINE HANDLERS
 ########################################################################################################################
-
+###################################
+# IDLE
+###################################
 func _physics_process_idle(delta: float) -> void:
 	_find_new_job()
 
-
+###################################
+# MINING
+###################################
 func _enter_mining(cell_to_mine: Cell) -> void:
 	mining_comp.start_mining(cell_to_mine)
 
-	# Look at mining cell
+	# Look at mined cell
 	_look_into_dir(cell_to_mine.grid_pos - grid_pos)
 
 func _exit_mining() -> void:
-	# Abort mining
 	mining_comp.stop_mining_all_cells()
 
 
+###################################
+# BUILDING
+###################################
 func _enter_building(building: BuildingBase) -> void:
 	if building == null:
 		push_error("%s cannot enter building state with null building, aborting" % [self])
@@ -102,14 +107,21 @@ func _enter_building(building: BuildingBase) -> void:
 
 	building_comp.start_building(cell, cell_from, building)
 
-	# Look at cell
+	# Look at cell where building is built
 	_look_into_dir(job_with_path.job.center_cell.grid_pos - grid_pos)
 
+func _exit_building() -> void:
+	# Abort building
+	building_comp.stop_building()
 
+
+###################################
+# DYING
+###################################
 func _enter_dying() -> void:
 	print_rich("%s has died!" % [self])
 	
-	_abandon_job_enter_idle()
+	_stop_working_job_enter_idle()
 
 	# Hide player sprite + light
 	animated_sprite.visible = false
@@ -134,10 +146,9 @@ func _enter_dying() -> void:
 ## Triggered by MovementComponent
 func _on_finished_path() -> void:
 	if job_with_path == null:
-		_abandon_job_enter_idle()
+		_stop_working_job_enter_idle()
 		return
 
-	job_with_path.path.free()
 	job_with_path.path = null
 
 	if job_with_path.job == null:
@@ -147,58 +158,6 @@ func _on_finished_path() -> void:
 
 	_perform_job(job_with_path.job)
 	
-
-## Called by _on_finished_path when arrived at job location
-func _perform_job(job: Job) -> void:
-	if job == null:
-		print_rich("%s cannot perform null job, transitioning to idle" % [self])
-		_abandon_job_enter_idle()
-		return
-
-	# Validate if we can work on the job
-	if not (curr_cell.grid_pos in job.workable_from_poses):
-		print_rich("%s reached %s but cannot work from here, abandoning job" % [self, job])
-		_abandon_job_enter_idle()
-		return
-
-	### MINE JOB ###
-	if job.job_type == Job.Type.MINE:
-		print_rich("%s reached %s and starts mining" % [self, job.center_cell])
-		sm.transition_to(State.MINING, job.center_cell)
-		return
-	
-	### RUBBLE JOB ###
-	elif job.job_type == Job.Type.RUBBLE:
-		print_rich("%s reached %s and starts picking up rubble" % [self, job.center_cell])
-		# Just pickup everything in the cell
-		for item: CarryableItemComponent in carry_comp.get_all_pickupable_items_in_range():
-			if carry_comp.pickup(item):
-				print_rich("%s picked up %s" % [self, item])
-				if item.parent == job.rubble:
-					# Complete job
-					job.complete(self)
-			else:
-				print_rich("%s failed to pick up %s" % [self, item])
-		
-		# TODO transition to idle or find new job?
-		sm.transition_to(State.IDLE)
-		return
-
-	### BUILD JOB ###
-	elif job.job_type == Job.Type.BUILD:
-		print_rich("%s reached %s and starts building %s" % [self, job.center_cell, job.building])
-		if job.building != null:
-			sm.transition_to(State.BUILDING, job.building)
-		else:
-			print_rich("%s reached %s but found no building to build, abandoning job" % [self, job.center_cell])
-			_abandon_job_enter_idle()
-		return
-
-	### INVALID JOB ###
-	else:
-		print_rich("%s reached %s but job type %s is unhandled, abandoning job" % [self, job.center_cell, Enum.to_str(Job.Type, job.job_type)])
-		_abandon_job_enter_idle()
-
 
 ## Triggered by MovementComponent
 func _on_landed(fall_height_cells: int) -> void:
@@ -240,22 +199,20 @@ func _on_movement_direction_changed(new_dir: Vector2) -> void:
 
 ## Triggered by MovementComponent
 func _on_started_falling() -> void:
-	_abandon_job_enter_idle(false)
+	_stop_working_job_enter_idle(false)
 	sm.transition_to(State.FALLING)
 
 
 ## Triggered by MiningComponent
 func _on_mining_completed(mined_cell: Cell) -> void:
+	# TODO here its fine
 	print_rich("%s completed mining %s" % [self, job_with_path.job])
 
 	# Complete job
 	if job_with_path != null:
-		job_with_path.job.complete(self)
-
-		# Clear job reference
-		if job_with_path.path != null:
-			job_with_path.path.free()
-
+		# TODO job appears to be null here.
+		job_with_path.job.archive() # -> this calls on_job_finished -> transitions to idle internally already. THIS IS UNCLEAN; TODO REFACTOR
+		job_with_path.path = null
 		job_with_path = null
 
 	# Transition back to idle but dont override falling state
@@ -270,12 +227,8 @@ func _on_building_completed(building: BuildingBase) -> void:
 
 	# Complete job
 	if job_with_path != null:
-		job_with_path.job.complete(self)
-
-		# Clear job reference
-		if job_with_path.path != null:
-			job_with_path.path.free()
-
+		job_with_path.job.archive()
+		job_with_path.path = null
 		job_with_path = null
 
 	# Transition back to idle but dont override falling state
@@ -283,14 +236,13 @@ func _on_building_completed(building: BuildingBase) -> void:
 		sm.transition_to(State.IDLE)
 
 
-## Triggered by Job. When job is deleted - not for the dwarf calling job.complete
-## TODO improve this. currently most jobs delete themselves upon completion which triggers this.
-func on_job_deleted() -> void:
+## Triggered by Job when job is not active anymore. This can be because the job was completed or aborted.
+func on_job_finished() -> void:
 	if job_with_path == null:
 		return
 
-	print_rich("%s's job was deleted" % [self])
-	_abandon_job_enter_idle()
+	print_rich("%s's job %s was archived (on_job_finished called)" % [self, job_with_path.job])
+	_stop_working_job_enter_idle()
 
 
 ## Triggered by NavMesh updates (via EventBus)
@@ -303,22 +255,78 @@ func _on_nav_updated() -> void:
 ########################################################################################################################
 # OWN (UTILITY) FUNCTIONS
 ########################################################################################################################
-func _abandon_job_enter_idle(transition_to_idle: bool = true) -> void:
+func _stop_working_job_enter_idle(transition_to_idle: bool = true) -> void:
 	if job_with_path == null:
 		return
 
-	print_rich("%s abandoning %s" % [self, job_with_path.job])
+	var temp_job: Job = job_with_path.job
+	
 	if job_with_path.path != null:
 		if movement_comp.sm.state == MovementComponent.State.FOLLOWING_PATH:
 			movement_comp.abort_path()
-		job_with_path.path.free()
+		job_with_path.path = null
 	if job_with_path.job != null:
 		job_with_path.job.unassign_dwarf(self)
 	job_with_path = null
 
 	# Transition back to idle but dont override falling state
 	if transition_to_idle and sm.state != State.FALLING:
+		print_rich("%s stops working on %s and transitions to IDLE" % [self, temp_job])
 		sm.transition_to(State.IDLE)
+	else:
+		print_rich("%s stops working on %s but stays in %s" % [self, temp_job, Enum.to_str(State, sm.state)])
+
+
+## Called by _on_finished_path when arrived at job location
+func _perform_job(job: Job) -> void:
+	if job == null:
+		print_rich("%s cannot perform null job, transitioning to idle" % [self])
+		_stop_working_job_enter_idle()
+		return
+
+	# Validate if we can work on the job
+	if not (curr_cell.grid_pos in job.workable_from_poses):
+		print_rich("%s reached %s but cannot work from here, abandoning job" % [self, job])
+		_stop_working_job_enter_idle()
+		return
+
+	### MINE JOB ###
+	if job.job_type == Job.Type.MINE:
+		print_rich("%s reached %s and starts mining" % [self, job.center_cell])
+		sm.transition_to(State.MINING, job.center_cell)
+		return
+	
+	### RUBBLE JOB ###
+	elif job.job_type == Job.Type.RUBBLE:
+		print_rich("%s reached %s and starts picking up rubble" % [self, job.center_cell])
+		# Just pickup everything in the cell
+		for item: CarryableItemComponent in carry_comp.get_all_pickupable_items_in_range():
+			if carry_comp.pickup(item):
+				print_rich("%s picked up %s" % [self, item])
+				if item.parent == job.rubble:
+					# Complete job
+					job.archive()
+			else:
+				print_rich("%s failed to pick up %s" % [self, item])
+		
+		# Idle implies finding a new job
+		sm.transition_to(State.IDLE)
+		return
+
+	### BUILD JOB ###
+	elif job.job_type == Job.Type.BUILD:
+		print_rich("%s reached %s and starts building %s" % [self, job.center_cell, job.building])
+		if job.building != null:
+			sm.transition_to(State.BUILDING, job.building)
+		else:
+			print_rich("%s reached %s but found no building to build, abandoning job" % [self, job.center_cell])
+			_stop_working_job_enter_idle()
+		return
+
+	### INVALID JOB ###
+	else:
+		print_rich("%s reached %s but job type %s is unhandled, abandoning job" % [self, job.center_cell, Enum.to_str(Job.Type, job.job_type)])
+		_stop_working_job_enter_idle()
 
 
 func _find_new_job() -> void:
@@ -326,7 +334,7 @@ func _find_new_job() -> void:
 	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_dwarf(self)
 
 	if new_job_with_path == null:
-		HexLog.print_throttled(self, "%s found no job, remains idle" % [self], 0.5)
+		HexLog.print_throttled(self, "%s found no job, remains idle" % [self], 3.0)
 		return
 
 	var success: bool = false
@@ -349,7 +357,6 @@ func _validate_current_path() -> void:
 	if not job_with_path or not job_with_path.path:
 		return
 
-	job_with_path.path.free()
 	job_with_path.path = null
 	
 	# Force job to update workable cells first
@@ -363,12 +370,8 @@ func _validate_current_path() -> void:
 		
 	else:
 		print_rich("%s lost path to job at %s" % [self, job_with_path.job.center_cell])
-		_abandon_job_enter_idle()
+		_stop_working_job_enter_idle()
 
-
-func _to_string() -> String:
-	var print_color := Colors.to_print_color(dwarf_color)
-	return Util.color_string("Dwarf-%d (%s @ %s)" % [dwarf_id, Enum.to_str(State, sm.state), grid_pos], print_color)
 
 ########################################################################################################################
 # DEBUG DRAWING
@@ -415,3 +418,8 @@ func _debug_draw_in_ui_absolute(ui_layer: CanvasItem) -> void:
 
 func _dev_toogle_light(is_light_on: bool) -> void:
 	light.enabled = is_light_on
+
+
+func _to_string() -> String:
+	var print_color := Colors.to_print_color(dwarf_color)
+	return Util.color_string("Dwarf-%d (%s @%s)" % [dwarf_id, Enum.to_str(State, sm.state), grid_pos], print_color)

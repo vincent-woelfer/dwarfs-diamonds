@@ -12,7 +12,7 @@ extends Node2D
 # If the order doesnt matter and its only simple notifications, use signals instead.
 ########################################################################################################################
 
-# Normally called by MiningComponent
+# Normally called by MiningComponent. Archives job through several steps.
 func destroy_cell(cell: Cell) -> void:
 	cell.destroy_cell()
 

@@ -28,14 +28,13 @@ static func print_multiline_banner_with_text(string: String) -> void:
 
 ## Prints text at a limited rate (to avoid flooding the console).
 static var _last_print_times: Dictionary[String, float] = {}
-static func print_throttled(instance: Object, text: String, times_per_sec: float = 1.0) -> void:
+static func print_throttled(instance: Object, text: String, min_interval: float = 1.0) -> void:
 	var stack := get_stack()
 	var call_info: Dictionary = stack[1] if stack.size() > 1 else {}
 	var instance_id := instance.get_instance_id() if instance != null else 0
 	var key: String = "%s:%d:%d" % [call_info.get("source", "unknown"), call_info.get("line", -1), instance_id]
 	
 	var now: float = Util.now()
-	var min_interval := 1.0 / times_per_sec
 	var last_time: float = _last_print_times.get(key, -INF)
 
 	if now - last_time >= min_interval:

@@ -136,13 +136,16 @@ func get_remaining_length_world_space() -> float:
 	return _get_remaining_length_grid_space() * Global.CELL_SIZE
 
 
+# Simply set is also fine, also calls queue_redraw
 func set_debug_draw_enabled(enabled: bool) -> void:
-	debug_draw = enabled
-	_debug_draw_proxy_relative.queue_redraw()
+	if debug_draw != enabled:
+		debug_draw = enabled
+		_debug_draw_proxy_relative.queue_redraw()
 
 func set_debug_draw_color(color: Color) -> void:
-	debug_color = color
-	_debug_draw_proxy_relative.queue_redraw()
+	if debug_color != color:
+		debug_color = color
+		_debug_draw_proxy_relative.queue_redraw()
 
 ########################################################################################################################
 # INTERNAL API
@@ -336,14 +339,32 @@ func _get_remaining_length_grid_space() -> float:
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
-var debug_draw: bool = false
 var _debug_draw_proxy_relative := DebugDrawProxy.new(self)
 
-# Only drawn if added to scene tree
-var debug_color := Color.ORANGE
-var debug_width := 5.0
-var debug_draw_follow_points := true
-var debug_offset_follow_points := Vector2(0.0, -0.05) * Global.CELL_SIZE_VEC
+var debug_draw: bool = false:
+	set(value):
+		debug_draw = value
+		_debug_draw_proxy_relative.queue_redraw()
+
+# Visual params -> redraw on change
+var debug_color := Color.ORANGE:
+	set(value):
+		debug_color = value
+		_debug_draw_proxy_relative.queue_redraw()
+var debug_width := 5.0:
+	set(value):
+		debug_width = value
+		_debug_draw_proxy_relative.queue_redraw()
+
+var debug_draw_follow_points := true:
+	set(value):
+		debug_draw_follow_points = value
+		_debug_draw_proxy_relative.queue_redraw()
+
+var debug_offset_follow_points := Vector2(0.0, -0.05) * Global.CELL_SIZE_VEC:
+	set(value):
+		debug_offset_follow_points = value
+		_debug_draw_proxy_relative.queue_redraw()
 
 
 func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
