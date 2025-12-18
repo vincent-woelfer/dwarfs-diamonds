@@ -86,10 +86,12 @@ func _physics_process(delta: float) -> void:
 		stop_building()
 		return
 	
-	# Actual Building
+	# Actual Building, if this is part of job and update_build_process completes the building, _curr_building_building will be null!
+	# -> store reference for later
+	var temp_reference_building := _curr_building_building
 	_curr_building_building.update_build_process(building_speed * delta)
-
+	
 	# Check if building completed - this works for multiple dwarfs building the same building, each is calling this method for themselfes
-	if _curr_building_building.is_complete:
-		Signal_OnBuildingCompleted.emit(_curr_building_building)
+	if temp_reference_building.is_complete:
+		Signal_OnBuildingCompleted.emit(temp_reference_building)
 		stop_building()

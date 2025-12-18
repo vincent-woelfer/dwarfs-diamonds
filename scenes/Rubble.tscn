@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://d2vaim21rg5dc"]
+[gd_scene format=3 uid="uid://d2vaim21rg5dc"]
 
 [ext_resource type="Script" uid="uid://c7wsd7s4pb5n8" path="res://src/Rubble.gd" id="1_dy5u4"]
 [ext_resource type="Texture2D" uid="uid://cr4mqv8fdinsj" path="res://assets/sprites/sack.png" id="2_dy5u4"]

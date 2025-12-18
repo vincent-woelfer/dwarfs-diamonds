@@ -33,22 +33,25 @@ func _ready() -> void:
 	carryable_item_comp.Signal_OnPickedUp.connect(_on_picked_up)
 	carryable_item_comp.Signal_OnDropped.connect(_on_dropped)
 
-	# Add pickup job
-	pickup_job = Job.new(Job.Type.PICKUP, curr_cell)
-	pickup_job.carryable_item = carryable_item_comp
-	Global.level.job_manager.add_job(pickup_job)
+	_add_pickup_job()
 
 
 # Add/remove pickup job on pick up / drop
 func _on_picked_up() -> void:
-	Actions.archive_job(pickup_job)
+	Actions.archive_job(pickup_job, true)
 	pickup_job = null
 
 func _on_dropped() -> void:
+	_add_pickup_job()
+
+
+func _add_pickup_job() -> void:
+	if pickup_job != null:
+		return
+
 	pickup_job = Job.new(Job.Type.PICKUP, curr_cell)
 	pickup_job.carryable_item = carryable_item_comp
 	Global.level.job_manager.add_job(pickup_job)
-
 
 # used by CarryableItemComponent to check whether this rubble can be picked up
 func _can_be_picked_up() -> bool:

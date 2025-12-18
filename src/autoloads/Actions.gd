@@ -1,7 +1,6 @@
 # No class_name here, the name of the singleton is set in the autoload
 extends Node2D
 
-
 ########################################################################################################################
 # GLOBAL GAME ACTIONS
 ########################################################################################################################
@@ -14,6 +13,10 @@ extends Node2D
 
 # Normally called by MiningComponent. Archives job through several steps.
 func destroy_cell(cell: Cell) -> void:
+	assert(cell != null)
+
+	print_action("Destroying cell %s" % [cell])
+
 	cell.destroy_cell()
 
 	# Signal MiningComponets that mining was completed
@@ -49,7 +52,7 @@ func place_building(cell: Cell, building_data: BuildingData, finish_instantly: b
 
 	# Log
 	var finish_instant_string := " (instantly)" if finish_instantly else ""
-	print_rich("Placing building: %s at %s%s" % [building_data.name, cell.grid_pos, finish_instant_string])
+	print_action("Placing building: %s at %s%s" % [building_data.name, cell.grid_pos, finish_instant_string])
 
 	# Instantiate building
 	var building_instance := building_data.instantiate_scene() as BuildingBase
@@ -79,7 +82,7 @@ func remove_building(building: BuildingBase) -> void:
 
 	# Log
 	var building_status := " (was under construction)" if not building.is_complete else ""
-	print_rich("Removing building: %s at %s%s" % [building.building_data.name, building.grid_pos, building_status])
+	print_action("Removing building: %s at %s%s" % [building.building_data.name, building.grid_pos, building_status])
 
 	# Call building destroy logic
 	building.destroy_building()
@@ -96,20 +99,34 @@ func remove_building(building: BuildingBase) -> void:
 
 # Just to have add/remove together
 func add_job(job: Job) -> void:
+	print_action("Adding job %s" % [job])
+
 	Global.level.job_manager.add_job(job)
 
 
-# TODO add complete vs aborted distinction?
-func archive_job(job: Job) -> void:
+func archive_job(job: Job, success: bool) -> void:
 	assert(job != null)
 
+	# Ensure this is only triggered once
 	if not job.is_active:
-		push_error("Trying to archive job %s but was archived before (is_active=false)" % [job])
+		push_error("Tried to archive job %s but was archived before (is_active=false)" % [job])
 		return
+
+	if success:
+		print_action("Completing (archiving) job %s" % [job])
+	else:
+		print_action("Deleting (archiving) job %s" % [job])
 
 	# Signals all dwarfs to call on_job_finished().
 	# ONLY place where job.archive() is called.
-	job.archive()
+	job.archive(success)
 
 	# This requires is_active=false
 	Global.level.job_manager.remove_job(job)
+
+
+########################################################################################################################
+# PRINT UTILS
+########################################################################################################################
+func print_action(text: String) -> void:
+	HexLog.print("=> " + text, Colors.GLOBAL_ACTION_HIGHLIGHT_COLOR)

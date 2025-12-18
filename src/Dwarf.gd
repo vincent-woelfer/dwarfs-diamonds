@@ -162,7 +162,9 @@ func _on_finished_path() -> void:
 
 ## Triggered by MovementComponent
 func _on_landed(fall_height_cells: int) -> void:
+	# Once cell is normal after mining below -> dont do anything special
 	if fall_height_cells > 1:
+		print_rich("%s landed after falling %d cells" % [self, fall_height_cells])
 		Audio.play_at_pos_with_pitch("dwarf_on_landing", global_position, 1.4)
 
 	if fall_height_cells > 5:
@@ -206,15 +208,15 @@ func _on_started_falling() -> void:
 
 ## Triggered by MiningComponent
 func _on_mining_completed(mined_cell: Cell) -> void:
+	# Normal case: Mining was part of job which has already been finished (-> implicitly entered idle)
 	if sm.state != State.MINING:
-		# ignoring
 		return
 
 	if job_with_path != null and job_with_path.job != null:
 		print_rich("%s completed mining %s" % [self, job_with_path.job])
 
 		# This will set job to null and enter idle -> simply return
-		Actions.archive_job(job_with_path.job)
+		Actions.archive_job(job_with_path.job, true)
 		return
 		
 	else:
@@ -227,16 +229,24 @@ func _on_mining_completed(mined_cell: Cell) -> void:
 	
 ## Triggered by BuildingComponent
 func _on_building_completed(building: BuildingBase) -> void:
+	# Normal case: Building was part of job which has already been finished (-> implicitly entered idle)
 	if sm.state != State.BUILDING:
-		# ignoring
 		return
 
-	print_rich("%s completed %s and build %s" % [self, job_with_path.job, building])
+	if job_with_path != null and job_with_path.job != null:
+		print_rich("%s completed %s and build %s" % [self, job_with_path.job, building])
 
-	# This will set job to null and enter idle -> simply return
-	Actions.archive_job(job_with_path.job)
-	return
+		# This will set job to null and enter idle -> simply return
+		Actions.archive_job(job_with_path.job, true)
+		return
 
+	else:
+		print_rich("%s completed building %s but has no job" % [self, building])
+		# Stay in building state if still building, -> idle otherwise
+		if not building_comp.is_currently_building():
+			if sm.state != State.FALLING:
+				sm.transition_to(State.IDLE)
+	
 
 ## Triggered by Job when job is not active anymore. This can be because the job was completed or aborted.
 # May be called during different states, always enter idle or stay in falling.
@@ -244,7 +254,9 @@ func _on_job_archived() -> void:
 	if job_with_path == null or job_with_path.job == null:
 		return
 
-	print_rich("%s's job %s was archived (_on_job_archived is called) -> transitioning to idle (unless falling)" % [self, job_with_path.job])
+	if not job_with_path.job.success:
+		print_rich("%s's job %s was aborted (_on_job_archived with success = false)" % [self, job_with_path.job])
+
 	_stop_working_job_enter_idle()
 
 
@@ -260,14 +272,18 @@ func _on_nav_updated() -> void:
 ########################################################################################################################
 func _stop_working_job_enter_idle(transition_to_idle: bool = true) -> void:
 	if job_with_path == null:
+		if sm.state != State.FALLING:
+			sm.transition_to(State.IDLE)
 		return
 
-	# For printing
+	# For printing later
 	var temp_job: Job = job_with_path.job
 	
 	if job_with_path.path != null:
 		if movement_comp.sm.state == MovementComponent.State.FOLLOWING_PATH:
 			movement_comp.abort_path()
+
+		# TODO abort building ???? 
 		job_with_path.path = null
 	if job_with_path.job != null:
 		job_with_path.job.unassign_dwarf(self)
@@ -275,10 +291,17 @@ func _stop_working_job_enter_idle(transition_to_idle: bool = true) -> void:
 
 	# Transition back to idle but dont override falling state
 	if transition_to_idle and sm.state != State.FALLING:
-		print_rich("%s stops working on %s and transitions to IDLE" % [self, temp_job])
+		if temp_job.success:
+			print_rich("%s finished %s and transitions to IDLE" % [self, temp_job])
+		else:
+			print_rich("%s stops working on %s and transitions to IDLE" % [self, temp_job])
+
 		sm.transition_to(State.IDLE)
 	else:
-		print_rich("%s stops working on %s but stays in %s" % [self, temp_job, Enum.to_str(State, sm.state)])
+		if temp_job.success:
+			print_rich("%s finished %s but stays in %s" % [self, temp_job, Enum.to_str(State, sm.state)])
+		else:
+			print_rich("%s stops working on %s but stays in %s" % [self, temp_job, Enum.to_str(State, sm.state)])
 
 
 ## Called by _on_finished_path when arrived at job location

@@ -114,3 +114,9 @@ static var JOB_COLOR_ARCHIVED: Color = Color.SLATE_BLUE.lerp(Color.BLUE, 0.5)
 static var JOB_COLOR_BLOCKED: Color = Color.RED.lerp(Color.ORANGE_RED, 0.4)
 static var JOB_COLOR_READY: Color = Color.YELLOW
 static var JOB_COLOR_DOING: Color = Color.GREEN
+
+
+########################################################################################################################
+# GLOBAL ACTION COLORS
+########################################################################################################################
+static var GLOBAL_ACTION_HIGHLIGHT_COLOR: Color = to_print_color(Color.MAGENTA)

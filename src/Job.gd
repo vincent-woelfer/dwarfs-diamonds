@@ -28,6 +28,9 @@ var assigned_dwarfs: Array[Dwarf] = []
 # Non-active means completed or aborted and are only used for dwarfs to reference them in their finished-job callback.
 var is_active: bool
 
+# Only meaningful after job was archived ( is_active=false )
+var success: bool
+
 
 ###################################
 # For MINE jobs
@@ -98,13 +101,14 @@ func unassign_dwarf(dwarf: Dwarf) -> void:
 
 ## Signals all working dwarfs (also the one finishing this job) that the job is finished.
 ## ONLY CALL VIA GLOBAL ACTIONS.
-func archive() -> void:
+func archive(success_: bool) -> void:
 	# Ensure this is only triggered once
 	if not is_active:
 		push_error("Trying to archive job %s but was archived before (is_active=false)" % [self])
 		return
 		
 	is_active = false
+	success = success_
 	
 	for dwarf in assigned_dwarfs:
 		dwarf._on_job_archived()

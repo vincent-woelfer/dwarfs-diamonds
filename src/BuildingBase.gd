@@ -56,7 +56,7 @@ func update_build_process(building_speed_with_delta: float) -> void:
 
 func destroy_building() -> void:
 	if build_job != null:
-		Actions.archive_job(build_job)
+		Actions.archive_job(build_job, false)
 
 	# TOOD ?
 	pass
@@ -79,7 +79,7 @@ func _complete_construction() -> void:
 	is_complete = true
 
 	# Complete build job
-	Actions.archive_job(build_job)
+	Actions.archive_job(build_job, true)
 	
 	# Update visual
 	_set_modulate_internal(Colors.building_modulate_finished)

@@ -54,7 +54,7 @@ func remove_job(job: Job) -> void:
 func remove_mining_job_for_cell(cell: Cell) -> void:
 	for job in _jobs:
 		if job.job_type == Job.Type.MINE and job.center_cell == cell:
-			Actions.archive_job(job)
+			Actions.archive_job(job, false)
 			return
 
 ########################################################################################################################

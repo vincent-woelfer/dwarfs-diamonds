@@ -78,6 +78,9 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	sm.physics_process(delta)
 
+	# For debugging:
+	# print_rich("MovementComponent of %s in state %s at pos %s" % [parent, Enum.to_str(State, sm.state), parent.grid_pos])
+
 ########################################################################################################################
 # STATE MACHINE HANDLERS
 ########################################################################################################################
@@ -125,7 +128,6 @@ func _physics_process_following_path(delta: float) -> void:
 	if _update_on_ground_check():
 		return
 
-	# TODO this still happens
 	# Check if we have a path
 	if path == null:
 		# This should never happen! Maybe emit signal as error handling, otherwise we get stuck here
