@@ -165,14 +165,24 @@ func _physics_process_not_moving(delta: float) -> void:
 # INTERNAL HELPERS
 ########################################################################################################################
 
-## Check if we should start/stop falling. Returns true if state changed
+## Check if we should start/stop falling. Returns true if state changed.
+## Called in physics process of states: FALLING, NOT_MOVING, FOLLOWING_PATH
 func _update_on_ground_check() -> bool:
+	# Check if the current cell allows standing here (e.g. has a floor or ladder)
 	var can_stand_in_current_cell := parent.curr_cell.is_standable(_get_can_use_ladders())
-	var move_mode := _get_curr_move_mode()
+
+	# Check if climbing (ladders or climbing walls, determined by movement mode)
+	var is_climbing := _is_climbing()
+
+	# larger y = lower in world space
+	var y_cell_floor := parent.curr_cell.get_floor_point_at_world_x(parent.global_position.x).y
+	var y_cell_floor_with_epsilon := y_cell_floor - Util.EPSILON_PIXEL_DIST
+
+	var is_on_floor := parent.global_position.y >= y_cell_floor_with_epsilon
 
 	# Currently standing on solid ground or ladder or climbing wall
 	if not is_falling():
-		if can_stand_in_current_cell or (move_mode != Enum.MoveMode.WALK):
+		if (can_stand_in_current_cell and is_on_floor) or is_climbing:
 			# Nothing to do            
 			return false
 		else:
@@ -181,8 +191,7 @@ func _update_on_ground_check() -> bool:
 
 	# Currently falling -> require cell to land on but also position inside of current cell to be on floor
 	else:
-		var y_cell_floor := parent.curr_cell.get_floor_point().y
-		if can_stand_in_current_cell and global_position.y >= y_cell_floor:
+		if can_stand_in_current_cell and is_on_floor:
 			# Snap position to floor
 			parent.global_position.y = y_cell_floor
 			sm.transition_to(State.NOT_MOVING)
@@ -203,3 +212,8 @@ func _get_can_use_ladders() -> bool:
 		return movement_capabilities.can_use_ladders_when_falling
 	else:
 		return movement_capabilities.can_use_ladders
+
+func _is_climbing() -> bool:
+	var move_mode := _get_curr_move_mode()
+	var climbing_modes := [Enum.MoveMode.CLIMB_LADDER_UP, Enum.MoveMode.CLIMB_LADDER_DOWN, Enum.MoveMode.CLIMB_WALL_UP, Enum.MoveMode.CLIMB_WALL_DOWN]
+	return climbing_modes.has(move_mode)

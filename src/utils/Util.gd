@@ -6,6 +6,10 @@ class_name Util
 const LAYER_1 := 1 << 0
 const LAYER_2 := 1 << 1
 
+
+const EPSILON_LERP: float = 0.001
+const EPSILON_PIXEL_DIST: float = Global.CELL_SIZE * 0.05
+
 ########################################################################################################################
 # Dwardfs & Diamonds NEW
 ########################################################################################################################
@@ -130,9 +134,8 @@ static func encode_into_bits(value: float, start_bit: int, num_bits: int) -> int
 ########################################################################################################################
 # LERP
 ########################################################################################################################
-const EPSILON: float = 0.001
 static func lerp_towards_f(curr: float, goal: float, speed: float, delta: float) -> float:
-	if abs(goal - curr) < EPSILON:
+	if abs(goal - curr) < EPSILON_LERP:
 		return goal
 	return lerp(curr, goal, 1.0 - exp(-speed * delta))
 

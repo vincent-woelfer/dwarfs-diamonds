@@ -152,8 +152,26 @@ func add_deco_element(new_deco: DecoBase) -> void:
 func get_poly_point(point: Enum.PolyPoint) -> Vector2:
 	return visual.get_poly_point(point) + global_position
 
+## Returns the center floor point, not exact if not exactly in center of cell
 func get_floor_point() -> Vector2:
 	return get_poly_point(Enum.PolyPoint.BOT)
+
+
+## Returns floor point at given world-space x, interpolated over BOT_LEFT -> BOT -> BOT_RIGHT
+func get_floor_point_at_world_x(world_x: float) -> Vector2:
+	var p_l: Vector2 = get_poly_point(Enum.PolyPoint.BOT_LEFT)
+	var p_m: Vector2 = get_poly_point(Enum.PolyPoint.BOT)
+	var p_r: Vector2 = get_poly_point(Enum.PolyPoint.BOT_RIGHT)
+
+	# Even if outside cell, code below correctly clamps to edges of cell floor
+	# assert(world_x >= p_l.x and world_x <= p_r.x)
+
+	if world_x <= p_m.x:
+		var t: float = inverse_lerp(p_l.x, p_m.x, world_x)
+		return p_l.lerp(p_m, clampf(t, 0.0, 1.0))
+	else:
+		var t: float = inverse_lerp(p_m.x, p_r.x, world_x)
+		return p_m.lerp(p_r, clampf(t, 0.0, 1.0))
 
 ########################################################################################################################
 # PRIVATE METHODS
