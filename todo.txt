@@ -1,5 +1,14 @@
-============ Implement ============
+============ Implement Important ============
 
+
+
+============ Implement Nice to Have ============
+- VFX-Manager (or particles / effects manager)
+-> global instance (from level i guess) to spwan particle effects like dust uppon destroyed cell
+
+
+
+- Rubble change sprite. oon ground = dirt, carried = bag
 
 
 ============ Buildings Future ============
@@ -17,5 +26,10 @@ Entrances (if for platform) are only responsible a waiting-for-platform-arrives 
 Platforms are only boardabile if still and at entrance, exception for maybe minecards.
 
 
+
+
 ============ Refactor ============
 - MAYBE split BuildingData into Ressource and instantiated object
+
+
+
