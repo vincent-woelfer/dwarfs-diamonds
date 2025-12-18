@@ -16,21 +16,21 @@ func add_job(job: Job) -> void:
 		Job.Type.MINE:
 			for existing_job in _jobs:
 				if existing_job.job_type == Job.Type.MINE and existing_job.center_cell == job.center_cell:
-					assert(false, "JobManager: Not adding duplicate mining job for cell " % job.center_cell)
+					assert(false, "JobManager: Not adding duplicate mining job for cell %s" % job.center_cell)
 					return
 
 		Job.Type.BUILD:
 			assert(job.building != null)
 			for existing_job in _jobs:
 				if existing_job.job_type == Job.Type.BUILD and existing_job.building == job.building:
-					assert(false, "JobManager: Not adding duplicate build job for building " % job.building)
+					assert(false, "JobManager: Not adding duplicate build job for building %s" % job.building)
 					return
 
-		Job.Type.RUBBLE:
-			assert(job.rubble != null)
+		Job.Type.PICKUP:
+			assert(job.carryable_item != null)
 			for existing_job in _jobs:
-				if existing_job.job_type == Job.Type.RUBBLE and existing_job.rubble == job.rubble:
-					assert(false, "JobManager: Not adding duplicate rubble job for rubble " % job.rubble)
+				if existing_job.job_type == Job.Type.PICKUP and existing_job.carryable_item == job.carryable_item:
+					assert(false, "JobManager: Not adding duplicate pickup job for object %s" % job.carryable_item.parent)
 					return
 	
 
@@ -54,7 +54,7 @@ func remove_job(job: Job) -> void:
 func remove_mining_job_for_cell(cell: Cell) -> void:
 	for job in _jobs:
 		if job.job_type == Job.Type.MINE and job.center_cell == cell:
-			job.archive() # Calls remove_job internally
+			Actions.archive_job(job)
 			return
 
 ########################################################################################################################
@@ -66,6 +66,7 @@ func remove_mining_job_for_cell(cell: Cell) -> void:
 func get_new_job_for_dwarf(dwarf: Dwarf) -> JobWithPath:
 	assert(dwarf != null)
 	var start_pos: Vector2i = dwarf.grid_pos
+	var print_color := Colors.to_print_color(dwarf.dwarf_color)
 
 	# Check if we are in a connected cell
 	if not Global.level.nav_manager.is_cell_enabled(start_pos):
@@ -90,18 +91,26 @@ func get_new_job_for_dwarf(dwarf: Dwarf) -> JobWithPath:
 		if scored_job != null:
 			scored_jobs.append(scored_job)
 		
-	# No valid jobs
+	# No valid jobs -> Return null
+	# Also, print all jobs, throttled AND only if we had any
 	if scored_jobs.is_empty():
+		if not _jobs.is_empty():
+			if HexLog.print_throttled(dwarf, "\nJobManager: No valid job for %s, rejected (means no path or not workable):" % [dwarf], Dwarf.NO_JOB_THROTTLED_PRINT_INTERVALL, print_color):
+				for rejected_job: Job in _jobs:
+					print_rich("- %s" % [rejected_job])
+				# NOW new-line as separator, dwarf prints following line
+
+		# Return no matter what
 		return null
 
 	# Sort by score
 	scored_jobs.sort_custom(ScoredJob.compare)
 
-	# Debug Print
-	var print_color := Colors.to_print_color(dwarf.dwarf_color)
-	print_rich(Util.color_string("\nJobManager: Scoring jobs for %s (lower is better):" % [dwarf], print_color))
-	for j in scored_jobs:
-		print_rich(Util.color_string("- Score: %6.0f" % [j.score], print_color) + (" - %s" % [j.job]))
+	# Debug Print	
+	HexLog.print("\nJobManager: Scoring jobs for %s (lower is better):" % [dwarf], print_color)
+	for scored_job: ScoredJob in scored_jobs:
+		# Use print_rich to manually format color of score only
+		print_rich(Util.color_string("- Score: %6.0f" % [scored_job.score], print_color) + (" - %s" % [scored_job.job]))
 	print() # New line as separator
 
 	return JobWithPath.new(scored_jobs[0].job, scored_jobs[0].path)
@@ -135,15 +144,20 @@ func _filter_workable_jobs_for_dwarf(dwarf: Dwarf) -> Array[Job]:
 		# Check if this dwarf / their components have the capabilities to do this job at all
 		match job.job_type:
 			Job.Type.MINE:
-				if dwarf.mining_comp == null or not dwarf.mining_comp.can_mine_at_all(job.center_cell):
+				assert(dwarf.mining_comp != null)
+				if not dwarf.mining_comp.can_mine_at_all(job.center_cell):
 					continue
 
 			Job.Type.BUILD:
-				if dwarf.building_comp == null or not dwarf.building_comp.can_build_at_all(job.building):
+				assert(dwarf.building_comp != null)
+				assert(job.building != null)
+				if not dwarf.building_comp.can_build_at_all(job.building):
 					continue
 
-			Job.Type.RUBBLE:
-				if dwarf.carry_comp == null or not dwarf.carry_comp.can_carry_at_all(job.carryable_item):
+			Job.Type.PICKUP:
+				assert(dwarf.carry_comp != null)
+				assert(job.carryable_item != null)
+				if not dwarf.carry_comp.can_carry_at_all(job.carryable_item):
 					continue
 		
 		# Job is workable for this dwarf -> add to output
@@ -176,8 +190,8 @@ func _score_job(job: Job, path: Path, dwarf: Dwarf) -> ScoredJob:
 		if dwarf.grid_pos == job.center_cell.grid_pos - Vector2i(0, 1):
 			score += 1.0
 
-	# Dont prioritize rubble/pickup jobs (unless same cell)
-	if job.job_type == Job.Type.RUBBLE and dwarf.grid_pos != job.center_cell.grid_pos:
+	# Dont prioritize pickup jobs (unless same cell)
+	if job.job_type == Job.Type.PICKUP and dwarf.grid_pos != job.center_cell.grid_pos:
 		score += 2 * Global.CELL_SIZE
 
 	return ScoredJob.new(job, path, score)

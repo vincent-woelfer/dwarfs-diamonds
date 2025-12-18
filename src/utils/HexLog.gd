@@ -27,25 +27,34 @@ static func print_multiline_banner_with_text(string: String) -> void:
 
 
 ## Prints text at a limited rate (to avoid flooding the console).
+## Returns true if the text was printed, false otherwise.
+## ref_object is used to distinguish different callers, e.g. should be the dwarf and not the JobManager.
 static var _last_print_times: Dictionary[String, float] = {}
-static func print_throttled(instance: Object, text: String, min_interval: float = 1.0) -> void:
+static func print_throttled(ref_object: Object, text: String, min_interval: float = 1.0, color: Color = Color.WHITE) -> bool:
 	var stack := get_stack()
 	var call_info: Dictionary = stack[1] if stack.size() > 1 else {}
-	var instance_id := instance.get_instance_id() if instance != null else 0
+	var instance_id := ref_object.get_instance_id() if ref_object != null else 0
 	var key: String = "%s:%d:%d" % [call_info.get("source", "unknown"), call_info.get("line", -1), instance_id]
 	
 	var now: float = Util.now()
 	var last_time: float = _last_print_times.get(key, -INF)
 
 	if now - last_time >= min_interval:
-		print_rich(text)
+		HexLog.print(text, color)
 		_last_print_times[key] = now
+		return true
+		
+	return false
  
+
+## Prints with color formatting
+static func print(text: String, color: Color = Color.WHITE) -> void:
+	print_rich(Util.color_string(text, color))
+
 
 ########################################################################################################################
 # INTERNAL API
 ########################################################################################################################
-
 ## Helper function: Centers text within a given width using a given filler character
 static func _center_text(text: String, width: int, filler: String) -> String:
 	var pad_size_total: int = max(0, (width - text.length()))

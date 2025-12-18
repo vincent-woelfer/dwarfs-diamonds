@@ -34,19 +34,19 @@ func _ready() -> void:
 	carryable_item_comp.Signal_OnDropped.connect(_on_dropped)
 
 	# Add pickup job
-	pickup_job = Job.new(Job.Type.RUBBLE, curr_cell)
-	pickup_job.rubble = self
+	pickup_job = Job.new(Job.Type.PICKUP, curr_cell)
+	pickup_job.carryable_item = carryable_item_comp
 	Global.level.job_manager.add_job(pickup_job)
 
 
 # Add/remove pickup job on pick up / drop
 func _on_picked_up() -> void:
-	pickup_job.archive()
+	Actions.archive_job(pickup_job)
 	pickup_job = null
 
 func _on_dropped() -> void:
-	pickup_job = Job.new(Job.Type.RUBBLE, curr_cell)
-	pickup_job.rubble = self
+	pickup_job = Job.new(Job.Type.PICKUP, curr_cell)
+	pickup_job.carryable_item = carryable_item_comp
 	Global.level.job_manager.add_job(pickup_job)
 
 
@@ -78,4 +78,4 @@ func _on_landed(fall_height_cells: int) -> void:
 
 func _to_string() -> String:
 	var color := Colors.to_print_color(sprite.modulate)
-	return Util.color_string("Rubble", color)
+	return Util.color_string("Rubble @%s" % [self._grid_pos], color)

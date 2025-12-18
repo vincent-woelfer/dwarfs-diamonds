@@ -105,6 +105,7 @@ func _enter_building(building: BuildingBase) -> void:
 		sm.transition_to(State.IDLE)
 		return
 
+	# TODO check if success (implement) -> abort if not
 	building_comp.start_building(cell, cell_from, building)
 
 	# Look at cell where building is built
@@ -205,43 +206,45 @@ func _on_started_falling() -> void:
 
 ## Triggered by MiningComponent
 func _on_mining_completed(mined_cell: Cell) -> void:
-	# TODO here its fine
-	print_rich("%s completed mining %s" % [self, job_with_path.job])
+	if sm.state != State.MINING:
+		# ignoring
+		return
 
-	# Complete job
-	if job_with_path != null:
-		# TODO job appears to be null here.
-		job_with_path.job.archive() # -> this calls on_job_finished -> transitions to idle internally already. THIS IS UNCLEAN; TODO REFACTOR
-		job_with_path.path = null
-		job_with_path = null
+	if job_with_path != null and job_with_path.job != null:
+		print_rich("%s completed mining %s" % [self, job_with_path.job])
 
-	# Transition back to idle but dont override falling state
-	if sm.state != State.FALLING:
-		sm.transition_to(State.IDLE)
+		# This will set job to null and enter idle -> simply return
+		Actions.archive_job(job_with_path.job)
+		return
+		
+	else:
+		print_rich("%s completed mining cell %s but has no job" % [self, mined_cell])
+		# Stay in mining state if still mining, -> idle otherwise
+		if not mining_comp.is_currently_mining():
+			if sm.state != State.FALLING:
+				sm.transition_to(State.IDLE)
 
-
+	
 ## Triggered by BuildingComponent
 func _on_building_completed(building: BuildingBase) -> void:
-	# Dont access job here, is already deleted
-	print_rich("%s completed %s" % [self, building])
+	if sm.state != State.BUILDING:
+		# ignoring
+		return
 
-	# Complete job
-	if job_with_path != null:
-		job_with_path.job.archive()
-		job_with_path.path = null
-		job_with_path = null
+	print_rich("%s completed %s and build %s" % [self, job_with_path.job, building])
 
-	# Transition back to idle but dont override falling state
-	if sm.state != State.FALLING:
-		sm.transition_to(State.IDLE)
+	# This will set job to null and enter idle -> simply return
+	Actions.archive_job(job_with_path.job)
+	return
 
 
 ## Triggered by Job when job is not active anymore. This can be because the job was completed or aborted.
-func on_job_finished() -> void:
-	if job_with_path == null:
+# May be called during different states, always enter idle or stay in falling.
+func _on_job_archived() -> void:
+	if job_with_path == null or job_with_path.job == null:
 		return
 
-	print_rich("%s's job %s was archived (on_job_finished called)" % [self, job_with_path.job])
+	print_rich("%s's job %s was archived (_on_job_archived is called) -> transitioning to idle (unless falling)" % [self, job_with_path.job])
 	_stop_working_job_enter_idle()
 
 
@@ -259,6 +262,7 @@ func _stop_working_job_enter_idle(transition_to_idle: bool = true) -> void:
 	if job_with_path == null:
 		return
 
+	# For printing
 	var temp_job: Job = job_with_path.job
 	
 	if job_with_path.path != null:
@@ -297,30 +301,19 @@ func _perform_job(job: Job) -> void:
 		return
 	
 	### RUBBLE JOB ###
-	elif job.job_type == Job.Type.RUBBLE:
-		print_rich("%s reached %s and starts picking up rubble" % [self, job.center_cell])
-		# Just pickup everything in the cell
-		for item: CarryableItemComponent in carry_comp.get_all_pickupable_items_in_range():
-			if carry_comp.pickup(item):
-				print_rich("%s picked up %s" % [self, item])
-				if item.parent == job.rubble:
-					# Complete job
-					job.archive()
-			else:
-				print_rich("%s failed to pick up %s" % [self, item])
-		
-		# Idle implies finding a new job
-		sm.transition_to(State.IDLE)
+	elif job.job_type == Job.Type.PICKUP:
+		print_rich("%s reached %s and starts picking up %s" % [self, job.center_cell, job.carryable_item.parent])
+		# No pickup-state, simply try to pick up item. Success -> goes into idle directly, failure -> abandon job.
+		if not carry_comp.pickup_all_in_range([job.carryable_item]):
+			print_rich("%s failed to pick up object %s, abandoning job" % [self, job.carryable_item])
+			_stop_working_job_enter_idle()
 		return
 
 	### BUILD JOB ###
 	elif job.job_type == Job.Type.BUILD:
 		print_rich("%s reached %s and starts building %s" % [self, job.center_cell, job.building])
-		if job.building != null:
-			sm.transition_to(State.BUILDING, job.building)
-		else:
-			print_rich("%s reached %s but found no building to build, abandoning job" % [self, job.center_cell])
-			_stop_working_job_enter_idle()
+		# enter_building catches errors with building.
+		sm.transition_to(State.BUILDING, job.building)
 		return
 
 	### INVALID JOB ###
@@ -334,7 +327,7 @@ func _find_new_job() -> void:
 	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_dwarf(self)
 
 	if new_job_with_path == null:
-		HexLog.print_throttled(self, "%s found no job, remains idle" % [self], 3.0)
+		HexLog.print_throttled(self, "%s found no job, remains idle" % [self], NO_JOB_THROTTLED_PRINT_INTERVALL)
 		return
 
 	var success: bool = false
@@ -394,6 +387,9 @@ const debug_occupied_cell_alpha := 0.1
 
 var debug_font := ThemeDB.fallback_font
 var debug_font_size := 22
+
+# For throttled printing above
+static var NO_JOB_THROTTLED_PRINT_INTERVALL := 3.0
 
 
 func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:

@@ -92,3 +92,24 @@ func remove_building(building: BuildingBase) -> void:
 		var covered_cell: Cell = Global.level.get_cell(pos)
 		if covered_cell != null:
 			covered_cell.remove_building(building)
+
+
+# Just to have add/remove together
+func add_job(job: Job) -> void:
+	Global.level.job_manager.add_job(job)
+
+
+# TODO add complete vs aborted distinction?
+func archive_job(job: Job) -> void:
+	assert(job != null)
+
+	if not job.is_active:
+		push_error("Trying to archive job %s but was archived before (is_active=false)" % [job])
+		return
+
+	# Signals all dwarfs to call on_job_finished().
+	# ONLY place where job.archive() is called.
+	job.archive()
+
+	# This requires is_active=false
+	Global.level.job_manager.remove_job(job)

@@ -7,7 +7,7 @@ extends RefCounted
 enum Type {
 	MINE,
 	BUILD,
-	RUBBLE,
+	PICKUP,
 }
 
 ###################################
@@ -35,10 +35,8 @@ var is_active: bool
 
 
 ###################################
-# For RUBBLE jobs
+# For PICKUP jobs
 ###################################
-# TODO generalize to carryable item jobs?
-var rubble: Rubble = null
 var carryable_item: CarryableItemComponent = null
 
 ###################################
@@ -61,7 +59,7 @@ func get_capacity() -> int:
 				return 2
 			return 1
 
-		Job.Type.RUBBLE:
+		Job.Type.PICKUP:
 			return 1
 
 	assert(false)
@@ -98,9 +96,8 @@ func unassign_dwarf(dwarf: Dwarf) -> void:
 	assigned_dwarfs.erase(dwarf)
 
 
-## Maybe rename to "archive" or "deactivate"?
-## Calls job-manager.remove_job internally.
-## Singals all working dwarfs (also the one finishing this job) that the job is finished.
+## Signals all working dwarfs (also the one finishing this job) that the job is finished.
+## ONLY CALL VIA GLOBAL ACTIONS.
 func archive() -> void:
 	# Ensure this is only triggered once
 	if not is_active:
@@ -108,12 +105,9 @@ func archive() -> void:
 		return
 		
 	is_active = false
-
-	# This requires is_active=false
-	Global.level.job_manager.remove_job(self)
 	
 	for dwarf in assigned_dwarfs:
-		dwarf.on_job_finished()
+		dwarf._on_job_archived()
 
 	
 func update_workable_from_cells() -> void:
@@ -142,8 +136,8 @@ func update_workable_from_cells() -> void:
 				workable_from_poses.append(n_cell.grid_pos)
 
 	# RUBBLE
-	elif job_type == Job.Type.RUBBLE:
-		if rubble.carryable_item_comp.can_be_picked_up_right_now():
+	elif job_type == Job.Type.PICKUP:
+		if carryable_item.can_be_picked_up_right_now():
 			workable_from_poses.append(center_cell.grid_pos)
 		
 
@@ -195,7 +189,7 @@ func estimate_remaining_time() -> float:
 						remaining_time = min(remaining_time, time + 5.0) # +5s buffer for starting building
 			return 0.0
 
-		Job.Type.RUBBLE:
+		Job.Type.PICKUP:
 			# Only one dwarf can do this job
 			return 0.0
 

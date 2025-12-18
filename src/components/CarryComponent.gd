@@ -17,10 +17,36 @@ var _curr_total_weight: float = 0.0
 # # PUBLIC METHODS
 # ########################################################################################################################
 
+# Picks up all pickupable items in range until capacity is full, prioritizing the given items first.
+# Returns true if ALL priority items were picked up
+func pickup_all_in_range(priority_items: Array[CarryableItemComponent]) -> bool:
+	var items: Array[CarryableItemComponent] = get_all_pickupable_items_in_range()
+	var picked_up: Array[CarryableItemComponent] = []
+
+	# Sort so that priority items come first
+	items.sort_custom(func(a: CarryableItemComponent, b: CarryableItemComponent) -> bool:
+		var a_prio: bool = priority_items.has(a)
+		var b_prio: bool = priority_items.has(b)
+		return a_prio and not b_prio
+	)
+
+	for item: CarryableItemComponent in items:
+		if pickup(item):			
+			picked_up.append(item)
+
+	# Check if all priority items were picked up
+	for prio_item: CarryableItemComponent in priority_items:
+		if not picked_up.has(prio_item):
+			return false
+
+	return true
+
 ## Actually picks up the item if possible, returns false otherwise
 func pickup(item: CarryableItemComponent) -> bool:
 	if not can_pickup(item):
 		return false
+
+	print_rich("%s picked up %s" % [parent, item])
 
 	# Modify self
 	_curr_carried_items.append(item)

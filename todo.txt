@@ -1,21 +1,5 @@
 ============ Implement ============
-- FIX JOBS being deleted/unasigned when completed. 
-LOG:
-Dwarf-0 (MINING @(6, 3)) completed mining Job(MINE - DOING 1/2 @(6, 4))
-Dwarf-0 (MINING @(6, 3))'s job Job(MINE - ARCHIVED @(6, 4)) was archived (on_job_finished called)
-Dwarf-0 (MINING @(6, 3)) stops working on Job(MINE - ARCHIVED @(6, 4)) and transitions to IDLE
-SCRIPT ERROR: Invalid assignment of property or key 'path' with value of type 'Nil' on a base object of type 'Nil'.
-          at: Dwarf._on_mining_completed (res://src/Dwarf.gd:213)
-          GDScript backtrace (most recent call first):
-              [0] _on_mining_completed (res://src/Dwarf.gd:213)
-              [1] _on_global_any_cell_mining_completed (res://src/components/MiningComponent.gd:76)
-              [2] destroy_cell (res://src/autoloads/Actions.gd:20)
-              [3] increase_mining_process (res://src/Cell.gd:88)
-              [4] _physics_process (res://src/components/MiningComponent.gd:88)
 
-AT THAT TIME:
-213 is:
-		job_with_path.job.archive()
 
 
 ============ Buildings Future ============
