@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BuildingData" load_steps=7 format=3 uid="uid://ba83ntoh2g74g"]
+[gd_resource type="Resource" script_class="BuildingData" format=3 uid="uid://ba83ntoh2g74g"]
 
 [ext_resource type="Script" uid="uid://bdgg1wxcmv4go" path="res://src/resources/GridPattern.gd" id="1_u18a1"]
 [ext_resource type="Script" uid="uid://bwmp5gn3ali5i" path="res://src/resources/BuildingData.gd" id="3_xrwn1"]

@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://rjy3skkrbgma"]
+[gd_scene format=3 uid="uid://rjy3skkrbgma"]
 
 [ext_resource type="Texture2D" uid="uid://1ugg66bw4erc" path="res://assets/sprites/gradient.png" id="1_d170h"]
 [ext_resource type="SpriteFrames" uid="uid://1pxkf0jq8fyl" path="res://assets/sprites/dwarf_sprite_frames.tres" id="1_ms7vq"]
