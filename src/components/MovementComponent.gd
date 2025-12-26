@@ -27,6 +27,17 @@ var curr_falling_speed: float = 0.0
 # For tracking fall distance in cells
 var fall_start_y: int
 
+# Width of the parent GridObject2D for path following
+var parent_width: float = Global.CELL_SIZE * 0.3
+
+# Ground Checks with downward "ray casts". One must be on ground to consider standing. 
+# TODO recompute when setting parent_width
+var ground_check_sample_points: Array[float] = [
+	- parent_width / 2.0,
+	0.0,
+	 parent_width / 2.0,
+]
+
 @onready var parent: GridObject2D = get_parent()
 
 ########################################################################################################################
@@ -116,8 +127,7 @@ func _enter_following_path(new_path: Path) -> void:
 		return
 
 	path = new_path
-	path.debug_draw = true
-	path.start_following_from_pos(parent.global_position, true)
+	path.start_following_from_pos(parent.global_position, parent_width, true)
 
 func _exit_following_path() -> void:
 	if path:
@@ -173,12 +183,10 @@ func _update_on_ground_check() -> bool:
 
 	# Check if climbing (ladders or climbing walls, determined by movement mode)
 	var is_climbing := _is_climbing()
+	var is_on_floor := _is_on_floor_downward_ray_cast_check()
 
-	# larger y = lower in world space
+	# Floor y
 	var y_cell_floor := parent.curr_cell.get_floor_point_at_world_x(parent.global_position.x).y
-	var y_cell_floor_with_epsilon := y_cell_floor - Util.EPSILON_PIXEL_DIST
-
-	var is_on_floor := parent.global_position.y >= y_cell_floor_with_epsilon
 
 	# Currently standing on solid ground or ladder or climbing wall
 	if not is_falling():
@@ -199,6 +207,34 @@ func _update_on_ground_check() -> bool:
 		else:
 			# Still falling
 			return false
+
+# TODO
+func _is_on_floor_downward_ray_cast_check() -> bool:
+	for sample_x_offset in ground_check_sample_points:
+		# World position to sample
+		var sample_pos: Vector2 = parent.global_position + Vector2(sample_x_offset, 0.0)
+
+		# small offset upwards to avoid precision issues
+		var sample_offset_vert: Vector2 = Vector2(0.0, -Global.CELL_SIZE * 0.1)
+
+		# Sample cell for this (sample point might be in another cell)
+		var sample_cell: Cell = Global.level.sample_cell_at_world_pos(sample_pos + sample_offset_vert)
+
+		if sample_cell == null:
+			continue
+		
+		# y of floor at this x
+		var y_cell_floor: float = sample_cell.get_floor_point_at_world_x(sample_pos.x).y - Util.EPSILON_PIXEL_DIST
+
+		if parent.global_position.y < y_cell_floor_with_epsilon:
+			# This sample point is not on floor
+			return false
+
+	# larger y = lower in world space
+	var y_cell_floor := parent.curr_cell.get_floor_point_at_world_x(parent.global_position.x).y
+	var y_cell_floor_with_epsilon := y_cell_floor - Util.EPSILON_PIXEL_DIST
+
+	var is_on_floor := parent.global_position.y >= y_cell_floor_with_epsilon
 
 
 func _get_curr_move_mode() -> Enum.MoveMode:

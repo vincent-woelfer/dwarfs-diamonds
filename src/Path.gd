@@ -33,9 +33,13 @@ var _reached_end: bool = false
 # Current position of following-node in world space
 var _curr_pos: Vector2 = Vector2.INF
 
+# Width of the follower (for path calculations, e.g. offset from walls when climbing)
+var _follower_width: float = Global.CELL_SIZE * 0.3
+
 # Normal case is > 2 points. 0 is an exception
 func _init(grid_points_: Array[Vector2i]) -> void:
 	self._grid_points = grid_points_
+
 	self._center_points = Util.grid_to_world_cell_center_array(_grid_points)
 	_calculate_floor_points()
 
@@ -44,11 +48,13 @@ func _init(grid_points_: Array[Vector2i]) -> void:
 ########################################################################################################################
 
 ## Call when starting to follow path to start from closest point
-func start_following_from_pos(start_pos: Vector2, debug_draw_: bool = true) -> void:
+func start_following_from_pos(start_pos: Vector2, follower_width_: float = Global.CELL_SIZE * 0.3, debug_draw_: bool = true) -> void:
 	_curr_pos = start_pos
 
 	# Enable debug drawing
 	debug_draw = debug_draw_
+
+	self._follower_width = follower_width_
 
 	if _floor_points.size() == 0:
 		_update_next_indices(0)
@@ -254,7 +260,7 @@ func _calculate_floor_points() -> void:
 					
 		else:
 			# Diagonal -> we offset the wall-points inward a bit to avoid clipping into walls
-			const dwarf_width: Vector2 = Vector2(Global.CELL_SIZE * 0.3, 0.0)
+			var width: Vector2 = Vector2(_follower_width, 0.0)
 
 			# Determine direction
 			var to_the_right: bool = from.grid_pos.x < to.grid_pos.x
@@ -263,18 +269,18 @@ func _calculate_floor_points() -> void:
 			if upwards:
 				if to_the_right:
 					# in front of wall
-					p.append(from.get_poly_point(Enum.PolyPoint.BOT_RIGHT) - dwarf_width)
-					p.append(from.get_poly_point(Enum.PolyPoint.RIGHT) - dwarf_width)
-					p.append(from.get_poly_point(Enum.PolyPoint.TOP_RIGHT) - dwarf_width)
+					p.append(from.get_poly_point(Enum.PolyPoint.BOT_RIGHT) - width)
+					p.append(from.get_poly_point(Enum.PolyPoint.RIGHT) - width)
+					p.append(from.get_poly_point(Enum.PolyPoint.TOP_RIGHT) - width)
 					# on top of to-cell
 					p.append(to.get_poly_point(Enum.PolyPoint.BOT_LEFT))
 					p.append(to.get_poly_point(Enum.PolyPoint.BOT))
 
 				elif not to_the_right:
 					# in front of wall
-					p.append(from.get_poly_point(Enum.PolyPoint.BOT_LEFT) + dwarf_width)
-					p.append(from.get_poly_point(Enum.PolyPoint.LEFT) + dwarf_width)
-					p.append(from.get_poly_point(Enum.PolyPoint.TOP_LEFT) + dwarf_width)
+					p.append(from.get_poly_point(Enum.PolyPoint.BOT_LEFT) + width)
+					p.append(from.get_poly_point(Enum.PolyPoint.LEFT) + width)
+					p.append(from.get_poly_point(Enum.PolyPoint.TOP_LEFT) + width)
 					# on top of to-cell
 					p.append(to.get_poly_point(Enum.PolyPoint.BOT_RIGHT))
 					p.append(to.get_poly_point(Enum.PolyPoint.BOT))
@@ -290,20 +296,20 @@ func _calculate_floor_points() -> void:
 					# on top of from-cell
 					p.append(from.get_poly_point(Enum.PolyPoint.BOT_RIGHT))
 					# in front of wall
-					p.append(to.get_poly_point(Enum.PolyPoint.TOP_LEFT) + dwarf_width)
-					p.append(to.get_poly_point(Enum.PolyPoint.LEFT) + dwarf_width)
+					p.append(to.get_poly_point(Enum.PolyPoint.TOP_LEFT) + width)
+					p.append(to.get_poly_point(Enum.PolyPoint.LEFT) + width)
 					# on top of to-cell
-					p.append(to.get_poly_point(Enum.PolyPoint.BOT_LEFT) + dwarf_width)
+					p.append(to.get_poly_point(Enum.PolyPoint.BOT_LEFT) + width)
 					p.append(to.get_poly_point(Enum.PolyPoint.BOT))
 
 				elif not to_the_right:
 					# on top of from-cell
 					p.append(from.get_poly_point(Enum.PolyPoint.BOT_LEFT))
 					# in front of wall
-					p.append(to.get_poly_point(Enum.PolyPoint.TOP_RIGHT) - dwarf_width)
-					p.append(to.get_poly_point(Enum.PolyPoint.RIGHT) - dwarf_width)
+					p.append(to.get_poly_point(Enum.PolyPoint.TOP_RIGHT) - width)
+					p.append(to.get_poly_point(Enum.PolyPoint.RIGHT) - width)
 					# on top of to-cell
-					p.append(to.get_poly_point(Enum.PolyPoint.BOT_RIGHT) - dwarf_width)
+					p.append(to.get_poly_point(Enum.PolyPoint.BOT_RIGHT) - width)
 					p.append(to.get_poly_point(Enum.PolyPoint.BOT))
 				
 				# Mapping is the same in both cases
