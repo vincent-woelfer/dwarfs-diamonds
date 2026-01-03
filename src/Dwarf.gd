@@ -32,6 +32,9 @@ func _ready() -> void:
 	sm = StateMachine.new(self, State, State.IDLE)
 	sm.set_state_exitable(State.DYING, false)
 
+	# Configure Components
+	movement_comp._set_parent_width(Global.CELL_SIZE * 0.75) # = 96 px for dwarfs
+
 	# ID + Color
 	dwarf_id = next_dwarf_id
 	next_dwarf_id += 1
@@ -419,7 +422,12 @@ func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
 	# Status Text
 	var color_actual: Color = debug_state_colors.get(sm.state, Colors.FALLBACK_COLOR)
 	var text: String = Enum.to_str(Dwarf.State, sm.state)
-	ui_layer.draw_string(debug_font, debug_label_offset, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, color_actual)
+
+	# Add movement component state
+	text += "\n" + movement_comp.get_state_string()
+
+	ui_layer.draw_multiline_string(debug_font, debug_label_offset, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, 2, color_actual)
+	# ui_layer.draw_string(debug_font, debug_label_offset, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, color_actual)
 
 
 func _debug_draw_in_ui_absolute(ui_layer: CanvasItem) -> void:

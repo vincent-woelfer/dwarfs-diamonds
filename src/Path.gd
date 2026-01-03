@@ -285,11 +285,12 @@ func _calculate_floor_points() -> void:
 					p.append(to.get_poly_point(Enum.PolyPoint.BOT_RIGHT))
 					p.append(to.get_poly_point(Enum.PolyPoint.BOT))
 				
-				# Mapping is the same in both cases
+				# Mapping is the same in both cases. 
+				# First 3: up the wall, last 2: on top of to-cell
 				map.append_array([from_idx, from_idx, from_idx])
 				map.append_array([to_idx, to_idx])
 				move_modes.append_array([Enum.MoveMode.WALK, Enum.MoveMode.CLIMB_WALL_UP, Enum.MoveMode.CLIMB_WALL_UP])
-				move_modes.append_array([Enum.MoveMode.CLIMB_WALL_UP, Enum.MoveMode.WALK])
+				move_modes.append_array([Enum.MoveMode.WALK, Enum.MoveMode.WALK])
 
 			elif not upwards:
 				if to_the_right:
@@ -312,7 +313,8 @@ func _calculate_floor_points() -> void:
 					p.append(to.get_poly_point(Enum.PolyPoint.BOT_RIGHT) - width)
 					p.append(to.get_poly_point(Enum.PolyPoint.BOT))
 				
-				# Mapping is the same in both cases
+				# Mapping is the same in both cases.
+				# First 3: down the wall, last 2: on top of to-cell
 				map.append(from_idx)
 				map.append_array([to_idx, to_idx, to_idx, to_idx])
 				move_modes.append_array([Enum.MoveMode.WALK, Enum.MoveMode.CLIMB_WALL_DOWN, Enum.MoveMode.CLIMB_WALL_DOWN])
