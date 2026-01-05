@@ -423,11 +423,13 @@ func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
 	var color_actual: Color = debug_state_colors.get(sm.state, Colors.FALLBACK_COLOR)
 	var text: String = Enum.to_str(Dwarf.State, sm.state)
 
-	# Add movement component state
-	text += "\n" + movement_comp.get_state_string()
+	ui_layer.draw_string(debug_font, debug_label_offset, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, color_actual)
 
-	ui_layer.draw_multiline_string(debug_font, debug_label_offset, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, 2, color_actual)
-	# ui_layer.draw_string(debug_font, debug_label_offset, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, color_actual)
+	# Add movement component state below, smaller
+	text = movement_comp.get_state_string()
+	var offset_second := debug_label_offset + Vector2(0.0, debug_font_size + 4.0)
+	var size_second: int = roundi(debug_font_size * 0.7)
+	ui_layer.draw_string(debug_font, offset_second, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, size_second, color_actual)
 
 
 func _debug_draw_in_ui_absolute(ui_layer: CanvasItem) -> void:
