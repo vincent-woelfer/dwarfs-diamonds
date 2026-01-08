@@ -40,8 +40,9 @@ func _ready() -> void:
 	background_poly.polygon = poly_points
 	background_poly.visibility_layer = Util.LAYER_1
 	
-	if c.type == Enum.CellType.SKY:
-		background_poly.material = unshaded_material
+	# if c.type == Enum.CellType.SKY:
+		# background_poly.material = unshaded_material
+		
 	add_child(background_poly)
 
 	# Stencil

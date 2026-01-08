@@ -14,10 +14,8 @@ var nav_manager: NavManager
 var job_manager: JobManager
 var building_manager: BuildingManager
 
+var sun_system: SunSystem
 
-var darkness: CanvasModulate
-var darkness_factor: float = 0.4
-var sun: DirectionalLight2D
 
 func _ready() -> void:
 	# GRID
@@ -39,20 +37,10 @@ func _ready() -> void:
 	building_manager = BuildingManager.new()
 	add_child(building_manager)
 
-	# Darkness
-	darkness = CanvasModulate.new()
-	darkness.color = Color(darkness_factor, darkness_factor, darkness_factor, 1.0)
-	add_child(darkness)
+	# SUN / LIGHTING
+	sun_system = SunSystem.new()
+	add_child(sun_system)
 
-	# Sunlight from straight above
-	sun = DirectionalLight2D.new()
-	sun.rotation_degrees = -5.0
-	sun.color = Color(1.0, 0.93, 0.88)
-	sun.energy = 1.5
-	sun.shadow_enabled = true
-	add_child(sun)
-
-	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
 
 	# Pre-place Torches
 	for x in range(Global.LEVEL_WIDTH):
@@ -74,6 +62,7 @@ func _ready() -> void:
 
 	# other side
 	# spawn_dwarf(Vector2i(23, 2))
+
 
 func spawn_dwarf(grid_pos: Vector2i) -> void:
 	var cell := get_cell(grid_pos)
@@ -163,16 +152,6 @@ func should_contain_torch(grid_pos: Vector2i) -> bool:
 
 	return false
 
-
-func _dev_toogle_light(is_light_on: bool) -> void:
-	if is_light_on:
-		# WITH LIGHTING / DARKNESS		
-		darkness.visible = true
-		sun.enabled = true
-	else:
-		# NO LIGHTING / DARKNESS
-		darkness.visible = false
-		sun.enabled = false
 
 ########################################################################################################################
 # Helper functions
