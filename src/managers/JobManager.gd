@@ -95,12 +95,13 @@ func get_new_job_for_dwarf(dwarf: Dwarf) -> JobWithPath:
 	# Also, print all jobs, throttled AND only if we had any
 	if scored_jobs.is_empty():
 		if not _jobs.is_empty():
-			if HexLog.print_throttled(dwarf, "\nJobManager: No valid job for %s, rejected (means no path or not workable):" % [dwarf], Dwarf.NO_JOB_THROTTLED_PRINT_INTERVALL, print_color):
+			if HexLog.print_throttled(dwarf, "\nJobManager: No valid job for %s, rejected jobs (means no path or not workable for this dwarf):" % [dwarf],
+					Dwarf.NO_JOB_THROTTLED_PRINT_INTERVALL, print_color):
 				for rejected_job: Job in _jobs:
 					print_rich("- %s" % [rejected_job])
-				# NOW new-line as separator, dwarf prints following line
+				# NO new-line as separator here, dwarf prints following line
 
-		# Return no matter what
+		# Return no matter what since we found no valid job
 		return null
 
 	# Sort by score
