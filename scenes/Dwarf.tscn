@@ -17,7 +17,8 @@ texture_filter = 1
 position = Vector2(0, -64.99999)
 scale = Vector2(5, 5)
 sprite_frames = ExtResource("1_ms7vq")
-frame_progress = 0.9780393
+animation = &"idle"
+frame_progress = 0.3747187
 
 [node name="PointLight2D" type="PointLight2D" parent="." unique_id=2112066260]
 position = Vector2(0, -64)

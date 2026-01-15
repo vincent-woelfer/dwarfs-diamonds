@@ -75,13 +75,23 @@ func _look_into_dir(dir: Vector2) -> void:
 ###################################
 # IDLE
 ###################################
+func _enter_idle() -> void:
+	animated_sprite.play("idle")
+	
 func _physics_process_idle(delta: float) -> void:
 	_find_new_job()
+
+###################################
+# MOVING
+###################################
+func _enter_moving() -> void:
+	animated_sprite.play("walk")
 
 ###################################
 # MINING
 ###################################
 func _enter_mining(cell_to_mine: Cell) -> void:
+	animated_sprite.play("swing_vertical")
 	mining_comp.start_mining(cell_to_mine)
 
 	# Look at mined cell
@@ -95,6 +105,8 @@ func _exit_mining() -> void:
 # BUILDING
 ###################################
 func _enter_building(building: BuildingBase) -> void:
+	animated_sprite.play("swing_horizontal")
+
 	if building == null:
 		push_error("%s cannot enter building state with null building, aborting" % [self])
 		sm.transition_to(State.IDLE)
@@ -123,6 +135,8 @@ func _exit_building() -> void:
 # DYING
 ###################################
 func _enter_dying() -> void:
+	animated_sprite.play("die")
+
 	print_rich("%s has died!" % [self])
 	
 	_stop_working_job_enter_idle()
