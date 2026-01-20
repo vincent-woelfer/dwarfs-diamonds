@@ -33,7 +33,7 @@ func _ready() -> void:
 	sm.set_state_exitable(State.DYING, false)
 
 	# Configure Components
-	movement_comp._set_parent_width(Global.CELL_SIZE * 0.75) # = 96 px for dwarfs
+	movement_comp.set_parent_width(Global.CELL_SIZE * 0.75) # = 96 px for dwarfs
 
 	# ID + Color
 	dwarf_id = next_dwarf_id

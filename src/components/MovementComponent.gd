@@ -75,6 +75,17 @@ func picked_up() -> void:
 func dropped() -> void:
 	sm.transition_to(State.NOT_MOVING)
 
+
+func set_parent_width(new_parent_width: float) -> void:
+	parent_width = new_parent_width
+
+	ground_check_sample_points = [
+		- parent_width / 2.0,
+		0.0,
+		 parent_width / 2.0,
+	]
+
+
 ########################################################################################################################
 # PRIVATE
 ########################################################################################################################
@@ -85,7 +96,7 @@ func _ready() -> void:
 	assert(parent is GridObject2D)
 
 	# Initialize ground check sample points
-	_set_parent_width(parent_width)
+	set_parent_width(parent_width)
 	
 
 func _physics_process(delta: float) -> void:
@@ -255,13 +266,3 @@ func _is_climbing() -> bool:
 	var move_mode := _get_curr_move_mode()
 	var climbing_modes := [Enum.MoveMode.CLIMB_LADDER_UP, Enum.MoveMode.CLIMB_LADDER_DOWN, Enum.MoveMode.CLIMB_WALL_UP, Enum.MoveMode.CLIMB_WALL_DOWN]
 	return climbing_modes.has(move_mode)
-
-
-func _set_parent_width(new_parent_width: float) -> void:
-	parent_width = new_parent_width
-
-	ground_check_sample_points = [
-		- parent_width / 2.0,
-		0.0,
-		 parent_width / 2.0,
-	]
