@@ -10,6 +10,10 @@ Entweder lift oder minecard mit laden/entladen und ins pathfinding eingebunden.
 
 
 
+ActionPoints aus ActionPointsRes erstellen wenn building completed ist.
+
+
+
 ============ Implement Nice to Have ============
 - VFX-Manager (or particles / effects manager)
 -> global instance (from level i guess) to spwan particle effects like dust uppon destroyed cell
