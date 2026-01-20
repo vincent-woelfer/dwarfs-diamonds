@@ -37,7 +37,7 @@ const pattern_solid_ground_color: Color = Color(0.3, 0.15, 0.1) # Dark brown
 ########################################################################################################################
 @export_group("Action Points")
 
-@export var action_points: Array[ActionPointRes] = []
+@export var action_points: Array[ActionPointRes]
 
 ########################################################################################################################
 # Placement Checks
@@ -105,6 +105,8 @@ func instantiate_building_data(grid_pos: Vector2i) -> BuildingDataRes:
 	# Copy properties - TODO add new properties here
 	instance.name = self.name
 	instance.build_time = self.build_time
+
+	instance.action_points = self.action_points.duplicate()
 
 	# Find all pattern properties dynamically and instantiate them at the given position
 	for property: Dictionary in self.get_property_list():

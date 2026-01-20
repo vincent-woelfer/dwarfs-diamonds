@@ -67,6 +67,11 @@ func _input(event: InputEvent) -> void:
 		dev_draw_building_patterns = not dev_draw_building_patterns
 		Signal_DevToogleDrawBuildingPattern.emit()
 
+	# F5
+	if event.is_action_pressed("dev_toogle_action_point_draw"):
+		dev_draw_action_points = not dev_draw_action_points
+		Signal_DevToogleDrawActionPoints.emit()
+
 	# F6
 	if event.is_action_pressed("dev_toogle_dwarf_draw_info"):
 		dev_draw_dwarf_info = not dev_draw_dwarf_info

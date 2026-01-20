@@ -2,14 +2,16 @@
 class_name GridPatternRes
 extends Resource
 
-var world_offset: Vector2i = Vector2i.ZERO
 @export var cells: Array[Vector2i] = []
+
+# internal variable
+var _world_offset: Vector2i = Vector2i.ZERO
 
 
 func _init(pattern_: Array[Vector2i] = [], world_offset_: Vector2i = Vector2i.ZERO) -> void:
     assert(pattern_ != null)
     cells = _remove_duplicates(pattern_)
-    world_offset = world_offset_
+    _world_offset = world_offset_
 
 
 func _remove_duplicates(array: Array[Vector2i]) -> Array[Vector2i]:
@@ -26,5 +28,5 @@ func get_local_positions() -> Array[Vector2i]:
 func get_world_positions() -> Array[Vector2i]:
     var world_positions: Array[Vector2i] = []
     for local_pos in cells:
-        world_positions.append(local_pos + world_offset)
+        world_positions.append(local_pos + _world_offset)
     return world_positions

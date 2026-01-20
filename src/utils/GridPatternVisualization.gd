@@ -8,14 +8,21 @@ extends Node2D
 # Scanned grid patterns and their colors
 var grid_patterns: Array[GridPatternRes] = []
 var grid_colors: Array[Color] = []
+var grid_patterns_visible: bool = true
+
+# Action points to visualize
+var action_points: Array[ActionPointRes] = []
+var action_points_visible: bool = true
 
 # Never draw ladder patterns in game to avoid visual clutter (these are drawn in editor only)
 var never_draw_because_is_ladder: bool = false
 
 # Visual properties
-const alpha_fill: float = 0.15
+const alpha_fill: float = 0.11
 const alpha_border: float = 0.5
-const margin_width: float = 2.0
+const border_margin_width_px: float = 2.0
+const circle_radius_px: float = 0.15 * Global.CELL_SIZE
+const circle_alpha: float = 0.6
 
 # Offset to visually center the pattern on the grid
 const visual_offset: Vector2 = - Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
@@ -24,45 +31,73 @@ const visual_offset: Vector2 = - Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
 var needs_redraw: bool
 var needs_rescan: bool
 
-
+########################################################################################################################
+# DRAWING
+########################################################################################################################
 func _draw() -> void:
-	if grid_patterns.is_empty():
-		return
-
 	# Setup once
 	self.z_index = Enum.ZIndex.GRID_PATTERN_VISUALIZATION # Draw above grid/sprites
-	var margin_vec: Vector2 = Vector2(margin_width, margin_width)
 
-	# Per grid pattern
-	var idx := 0
-	for grid_pattern: GridPatternRes in grid_patterns:
-		# Calculate grid_colors
-		var color := grid_colors[idx] if idx < grid_colors.size() else Colors.FALLBACK_COLOR
-		idx += 1
-		var color_fill := Colors.with_alpha(color, alpha_fill)
-		var color_border := Colors.with_alpha(color, alpha_border)
+	###################################
+	# GRID PATTERNS
+	###################################
+	if (not grid_patterns.is_empty()) and grid_patterns_visible:
+		var idx := 0
+		for grid_pattern: GridPatternRes in grid_patterns:
+			# Calculate grid_colors
+			var color := grid_colors[idx] if idx < grid_colors.size() else Colors.FALLBACK_COLOR
+			var color_fill := Colors.with_alpha(color, alpha_fill)
+			var color_border := Colors.with_alpha(color, alpha_border)
+			idx += 1
 
-		for grid_pos: Vector2i in grid_pattern.get_local_positions():
-			# Fill
-			var pos: Vector2 = grid_pos * Global.CELL_SIZE
-			var size: Vector2 = Global.CELL_SIZE_VEC
-			var rect := Rect2(pos + visual_offset, size)
-			draw_rect(rect, color_fill, true)
+			for grid_pos: Vector2i in grid_pattern.get_local_positions():
+				_draw_rect_with_border(grid_pos, color_fill, color_border)
 
-			# Border
-			pos += margin_vec * 0.5
-			size -= margin_vec
-			rect = Rect2(pos + visual_offset, size)
-			draw_rect(rect, color_border, false, margin_width)
+	###################################
+	# ACTION POINTS
+	###################################
+	if (not action_points.is_empty()) and action_points_visible:
+		for action_point: ActionPointRes in action_points:
+			var color := Colors.get_action_point_color(action_point.type)
+			var color_fill := Colors.with_alpha(color, alpha_fill)
+			var color_border := Colors.with_alpha(color, alpha_border)
+
+			_draw_rect_with_border(action_point.local_grid_offset, color_fill, color_border)
+
+			# Action circle			
+			var circle_pos: Vector2 = ((action_point.local_grid_offset as Vector2) + Vector2(0.5, 0.5)) * Global.CELL_SIZE + visual_offset
+			var color_circle := Colors.with_alpha(color, circle_alpha)
+			draw_circle(circle_pos, circle_radius_px, color_circle)
+
+	
+func _draw_rect_with_border(grid_pos: Vector2i, color_fill: Color, color_border: Color) -> void:
+	var margin_vec_px: Vector2 = Vector2(border_margin_width_px, border_margin_width_px)
+
+	# Fill
+	var pos: Vector2 = grid_pos * Global.CELL_SIZE
+	var size: Vector2 = Global.CELL_SIZE_VEC
+	var rect := Rect2(pos + visual_offset, size)
+	draw_rect(rect, color_fill, true)
+
+	# Border
+	pos += margin_vec_px * 0.5
+	size -= margin_vec_px
+	rect = Rect2(pos + visual_offset, size)
+	draw_rect(rect, color_border, false, border_margin_width_px)
 
 
+########################################################################################################################
+# SETUP
+########################################################################################################################
 func _ready() -> void:
 	grid_patterns.clear()
 	grid_colors.clear()
+	action_points.clear()
 	needs_redraw = true
 	needs_rescan = true
 
 	EventBus.Signal_DevToogleDrawBuildingPattern.connect(_update_is_visible)
+	EventBus.Signal_DevToogleDrawActionPoints.connect(_update_is_visible)
 
 
 func _process(_delta: float) -> void:
@@ -71,6 +106,7 @@ func _process(_delta: float) -> void:
 		# Only need to rescan in editor, in-game patterns are static once created
 		needs_rescan = Engine.is_editor_hint()
 		var old_patterns := grid_patterns.duplicate()
+		var old_action_points := action_points.duplicate()
 		var parent_node := get_parent()
 
 		if parent_node:
@@ -79,6 +115,9 @@ func _process(_delta: float) -> void:
 			if old_patterns != grid_patterns and Engine.is_editor_hint():
 				print("%s: GridPatternVisualization updated with %d pattern(s)" % [parent_node.name, grid_patterns.size()])
 
+			if old_action_points != action_points and Engine.is_editor_hint():
+				print("%s: GridPatternVisualization updated with %d action point(s)" % [parent_node.name, action_points.size()])
+
 		_update_is_visible()
 	
 	if needs_redraw:
@@ -86,16 +125,23 @@ func _process(_delta: float) -> void:
 		queue_redraw()
 		
 
+########################################################################################################################
+# SCANNING
+########################################################################################################################
 func _scan_node(node: Object) -> void:
 	# check this node's script variables
 	for prop in node.get_property_list():
 		if prop.type == TYPE_OBJECT:
 			var prop_name: String = prop.name
 			var value: Variant = node.get(prop_name)
+			
+			# Stray GridPatternRes (currently not really used)
 			if value is GridPatternRes:
 				# Add pattern directly with static color
 				@warning_ignore("unsafe_cast")
 				_add_grid_pattern(value as GridPatternRes)
+
+			# BuildingDataRes - extract patterns and action points
 			elif value is BuildingDataRes:
 				# Add all patterns with predefined grid_colors
 				@warning_ignore("unsafe_cast")
@@ -126,22 +172,38 @@ func _add_grid_pattern(grid_pattern: GridPatternRes, color: Color = Color.BLACK)
 		
 	needs_redraw = true
 
+func _add_action_point(action_point: ActionPointRes) -> void:
+	if action_points.has(action_point) or action_point == null:
+		return
+
+	action_points.append(action_point)
+	needs_redraw = true
+
 
 func _add_building_data(building_data: BuildingDataRes) -> void:
+	# Grid Patterns
 	for pattern_with_color in building_data.get_all_patterns_with_colors():
 		var grid_pattern: GridPatternRes = pattern_with_color["pattern"]
 		var color: Color = pattern_with_color["color"]
 		_add_grid_pattern(grid_pattern, color)
 
+	# Action Points
+	for action_point: ActionPointRes in building_data.action_points:
+		_add_action_point(action_point)
 
+
+########################################################################################################################
+# INTERNAL
+########################################################################################################################
 func _update_is_visible() -> void:
-	var should_be_visible: bool
-
+	# GridPatterns
 	# Exception for ladders, these are ONLY drawn in editor
 	if never_draw_because_is_ladder and not Engine.is_editor_hint():
-		should_be_visible = false
+		self.grid_patterns_visible = false
 	else:
-		should_be_visible = Engine.is_editor_hint() or EventBus.dev_draw_building_patterns
+		self.grid_patterns_visible = Engine.is_editor_hint() or EventBus.dev_draw_building_patterns
 
-	# Apply
-	self.visible = should_be_visible
+	# ActionPoints
+	self.action_points_visible = Engine.is_editor_hint() or EventBus.dev_draw_action_points
+
+	needs_redraw = true

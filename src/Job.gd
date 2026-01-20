@@ -55,7 +55,7 @@ func get_capacity() -> int:
 	match job_type:
 		Job.Type.MINE:
 			return 2 # Up to 2 dwarfs can mine simultaneously
-			
+
 		Job.Type.BUILD:
 			# Only allow multiple dwarfs for big buildings
 			if building != null and building.building_data.build_time >= 4.0 and building.build_process == 0.0 and workable_from_poses.size() >= 2:
@@ -106,14 +106,14 @@ func archive(success_: bool) -> void:
 	if not is_active:
 		push_error("Trying to archive job %s but was archived before (is_active=false)" % [self])
 		return
-		
+
 	is_active = false
 	success = success_
-	
+
 	for dwarf in assigned_dwarfs:
 		dwarf._on_job_archived()
 
-	
+
 func update_workable_from_cells() -> void:
 	workable_from_poses.clear()
 
@@ -124,7 +124,7 @@ func update_workable_from_cells() -> void:
 
 			if n_cell == null:
 				continue
-			
+
 			if n_cell.is_standable(false):
 				workable_from_poses.append(n_cell.grid_pos)
 
@@ -135,7 +135,7 @@ func update_workable_from_cells() -> void:
 
 			if n_cell == null:
 				continue
-			
+
 			if n_cell.is_standable(false):
 				workable_from_poses.append(n_cell.grid_pos)
 
@@ -143,7 +143,7 @@ func update_workable_from_cells() -> void:
 	elif job_type == Job.Type.PICKUP:
 		if carryable_item.can_be_picked_up_right_now():
 			workable_from_poses.append(center_cell.grid_pos)
-		
+
 
 ## Estimates remaining time in seconds. For now only works when dwarf already arrived at job.
 ## Used for other dwarfs to decide whether to take this job or not.
@@ -154,7 +154,7 @@ func estimate_remaining_time() -> float:
 
 	# Simple estimate based on job type
 	var remaining_time: float = MAX_REMAINING_TIME_ESTIMATE
-	
+
 	match job_type:
 		Job.Type.MINE:
 			for dwarf in assigned_dwarfs:
