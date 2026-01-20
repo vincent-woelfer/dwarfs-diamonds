@@ -19,7 +19,7 @@ extends Resource
 @export var pattern_building: GridPattern
 const pattern_building_color: Color = Color.BLUE
 
-## Pattern defining where the building can be built from
+## Pattern defining where the building can be built from (where dwarfs stand to build it)
 @export var pattern_build_from: GridPattern
 const pattern_build_from_color: Color = Color.GREEN
 

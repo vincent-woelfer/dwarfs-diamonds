@@ -38,7 +38,7 @@ func add_job(job: Job) -> void:
 	_jobs.append(job)
 
 
-## ONLY called by the job itself
+## ONLY called by global actions when archiving a job
 func remove_job(job: Job) -> void:
 	if job == null:
 		return

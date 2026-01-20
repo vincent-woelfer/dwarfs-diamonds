@@ -78,8 +78,9 @@ func _complete_construction() -> void:
 	print_rich("%s completed" % [self])
 	is_complete = true
 
-	# Complete build job
+	# Complete build job and delete reference
 	Actions.archive_job(build_job, true)
+	build_job = null
 	
 	# Update visual
 	_set_modulate_internal(Colors.building_modulate_finished)
