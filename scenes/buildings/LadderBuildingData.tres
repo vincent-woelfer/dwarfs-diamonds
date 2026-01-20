@@ -5,16 +5,12 @@
 
 [sub_resource type="Resource" id="Resource_6ctk3"]
 script = ExtResource("1_u18a1")
-pattern = Array[Vector2i]([Vector2i(0, 0), Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)])
+cells = Array[Vector2i]([Vector2i(0, 0), Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)])
 metadata/_custom_type_script = "uid://bdgg1wxcmv4go"
 
 [sub_resource type="Resource" id="Resource_u18a1"]
 script = ExtResource("1_u18a1")
-pattern = Array[Vector2i]([Vector2i(0, 0)])
-metadata/_custom_type_script = "uid://bdgg1wxcmv4go"
-
-[sub_resource type="Resource" id="Resource_iqvb1"]
-script = ExtResource("1_u18a1")
+cells = Array[Vector2i]([Vector2i(0, 0)])
 metadata/_custom_type_script = "uid://bdgg1wxcmv4go"
 
 [sub_resource type="Resource" id="Resource_xrwn1"]
@@ -27,6 +23,5 @@ name = "Ladder"
 build_time = 1.0
 pattern_building = SubResource("Resource_u18a1")
 pattern_build_from = SubResource("Resource_6ctk3")
-pattern_entrance = SubResource("Resource_iqvb1")
 pattern_solid_ground = SubResource("Resource_xrwn1")
 metadata/_custom_type_script = "uid://bwmp5gn3ali5i"

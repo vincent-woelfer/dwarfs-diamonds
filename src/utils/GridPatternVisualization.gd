@@ -113,7 +113,7 @@ func _scan_node(node: Object) -> void:
 
 
 func _add_grid_pattern(grid_pattern: GridPattern, color: Color = Color.BLACK) -> void:
-	if grid_patterns.has(grid_pattern) or grid_pattern == null or grid_pattern.pattern.is_empty():
+	if grid_patterns.has(grid_pattern) or grid_pattern == null or grid_pattern.cells.is_empty():
 		return
 
 	grid_patterns.append(grid_pattern)

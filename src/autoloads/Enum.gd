@@ -53,7 +53,7 @@ enum PolyPoint {
 	LEFT = 7,
 }
 
-# Movement Mode
+# Movement Mode of path
 enum MoveMode {
 	WALK,
 	CLIMB_WALL_UP,

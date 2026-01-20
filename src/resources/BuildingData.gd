@@ -15,7 +15,7 @@ extends Resource
 ########################################################################################################################
 @export_group("Grid Patterns")
 
-## Pattern defining the area the building occupies
+## Pattern defining the area the building occupies. Must be free (not solid, no other buildings) to place the building
 @export var pattern_building: GridPattern
 const pattern_building_color: Color = Color.BLUE
 
@@ -23,13 +23,16 @@ const pattern_building_color: Color = Color.BLUE
 @export var pattern_build_from: GridPattern
 const pattern_build_from_color: Color = Color.GREEN
 
-## Pattern defining where the building can be accessed from
-@export var pattern_entrance: GridPattern
-const pattern_entrance_color: Color = Color.RED
-
 ## Pattern defining where the building requires solid ground
 @export var pattern_solid_ground: GridPattern
 const pattern_solid_ground_color: Color = Color(0.3, 0.15, 0.1) # Dark brown
+
+########################################################################################################################
+# Action Points
+########################################################################################################################
+@export_group("Action Points")
+
+@export var action_points: Array
 
 ########################################################################################################################
 # Placement Checks
@@ -37,7 +40,7 @@ const pattern_solid_ground_color: Color = Color(0.3, 0.15, 0.1) # Dark brown
 func is_placeable_at(grid_pos: Vector2i) -> bool:
 	# Check if all building pattern cells exist, are free and have solid ground if required
 	assert(pattern_building != null)
-	var pattern_building_world := GridPattern.new(self.pattern_building.pattern, grid_pos)
+	var pattern_building_world := GridPattern.new(self.pattern_building.cells, grid_pos)
 
 	for pos in pattern_building_world.get_world_positions():
 		var cell: Cell = Global.level.get_cell(pos)
@@ -55,14 +58,14 @@ func is_placeable_at(grid_pos: Vector2i) -> bool:
 				
 	# Check solid ground requirement
 	if pattern_solid_ground != null:
-		var pattern_solid_ground_world := GridPattern.new(self.pattern_solid_ground.pattern, grid_pos)
+		var pattern_solid_ground_world := GridPattern.new(self.pattern_solid_ground.cells, grid_pos)
 
 		for pos in pattern_solid_ground_world.get_world_positions():
 			var cell: Cell = Global.level.get_cell(pos)
 			if cell == null or not cell.is_solid:
 				return false
 
-	# TODO Maybe check if pattern_build_from are free? Or maybe check if building entrance is free?
+	# TODO Maybe check if pattern_build_from are free?
 
 	return true
 
@@ -113,7 +116,7 @@ func _instantiate_pattern_at(pattern: GridPattern, grid_pos: Vector2i, var_name:
 		push_error("BuildingData %s has no '%s' defined." % [self.name, var_name])
 		return GridPattern.new([], grid_pos)
 
-	return GridPattern.new(pattern.pattern, grid_pos)
+	return GridPattern.new(pattern.cells, grid_pos)
 
 
 func get_all_patterns_with_colors() -> Array[Dictionary]:
@@ -145,6 +148,6 @@ func _validate_property(property: Dictionary) -> void:
 			push_warning("BuildingData: '%s' is not set for building '%s'." % [property.name, name])
 
 		# Empty patterns are okay for some patterns. Filter manually
-		elif prop_pattern.pattern.is_empty():
+		elif prop_pattern.cells.is_empty():
 			if prop_name in ["pattern_building", "pattern_build_from"]:
 				push_warning("BuildingData: '%s' has an empty pattern for building '%s'." % [property.name, name])
