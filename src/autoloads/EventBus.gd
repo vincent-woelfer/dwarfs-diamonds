@@ -25,6 +25,9 @@ var dev_light_on: bool = true
 signal Signal_DevToogleDrawBuildingPattern() # F4
 var dev_draw_building_patterns: bool = false
 
+signal Signal_DevToogleDwarfDrawInfo(draw_info: bool) # F5
+var dev_draw_dwarf_info: bool = true
+
 signal Signal_DevToogleSunFastForward(fast_forward: bool) # F12
 var dev_sun_fast_forward: bool = false
 
@@ -53,6 +56,10 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("dev_toogle_building_draw"):
 		dev_draw_building_patterns = not dev_draw_building_patterns
 		Signal_DevToogleDrawBuildingPattern.emit()
+
+	if event.is_action_pressed("dev_toogle_dwarf_draw_info"):
+		dev_draw_dwarf_info = not dev_draw_dwarf_info
+		Signal_DevToogleDwarfDrawInfo.emit(dev_draw_dwarf_info)
 
 	if event.is_action_pressed("dev_toogle_sun_fast_forward"):
 		dev_sun_fast_forward = not dev_sun_fast_forward

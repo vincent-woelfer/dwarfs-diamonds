@@ -41,9 +41,9 @@ func _ready() -> void:
 	dwarf_color = Colors.get_rand_dwarf_color(dwarf_id)
 	self.z_index = Enum.ZIndex.DWARFS
 
-	# Apply Color
-	animated_sprite.modulate = dwarf_color.lerp(Color.WHITE, 0.3)
-	light.color = dwarf_color.lerp(light.color, 0.3)
+	# Apply Color, 1 = no tint
+	animated_sprite.modulate = dwarf_color.lerp(Color.WHITE, 0.6)
+	light.color = dwarf_color.lerp(light.color, 0.6)
 
 	# Initial Position
 	global_position = Global.level.get_cell(grid_pos).get_floor_point()
@@ -51,6 +51,7 @@ func _ready() -> void:
 	# SIGNALS
 	EventBus.Signal_NavUpdated.connect(_on_nav_updated)
 	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
+	EventBus.Signal_DevToogleDwarfDrawInfo.connect(_dev_toogle_dwarf_draw_info)
 
 	mining_comp.Signal_OnMiningCompleted.connect(_on_mining_completed)
 	
@@ -433,6 +434,9 @@ static var NO_JOB_THROTTLED_PRINT_INTERVALL := 3.0
 
 
 func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
+	if not EventBus.dev_draw_dwarf_info:
+		return
+
 	# Status Text
 	var color_actual: Color = debug_state_colors.get(sm.state, Colors.FALLBACK_COLOR)
 	var text: String = Enum.to_str(Dwarf.State, sm.state)
@@ -447,6 +451,9 @@ func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
 
 
 func _debug_draw_in_ui_absolute(ui_layer: CanvasItem) -> void:
+	if not EventBus.dev_draw_dwarf_info:
+		return
+
 	# Draw Occupied Cell
 	var cell_to_draw: Cell = curr_cell
 
@@ -461,6 +468,11 @@ func _debug_draw_in_ui_absolute(ui_layer: CanvasItem) -> void:
 
 func _dev_toogle_light(is_light_on: bool) -> void:
 	light.enabled = is_light_on
+
+
+func _dev_toogle_dwarf_draw_info(draw_info: bool) -> void:
+	_debug_draw_proxy_absolute.queue_redraw()
+	_debug_draw_proxy_relative.queue_redraw()
 
 
 func _to_string() -> String:
