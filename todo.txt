@@ -20,6 +20,16 @@ Entweder lift oder minecard mit laden/entladen und ins pathfinding eingebunden.
 
 
 ============ Buildings Future ============
+Building similar to dwarf, features are from different components:
+- InteractionPoint (prev "entrance"):
+One cell (grid_object_2d) but also precise point in cell.
+Has Actions: Load, unload, refill-whatever
+
+Connected to (for example):
+Storage-Component: Shared by interactionPoints, similar (same?) like dwarfs carryingcomponent.
+
+
+===== OLD: =====
 One BuildingBase (fixed pos) contains:
 - Entrances (fixed i guess). No own sprite
 - moving platforms (elevators, mining cards ...). Contains own sprite

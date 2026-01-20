@@ -142,8 +142,8 @@ func _actions_mode_change() -> bool:
 		_transition_to_building_placement(BuildingManager.ladder_building_data)
 		return true
 
-	elif Input.is_action_just_pressed("mouse_place_building_base"):
-		_transition_to_building_placement(BuildingManager.base_building_data)
+	elif Input.is_action_just_pressed("mouse_place_building_outpost"):
+		_transition_to_building_placement(BuildingManager.outpost_building_data)
 		return true
 
 	elif Input.is_action_just_pressed("mouse_building_destroy"):
