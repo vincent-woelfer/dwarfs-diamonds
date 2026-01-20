@@ -5,7 +5,7 @@ extends GridObject2D
 @onready var light: PointLight2D = $PointLight2D
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var mining_comp: MiningComponent = $MiningComponent
-@onready var building_comp: BuildingComponent = $BuildingComponent
+@onready var construction_comp: ConstructionComponent = $ConstructionComponent
 @onready var movement_comp: MovementComponent = $MovementComponent
 @onready var carry_comp: CarryComponent = $CarryComponent
 
@@ -54,7 +54,7 @@ func _ready() -> void:
 
 	mining_comp.Signal_OnMiningCompleted.connect(_on_mining_completed)
 	
-	building_comp.Signal_OnBuildingCompleted.connect(_on_building_completed)
+	construction_comp.Signal_OnConstructionCompleted.connect(_on_construction_completed)
 
 	movement_comp.Signal_MovementDirectionChanged.connect(_on_movement_direction_changed)
 	movement_comp.Signal_OnFinishedPath.connect(_on_finished_path)
@@ -121,14 +121,14 @@ func _enter_building(building: BuildingBase) -> void:
 		return
 
 	# TODO check if success (implement) -> abort if not
-	building_comp.start_building(cell, cell_from, building)
+	construction_comp.start_building(cell, cell_from, building)
 
 	# Look at cell where building is built
 	_look_into_dir(job_with_path.job.center_cell.grid_pos - grid_pos)
 
 func _exit_building() -> void:
 	# Abort building
-	building_comp.stop_building()
+	construction_comp.stop_building()
 
 
 ###################################
@@ -244,8 +244,8 @@ func _on_mining_completed(mined_cell: Cell) -> void:
 				sm.transition_to(State.IDLE)
 
 	
-## Triggered by BuildingComponent
-func _on_building_completed(building: BuildingBase) -> void:
+## Triggered by ConstructionComponent
+func _on_construction_completed(building: BuildingBase) -> void:
 	# Normal case: Building was part of job which has already been finished (-> implicitly entered idle)
 	if sm.state != State.BUILDING:
 		return
@@ -260,7 +260,7 @@ func _on_building_completed(building: BuildingBase) -> void:
 	else:
 		print_rich("%s completed building %s but has no job" % [self, building])
 		# Stay in building state if still building, -> idle otherwise
-		if not building_comp.is_currently_building():
+		if not construction_comp.is_currently_building():
 			if sm.state != State.FALLING:
 				sm.transition_to(State.IDLE)
 	

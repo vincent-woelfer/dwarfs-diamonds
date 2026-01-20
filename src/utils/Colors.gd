@@ -29,19 +29,18 @@ static func with_alpha(color: Color, alpha: float) -> Color:
 ########################################################################################################################
 static func get_rand_dwarf_color(dwarf_id: int) -> Color:
 	# Shuffle each time the game is started to get different color assignments
-	if dwarf_id == 0:
-		dwarf_colors.shuffle()
-
+	# if dwarf_id == 0:
+		# dwarf_colors.shuffle()
 	# Deterministic based on dwarf_id
 	var index := dwarf_id % dwarf_colors.size()
 	return dwarf_colors[index]
 
 static var dwarf_colors := [
+	Color8(140, 0, 140), # Purple
+	Color8(255, 215, 0), # Gold
 	Color8(250, 0, 0), # Red
 	Color8(0, 250, 0), # Green
 	Color8(0, 0, 250), # Blue
-	Color8(255, 215, 0), # Gold
-	Color8(140, 0, 140), # Purple
 ]
 
 ########################################################################################################################
@@ -50,8 +49,8 @@ static var dwarf_colors := [
 static var building_id: int = 0
 static func get_rand_building_color() -> Color:
 	# Shuffle each time the game is started to get different color assignments
-	if building_id == 0:
-		building_colors.shuffle()
+	# if building_id == 0:
+		# building_colors.shuffle()
 
 	# Deterministic based on building_id
 	var index := building_id % building_colors.size()

@@ -1,9 +1,6 @@
 class_name CarryComponent
 extends Node2D
 
-## Emitted when building completed
-# signal Signal_OnBuildingCompleted(building: BuildingBase)
-
 
 @export var carry_capacity: float = 2.0
 

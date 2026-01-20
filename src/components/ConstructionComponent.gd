@@ -1,8 +1,8 @@
-class_name BuildingComponent
+class_name ConstructionComponent
 extends Node2D
 
 ## Emitted when building completed
-signal Signal_OnBuildingCompleted(building: BuildingBase)
+signal Signal_OnConstructionCompleted(building: BuildingBase)
 
 # per second
 @export var building_speed: float = 1.0
@@ -93,5 +93,5 @@ func _physics_process(delta: float) -> void:
 	
 	# Check if building completed - this works for multiple dwarfs building the same building, each is calling this method for themselfes
 	if temp_reference_building.is_complete:
-		Signal_OnBuildingCompleted.emit(temp_reference_building)
+		Signal_OnConstructionCompleted.emit(temp_reference_building)
 		stop_building()

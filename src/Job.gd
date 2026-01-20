@@ -180,7 +180,7 @@ func estimate_remaining_time() -> float:
 				# If at least one dwarf is already building -> use its speed
 				if dwarf.sm.state == Dwarf.State.BUILDING:
 					var remaining_process: float = 1.0 - building.build_process
-					var time := remaining_process / dwarf.building_comp.building_speed
+					var time := remaining_process / dwarf.construction_comp.building_speed
 					remaining_time = min(remaining_time, time)
 
 				# Dwarf still walking to job

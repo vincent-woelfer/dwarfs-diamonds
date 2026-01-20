@@ -150,9 +150,9 @@ func _filter_workable_jobs_for_dwarf(dwarf: Dwarf) -> Array[Job]:
 					continue
 
 			Job.Type.BUILD:
-				assert(dwarf.building_comp != null)
+				assert(dwarf.construction_comp != null)
 				assert(job.building != null)
-				if not dwarf.building_comp.can_build_at_all(job.building):
+				if not dwarf.construction_comp.can_build_at_all(job.building):
 					continue
 
 			Job.Type.PICKUP:
