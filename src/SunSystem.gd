@@ -21,9 +21,17 @@ var time: float
 var day_duration_sec: float = 120.0
 var night_duration_sec: float = 70.0
 
+# Modifiers for day/night duration, changed by dev_toogle_sun_fast_forward
+var day_duration_factor: float = 1.0
+var night_duration_factor: float = 1.0
+
+# Margin to avoid sun being exactly horizontal at sunrise/sunset
+var margin_deg: float = 5.0
+
 func _ready() -> void:
 	# Connect Signals
 	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
+	EventBus.Signal_DevToogleSunFastForward.connect(_dev_toogle_sun_fast_forward)
 
 	# Sunlight
 	sunlight = DirectionalLight2D.new()
@@ -41,22 +49,26 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	# Increase Time
+	# Increase Time. 0 -> 1 = Daytime, 1 -> 2 = Nighttime
 	if time < 1.0:
-		time += delta * (1.0 / day_duration_sec)
+		time += delta / (day_duration_sec * day_duration_factor)
 	else:
-		time += delta * (1.0 / night_duration_sec)
+		time += delta / (night_duration_sec * night_duration_factor)
 
 	if time > 2.0:
 		time = 0.0
 
-	var is_daytime: bool = time < 1.0
+	var is_daytime: bool = time <= 1.0
+	var night_time: float = time - 1.0 # 0 -> 1
 
 	# Sun Color
 	if is_daytime:
 		sunlight.color = color_gradient.sample(time)
 	else:
-		sunlight.color = (color_gradient.sample(0.0) + color_gradient.sample(1.0)) / 2.0
+		# At night, gradually shift between sunset and sunrise color. This should cause no jumps.
+		var sunset_color: Color = color_gradient.sample(1.0)
+		var sunrise_color: Color = color_gradient.sample(0.0)
+		sunlight.color = lerp(sunset_color, sunrise_color, night_time)
 
 	# Sun Angle:
 	# -90 deg = horizontal from left
@@ -64,17 +76,19 @@ func _process(delta: float) -> void:
 	# +90 deg = horizontal from right
 
 	if is_daytime:
-		var margin_deg: float = 0.0
 		sunlight.rotation_degrees = remap(time, 0.0, 1.0, -90.0 + margin_deg, 90.0 - margin_deg)
 	else:
-		pass
-		# sunlight.rotation_degrees = 0.0
+		# At night set to from above again. This is a jump!
+		sunlight.rotation_degrees = 0.0
 
 	# Sun Energy
 	if is_daytime:
 		sunlight.energy = energy_curve.sample(time)
 	else:
-		sunlight.energy = (energy_curve.sample(0.0) + energy_curve.sample(1.0)) / 2.0
+		# At night, gradually shift between sunset and sunrise energy. This should cause no jumps.
+		var sunset_energy: float = energy_curve.sample(1.0)
+		var sunrise_energy: float = energy_curve.sample(0.0)
+		sunlight.energy = lerp(sunset_energy, sunrise_energy, night_time)
 
 
 func _dev_toogle_light(is_light_on: bool) -> void:
@@ -86,3 +100,12 @@ func _dev_toogle_light(is_light_on: bool) -> void:
 		# NO LIGHTING / DARKNESS
 		darkness.visible = false
 		sunlight.enabled = false
+
+
+func _dev_toogle_sun_fast_forward(fast_forward: bool) -> void:
+	if fast_forward:
+		day_duration_factor = 0.05
+		night_duration_factor = 0.05
+	else:
+		day_duration_factor = 1.0
+		night_duration_factor = 1.0

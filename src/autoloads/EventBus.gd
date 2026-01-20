@@ -11,7 +11,6 @@ signal Signal_NavUpdated() # Emitted when the nav grid has been updated
 # This is only for the one "central" cell
 signal Signal_MouseHoveredCellChanged(hovered_cell: Cell)
 
-
 ## Emitted in Actions.destroy_cell after cell is destroyed
 signal Signal_GlobalCellDestroyed(destroyed_cell: Cell)
 
@@ -23,9 +22,11 @@ signal Signal_GlobalCellDestroyed(destroyed_cell: Cell)
 signal Signal_DevToogleLight(is_light_on: bool) # F3
 var dev_light_on: bool = true
 
-# No Signal required
 signal Signal_DevToogleDrawBuildingPattern() # F4
 var dev_draw_building_patterns: bool = false
+
+signal Signal_DevToogleSunFastForward(fast_forward: bool) # F12
+var dev_sun_fast_forward: bool = false
 
 
 func _ready() -> void:
@@ -41,6 +42,9 @@ func _ready() -> void:
 	###################################
 
 
+###################################
+# Handle DEV-Input here
+###################################
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("dev_toogle_light"):
 		dev_light_on = not dev_light_on
@@ -50,7 +54,11 @@ func _input(event: InputEvent) -> void:
 		dev_draw_building_patterns = not dev_draw_building_patterns
 		Signal_DevToogleDrawBuildingPattern.emit()
 
+	if event.is_action_pressed("dev_toogle_sun_fast_forward"):
+		dev_sun_fast_forward = not dev_sun_fast_forward
+		Signal_DevToogleSunFastForward.emit(dev_sun_fast_forward)
 
+	
 ###################################
 # Event bus logging functions
 ###################################

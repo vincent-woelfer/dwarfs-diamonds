@@ -16,7 +16,6 @@ var default_light_energy: float
 func _ready() -> void:
     # Signals
     EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
-    _dev_toogle_light(EventBus.dev_light_on)
 
     animated_sprite.frame_changed.connect(_on_new_frame)
 
@@ -30,6 +29,9 @@ func _ready() -> void:
     # Start animation
     animated_sprite.play(animation_name)
     animated_sprite.set_frame_and_progress(randi_range(0, torch_sizes.size() - 1), randf())
+
+    # Initial light setup according to global state of dev setting
+    _dev_toogle_light(EventBus.dev_light_on)
 
     
 func place_in_cell(cell: Cell) -> void:

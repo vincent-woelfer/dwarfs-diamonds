@@ -58,9 +58,6 @@ func destroy_building() -> void:
 	if build_job != null:
 		Actions.archive_job(build_job, false)
 
-	# TOOD ?
-	pass
-
 
 func _set_modulate_internal(color: Color) -> void:
 	internal_modulate = color
