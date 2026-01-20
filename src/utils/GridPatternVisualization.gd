@@ -6,7 +6,7 @@ class_name GridPatternVisualization
 extends Node2D
 
 # Scanned grid patterns and their colors
-var grid_patterns: Array[GridPattern] = []
+var grid_patterns: Array[GridPatternRes] = []
 var grid_colors: Array[Color] = []
 
 # Never draw ladder patterns in game to avoid visual clutter (these are drawn in editor only)
@@ -35,7 +35,7 @@ func _draw() -> void:
 
 	# Per grid pattern
 	var idx := 0
-	for grid_pattern: GridPattern in grid_patterns:
+	for grid_pattern: GridPatternRes in grid_patterns:
 		# Calculate grid_colors
 		var color := grid_colors[idx] if idx < grid_colors.size() else Colors.FALLBACK_COLOR
 		idx += 1
@@ -92,18 +92,18 @@ func _scan_node(node: Object) -> void:
 		if prop.type == TYPE_OBJECT:
 			var prop_name: String = prop.name
 			var value: Variant = node.get(prop_name)
-			if value is GridPattern:
+			if value is GridPatternRes:
 				# Add pattern directly with static color
 				@warning_ignore("unsafe_cast")
-				_add_grid_pattern(value as GridPattern)
-			elif value is BuildingData:
+				_add_grid_pattern(value as GridPatternRes)
+			elif value is BuildingDataRes:
 				# Add all patterns with predefined grid_colors
 				@warning_ignore("unsafe_cast")
-				_add_building_data(value as BuildingData)
+				_add_building_data(value as BuildingDataRes)
 
 				# Check if ladder
 				@warning_ignore("unsafe_cast")
-				if (value as BuildingData).name == "Ladder":
+				if (value as BuildingDataRes).name == "Ladder":
 					never_draw_because_is_ladder = true
 
 	# recurse into children (only if it's a Node)
@@ -112,7 +112,7 @@ func _scan_node(node: Object) -> void:
 			_scan_node(child)
 
 
-func _add_grid_pattern(grid_pattern: GridPattern, color: Color = Color.BLACK) -> void:
+func _add_grid_pattern(grid_pattern: GridPatternRes, color: Color = Color.BLACK) -> void:
 	if grid_patterns.has(grid_pattern) or grid_pattern == null or grid_pattern.cells.is_empty():
 		return
 
@@ -127,9 +127,9 @@ func _add_grid_pattern(grid_pattern: GridPattern, color: Color = Color.BLACK) ->
 	needs_redraw = true
 
 
-func _add_building_data(building_data: BuildingData) -> void:
+func _add_building_data(building_data: BuildingDataRes) -> void:
 	for pattern_with_color in building_data.get_all_patterns_with_colors():
-		var grid_pattern: GridPattern = pattern_with_color["pattern"]
+		var grid_pattern: GridPatternRes = pattern_with_color["pattern"]
 		var color: Color = pattern_with_color["color"]
 		_add_grid_pattern(grid_pattern, color)
 

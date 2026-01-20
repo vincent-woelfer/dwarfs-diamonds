@@ -51,7 +51,6 @@ static func get_rand_building_color() -> Color:
 	# Shuffle each time the game is started to get different color assignments
 	# if building_id == 0:
 		# building_colors.shuffle()
-
 	# Deterministic based on building_id
 	var index := building_id % building_colors.size()
 	building_id += 1
@@ -82,7 +81,7 @@ static var CellTypeColor := {
 ########################################################################################################################
 # GRID PATTERN COLORS
 ########################################################################################################################
-## GridPattern Colors. RGB are used in BuildingData, use others here
+## GridPatternRes Colors. RGB are used in BuildingDataRes, use others here
 static var grid_pattern_preview_colors: Array[Color] = [
 	Color8(255, 215, 0), # Gold
 	Color8(140, 0, 140), # Purple
@@ -94,6 +93,16 @@ static func get_rand_grid_pattern_color(id: int) -> Color:
 	var index := id % grid_pattern_preview_colors.size()
 	return grid_pattern_preview_colors[index]
 
+
+########################################################################################################################
+# ACTION POINT COLORS
+########################################################################################################################
+static func get_action_point_color(type: ActionPoint.ActionType) -> Color:
+	return ActionPointColor.get(type, FALLBACK_COLOR)
+
+static var ActionPointColor := {
+	ActionPoint.ActionType.DISPOSE_RUBBLE: Color.AQUAMARINE,
+}
 
 ########################################################################################################################
 # BUILDING COLORS

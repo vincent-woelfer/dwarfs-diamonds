@@ -44,7 +44,7 @@ func mark_cell_for_mining(cell: Cell, is_marked_for_mining: bool) -> void:
 
 
 ## Verification takes place before calling this
-func place_building(cell: Cell, building_data: BuildingData, finish_instantly: bool = false) -> BuildingBase:
+func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly: bool = false) -> BuildingBase:
 	# Validate - actual validation already took place, just to catch any issues here
 	assert(cell != null)
 	assert(building_data != null)

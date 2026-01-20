@@ -1,5 +1,5 @@
 @tool
-class_name GridPattern
+class_name GridPatternRes
 extends Resource
 
 var world_offset: Vector2i = Vector2i.ZERO

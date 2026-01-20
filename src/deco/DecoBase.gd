@@ -1,10 +1,11 @@
-@abstract
 @tool
+@abstract
 class_name DecoBase
 extends GridObject2D
 
-static var torch_scene: PackedScene = preload('res://scenes/deco/DecoTorch.tscn')
-
+########################################################################################################################
+# SETUP
+########################################################################################################################
 # Only method this base class provides
 func place_in_cell(cell: Cell) -> void:
     assert(cell != null)

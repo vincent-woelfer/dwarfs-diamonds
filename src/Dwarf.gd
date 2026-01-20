@@ -210,7 +210,7 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 	if num_torches > 0 and new_cell.deco_elements.is_empty() and Global.level.should_contain_torch(grid_pos):
 		print_rich("%s placing torch at %s" % [self, grid_pos])
 		num_torches -= 1
-		new_cell.add_deco_element(DecoBase.torch_scene.instantiate() as DecoBase)
+		new_cell.add_deco_element(DecoTorch.instantiate())
 
 
 ## Triggered by MovementComponent

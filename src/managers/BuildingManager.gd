@@ -6,8 +6,8 @@ var buildings: Array[BuildingBase] = []
 ########################################################################################################################
 # ALL BUILDING DATA PRELOADS
 ########################################################################################################################
-static var ladder_building_data: BuildingData = preload("res://scenes/buildings/LadderBuildingData.tres") as BuildingData
-static var outpost_building_data: BuildingData = preload("res://scenes/buildings/OutpostBuildingData.tres") as BuildingData
+static var ladder_building_data: BuildingDataRes = preload("res://scenes/buildings/LadderBuildingData.tres") as BuildingDataRes
+static var outpost_building_data: BuildingDataRes = preload("res://scenes/buildings/OutpostBuildingData.tres") as BuildingDataRes
 
 ########################################################################################################################
 # PUBLIC METHODS

@@ -4,7 +4,7 @@ class_name BuildingBase
 extends GridObject2D
 
 ## Set in editor for actual buildings to define type
-@export var building_data: BuildingData
+@export var building_data: BuildingDataRes
 
 ## Building construction process
 var build_process: float = 0.0
@@ -20,7 +20,11 @@ var build_job: Job = null
 # For dev
 var building_color: Color
 
-func setup_building_as_uncompleted(grid_pos_: Vector2i, building_data_: BuildingData) -> void:
+
+########################################################################################################################
+# SETUP
+########################################################################################################################
+func setup_building_as_uncompleted(grid_pos_: Vector2i, building_data_: BuildingDataRes) -> void:
 	super.setup(grid_pos_, Vector2.ZERO)
 
 	building_color = Colors.get_rand_building_color()
@@ -35,14 +39,15 @@ func setup_building_as_uncompleted(grid_pos_: Vector2i, building_data_: Building
 	# Initial Position
 	global_position = Global.level.get_cell(grid_pos).global_position + Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
 
-
 func _ready() -> void:
 	# Add pickup job
 	build_job = Job.new(Job.Type.BUILD, curr_cell)
 	build_job.building = self
 	Global.level.job_manager.add_job(build_job)
 
-
+########################################################################################################################
+# Public API
+########################################################################################################################
 func update_build_process(building_speed_with_delta: float) -> void:
 	if is_complete:
 		return
@@ -68,6 +73,9 @@ func set_modulate_external(color: Color) -> void:
 	self.modulate = internal_modulate * external_modulate
 
 
+########################################################################################################################
+# PRIVATE
+########################################################################################################################
 func _complete_construction() -> void:
 	if is_complete:
 		return

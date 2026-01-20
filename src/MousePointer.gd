@@ -17,7 +17,7 @@ var mouse_pointer_texture_normal: Texture2D = preload("res://assets/vector_graph
 var mouse_pointer_texture_building_destroy: Texture2D = preload("res://assets/vector_graphics/MousePointerBuildingDestroy.svg") as Texture2D
 
 # Variables
-var selection_pattern: GridPattern
+var selection_pattern: GridPatternRes
 
 # Current & Previous selected cells - for normal mode
 var curr_selected_cells: Array[Cell] = []
@@ -41,7 +41,7 @@ func _ready() -> void:
 	self.z_index = Enum.ZIndex.UI_MOUSE_POINTER
 
 	# Default selection pattern is single cell
-	selection_pattern = GridPattern.new([Vector2i.ZERO])
+	selection_pattern = GridPatternRes.new([Vector2i.ZERO])
 
 	# SIGNALS
 	# ...
@@ -82,7 +82,7 @@ func _physics_process_neutral(delta: float) -> void:
 # Building Placement State
 ###################################
 # No enter function since we need to call with new building data, instead use this one
-func _transition_to_building_placement(building_data: BuildingData) -> void:
+func _transition_to_building_placement(building_data: BuildingDataRes) -> void:
 	building_preview.set_building_data(building_data)
 	sm.transition_to(State.BUILDING_PLACEMENT)
 

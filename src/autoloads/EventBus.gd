@@ -19,16 +19,24 @@ signal Signal_GlobalCellDestroyed(destroyed_cell: Cell)
 # DEV TOOLS SIGNALS
 # SIGNALS DIRECTLY FROM INPUT KEYS (default key as comment behind signal)
 ###################################
-signal Signal_DevToogleLight(is_light_on: bool) # F3
+# F3
+signal Signal_DevToogleLight(is_light_on: bool)
 var dev_light_on: bool = true
 
-signal Signal_DevToogleDrawBuildingPattern() # F4
+# F4
+signal Signal_DevToogleDrawBuildingPattern()
 var dev_draw_building_patterns: bool = false
 
-signal Signal_DevToogleDwarfDrawInfo(draw_info: bool) # F5
+# F5
+signal Signal_DevToogleDrawActionPoints()
+var dev_draw_action_points: bool = false
+
+# F6
+signal Signal_DevToogleDwarfDrawInfo(draw_info: bool)
 var dev_draw_dwarf_info: bool = true
 
-signal Signal_DevToogleSunFastForward(fast_forward: bool) # F12
+# F12
+signal Signal_DevToogleSunFastForward(fast_forward: bool)
 var dev_sun_fast_forward: bool = false
 
 
@@ -49,18 +57,22 @@ func _ready() -> void:
 # Handle DEV-Input here
 ###################################
 func _input(event: InputEvent) -> void:
+	# F3
 	if event.is_action_pressed("dev_toogle_light"):
 		dev_light_on = not dev_light_on
 		Signal_DevToogleLight.emit(dev_light_on)
 
+	# F4
 	if event.is_action_pressed("dev_toogle_building_draw"):
 		dev_draw_building_patterns = not dev_draw_building_patterns
 		Signal_DevToogleDrawBuildingPattern.emit()
 
+	# F6
 	if event.is_action_pressed("dev_toogle_dwarf_draw_info"):
 		dev_draw_dwarf_info = not dev_draw_dwarf_info
 		Signal_DevToogleDwarfDrawInfo.emit(dev_draw_dwarf_info)
-
+	
+	# F12
 	if event.is_action_pressed("dev_toogle_sun_fast_forward"):
 		dev_sun_fast_forward = not dev_sun_fast_forward
 		Signal_DevToogleSunFastForward.emit(dev_sun_fast_forward)

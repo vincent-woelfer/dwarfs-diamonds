@@ -10,8 +10,20 @@ extends DecoBase
 const torch_sizes: Array[float] = [1.0, 0.6, 0.8, 1.2]
 const animation_name: String = "idle"
 
-
 var default_light_energy: float
+
+########################################################################################################################
+# SETUP
+########################################################################################################################
+func place_in_cell(cell: Cell) -> void:
+    super.place_in_cell(cell)
+
+    # Left/right random offset
+    # self.position.x = randf_range(0.2, 0.8) * Global.CELL_SIZE
+    self.position.x = Global.CELL_SIZE / 2.0
+
+    # On wall
+    self.position.y = Global.CELL_SIZE / 2.0
 
 func _ready() -> void:
     # Signals
@@ -32,17 +44,12 @@ func _ready() -> void:
 
     # Initial light setup according to global state of dev setting
     _dev_toogle_light(EventBus.dev_light_on)
+   
 
-    
-func place_in_cell(cell: Cell) -> void:
-    super.place_in_cell(cell)
-
-    # Left/right random offset
-    # self.position.x = randf_range(0.2, 0.8) * Global.CELL_SIZE
-    self.position.x = Global.CELL_SIZE / 2.0
-
-    # On wall
-    self.position.y = Global.CELL_SIZE / 2.0
+static func instantiate() -> DecoTorch:
+    var torch_scene: PackedScene = preload('res://scenes/deco/DecoTorch.tscn')
+    var instance: DecoTorch = torch_scene.instantiate() as DecoTorch
+    return instance
 
 
 func _on_new_frame() -> void:

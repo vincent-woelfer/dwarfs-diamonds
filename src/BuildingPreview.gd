@@ -12,7 +12,7 @@ var curr_cell: Cell = null
 var prev_cell: Cell = null
 
 # State
-var building_data: BuildingData = null # Actts as is_active flag, null = inactive
+var building_data: BuildingDataRes = null # Actts as is_active flag, null = inactive
 var is_valid_placement: bool = true
 
 # Preview Sprite
@@ -86,7 +86,7 @@ func attempt_to_place_preview_building(finish_instantly: bool = false) -> bool:
 	return true
 
 
-func set_building_data(building_data_new: BuildingData) -> void:
+func set_building_data(building_data_new: BuildingDataRes) -> void:
 	if building_data == building_data_new:
 		return
 

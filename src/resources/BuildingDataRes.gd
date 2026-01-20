@@ -1,9 +1,14 @@
 @tool
-class_name BuildingData
+class_name BuildingDataRes
 extends Resource
 
 
+########################################################################################################################
+# Building Properties
+# -> manually add new ones in instantiate_building_data
+########################################################################################################################
 @export_group("Building Properties")
+
 ## Name of the building. Must match the scene name of the building
 @export var name: String
 
@@ -16,15 +21,15 @@ extends Resource
 @export_group("Grid Patterns")
 
 ## Pattern defining the area the building occupies. Must be free (not solid, no other buildings) to place the building
-@export var pattern_building: GridPattern
+@export var pattern_building: GridPatternRes
 const pattern_building_color: Color = Color.BLUE
 
 ## Pattern defining where the building can be built from (where dwarfs stand to build it)
-@export var pattern_build_from: GridPattern
+@export var pattern_build_from: GridPatternRes
 const pattern_build_from_color: Color = Color.GREEN
 
 ## Pattern defining where the building requires solid ground
-@export var pattern_solid_ground: GridPattern
+@export var pattern_solid_ground: GridPatternRes
 const pattern_solid_ground_color: Color = Color(0.3, 0.15, 0.1) # Dark brown
 
 ########################################################################################################################
@@ -32,7 +37,7 @@ const pattern_solid_ground_color: Color = Color(0.3, 0.15, 0.1) # Dark brown
 ########################################################################################################################
 @export_group("Action Points")
 
-@export var action_points: Array
+@export var action_points: Array[ActionPointRes] = []
 
 ########################################################################################################################
 # Placement Checks
@@ -40,7 +45,7 @@ const pattern_solid_ground_color: Color = Color(0.3, 0.15, 0.1) # Dark brown
 func is_placeable_at(grid_pos: Vector2i) -> bool:
 	# Check if all building pattern cells exist, are free and have solid ground if required
 	assert(pattern_building != null)
-	var pattern_building_world := GridPattern.new(self.pattern_building.cells, grid_pos)
+	var pattern_building_world := GridPatternRes.new(self.pattern_building.cells, grid_pos)
 
 	for pos in pattern_building_world.get_world_positions():
 		var cell: Cell = Global.level.get_cell(pos)
@@ -58,7 +63,7 @@ func is_placeable_at(grid_pos: Vector2i) -> bool:
 				
 	# Check solid ground requirement
 	if pattern_solid_ground != null:
-		var pattern_solid_ground_world := GridPattern.new(self.pattern_solid_ground.cells, grid_pos)
+		var pattern_solid_ground_world := GridPatternRes.new(self.pattern_solid_ground.cells, grid_pos)
 
 		for pos in pattern_solid_ground_world.get_world_positions():
 			var cell: Cell = Global.level.get_cell(pos)
@@ -82,43 +87,45 @@ func instantiate_preview_scene() -> Node2D:
 func _load_scene_internal(path: String) -> Node2D:
 	var res: Resource = load(path)
 	if res == null:
-		push_error("BuildingData: Could not load scene at path: %s" % path)
+		push_error("BuildingDataRes: Could not load scene at path: %s" % path)
 		return null
 
 	if res is not PackedScene:
-		push_error("BuildingData: Resource at path %s is not a PackedScene." % path)
+		push_error("BuildingDataRes: Resource at path %s is not a PackedScene." % path)
 		return null
 
 	return (res as PackedScene).instantiate()
 
 
-func instantiate_building_data(grid_pos: Vector2i) -> BuildingData:
+## Instantiate copy of building data, instantiates all grid-patterns at given grid position
+func instantiate_building_data(grid_pos: Vector2i) -> BuildingDataRes:
 	# Copy building data itself
-	var instance: BuildingData = BuildingData.new()
+	var instance: BuildingDataRes = BuildingDataRes.new()
 
 	# Copy properties - TODO add new properties here
 	instance.name = self.name
 	instance.build_time = self.build_time
 
-	# Adjust patterns to new position - find all patterns dynamically
+	# Find all pattern properties dynamically and instantiate them at the given position
 	for property: Dictionary in self.get_property_list():
 		var prop_name: String = property.name
 		if prop_name.begins_with("pattern_") and property.type != TYPE_COLOR:
-			@warning_ignore("UNSAFE_CAST")
-			var self_pattern := self.get(prop_name) as GridPattern
-			instance.set(prop_name, _instantiate_pattern_at(self_pattern, grid_pos, prop_name))
+			var pattern: GridPatternRes = self.get(prop_name)
+			instance.set(prop_name, _instantiate_pattern_at(pattern, grid_pos, prop_name))
 
 	return instance
 
 
-func _instantiate_pattern_at(pattern: GridPattern, grid_pos: Vector2i, var_name: String) -> GridPattern:
+func _instantiate_pattern_at(pattern: GridPatternRes, grid_pos: Vector2i, var_name: String) -> GridPatternRes:
 	if pattern == null:
-		push_error("BuildingData %s has no '%s' defined." % [self.name, var_name])
-		return GridPattern.new([], grid_pos)
+		push_error("BuildingDataRes %s has no '%s' defined." % [self.name, var_name])
+		return GridPatternRes.new([], grid_pos)
 
-	return GridPattern.new(pattern.cells, grid_pos)
+	return GridPatternRes.new(pattern.cells, grid_pos)
 
 
+## Returns an array of dictionaries with keys "pattern" (GridPatternRes) and "color" (Color), scanned dynamically from this BuildingDataRes.
+## Used only for GridPatternVisualization
 func get_all_patterns_with_colors() -> Array[Dictionary]:
 	var patterns_with_colors: Array[Dictionary] = []
 
@@ -126,7 +133,7 @@ func get_all_patterns_with_colors() -> Array[Dictionary]:
 	for property: Dictionary in self.get_property_list():
 		var prop_name: String = property.name
 		if prop_name.begins_with("pattern_") and property.type != TYPE_COLOR:
-			var pattern: GridPattern = self.get(prop_name)
+			var pattern: GridPatternRes = self.get(prop_name)
 			var color: Color = self.get("%s_color" % prop_name)
 			patterns_with_colors.append({"pattern": pattern, "color": color})
 
@@ -140,14 +147,16 @@ func _validate_property(property: Dictionary) -> void:
 	var prop_name: String = property.name
 	var prop_variant: Variant = self.get(prop_name)
 
-	if prop_name.begins_with("pattern_") and prop_variant is GridPattern:
-		@warning_ignore("UNSAFE_CAST")
-		var prop_pattern := prop_variant as GridPattern
+	# Validate GridPatternRes properties
+	if prop_name.begins_with("pattern_") and prop_variant is GridPatternRes:
+		var prop_pattern: GridPatternRes = prop_variant
 
 		if prop_pattern == null:
-			push_warning("BuildingData: '%s' is not set for building '%s'." % [property.name, name])
+			push_warning("BuildingDataRes: '%s' is not set for building '%s'." % [property.name, name])
+			return
 
-		# Empty patterns are okay for some patterns. Filter manually
-		elif prop_pattern.cells.is_empty():
-			if prop_name in ["pattern_building", "pattern_build_from"]:
-				push_warning("BuildingData: '%s' has an empty pattern for building '%s'." % [property.name, name])
+		# Empty patterns are a warning, depending on which pattern it is. Check manually here.
+		var patterns_should_not_be_empty := ["pattern_building", "pattern_build_from"]
+		if prop_pattern.cells.is_empty():
+			if prop_name in patterns_should_not_be_empty:
+				push_warning("BuildingDataRes: '%s' has an empty pattern for building '%s'." % [property.name, name])
