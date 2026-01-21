@@ -17,6 +17,9 @@ var external_modulate: Color = Color.WHITE
 # Build job associated with this building
 var build_job: Job = null
 
+# Action Points
+var action_points: Array[ActionPoint] = []
+
 # For dev
 var building_color: Color
 
@@ -38,6 +41,17 @@ func setup_building_as_uncompleted(grid_pos_: Vector2i, building_data_: Building
 
 	# Initial Position
 	global_position = Global.level.get_cell(grid_pos).global_position + Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
+
+
+func setup_action_points() -> void:
+	action_points.clear()
+
+	for ap_res: ActionPointRes in building_data.action_points:
+		var ap := ActionPoint.new()
+		var pos: Vector2i = grid_pos + ap_res.local_grid_offset
+		ap.setup_action_point(pos, ap_res.type)
+		action_points.append(ap)
+
 
 func _ready() -> void:
 	# Add pickup job
@@ -100,6 +114,10 @@ func _complete_construction() -> void:
 		var cell: Cell = Global.level.get_cell(pos)
 		if cell != null:
 			cell.queue_nav_update()
+
+	# Action Points setup
+	setup_action_points()
+	Global.level.building_manager.register_action_points(self)
 
 
 func _flash(color: Color, duration: float) -> void:

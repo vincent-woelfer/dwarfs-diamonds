@@ -24,6 +24,14 @@ const border_margin_width_px: float = 2.0
 const circle_radius_px: float = 0.15 * Global.CELL_SIZE
 const circle_alpha: float = 0.6
 
+# Text properties
+const label_width := 1.0 * Global.CELL_SIZE
+# relative to circle (cell center)
+const label_offset := Vector2(0.0, -0.3) * Global.CELL_SIZE_VEC + Vector2(-label_width / 2.0, 0.0)
+
+var font := ThemeDB.fallback_font
+var font_size := 14
+
 # Offset to visually center the pattern on the grid
 const visual_offset: Vector2 = - Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
 
@@ -68,6 +76,11 @@ func _draw() -> void:
 			var circle_pos: Vector2 = ((action_point.local_grid_offset as Vector2) + Vector2(0.5, 0.5)) * Global.CELL_SIZE + visual_offset
 			var color_circle := Colors.with_alpha(color, circle_alpha)
 			draw_circle(circle_pos, circle_radius_px, color_circle)
+
+			# Text
+			var text: String = Enum.to_str(ActionPoint.ActionType, action_point.type)
+			var lable_pos: Vector2 = circle_pos + label_offset
+			draw_string(font, lable_pos, text, HORIZONTAL_ALIGNMENT_CENTER, label_width, font_size, color)
 
 	
 func _draw_rect_with_border(grid_pos: Vector2i, color_fill: Color, color_border: Color) -> void:

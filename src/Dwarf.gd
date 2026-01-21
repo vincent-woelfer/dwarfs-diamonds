@@ -422,12 +422,12 @@ const debug_state_colors := {
 	State.DYING: Color(0.0, 0.0, 0.0), # Black
 }
 
-const debug_label_width := 0.9 * Global.CELL_SIZE
+const debug_label_width := 1.0 * Global.CELL_SIZE
 const debug_label_offset := Vector2(0.0, -0.8) * Global.CELL_SIZE_VEC + Vector2(-debug_label_width / 2.0, 0.0)
 const debug_occupied_cell_alpha := 0.1
 
 var debug_font := ThemeDB.fallback_font
-var debug_font_size := 22
+var debug_font_size := 20
 
 # For throttled printing above
 static var NO_JOB_THROTTLED_PRINT_INTERVALL := 3.0
@@ -446,7 +446,7 @@ func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
 	# Add movement component state below, smaller
 	text = movement_comp.get_state_string()
 	var offset_second := debug_label_offset + Vector2(0.0, debug_font_size + 4.0)
-	var size_second: int = roundi(debug_font_size * 0.7)
+	var size_second: int = roundi(debug_font_size * 0.65)
 	ui_layer.draw_string(debug_font, offset_second, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, size_second, color_actual)
 
 

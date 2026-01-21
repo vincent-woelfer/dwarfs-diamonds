@@ -17,7 +17,7 @@ var is_active: bool = true
 var type: ActionType
 
 # Local pos inside the cell
-var in_cell_pos: Vector2 = Vector2.ZERO
+var in_cell_pos: Vector2 = Global.CELL_SIZE_VEC_HALF
 
 
 ########################################################################################################################
