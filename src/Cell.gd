@@ -8,6 +8,7 @@ var visual: CellVisuals
 
 var deco_elements: Array[DecoBase] = []
 var buildings: Array[BuildingBase] = []
+var action_points: Array[ActionPoint] = []
 
 ########################################################################################################################
 # GROUND TRUTH BOOL STATUS FLAGS
@@ -122,6 +123,25 @@ func remove_building(building: BuildingBase) -> void:
 	queue_nav_update()
 
 
+###################################
+# Action Point Management (added/removed ONLY by BuildingManager)
+###################################
+func add_action_point(action_point: ActionPoint) -> void:
+	if action_point in action_points:
+		return
+	action_points.append(action_point)
+
+func remove_action_point(action_point: ActionPoint) -> void:
+	action_points.erase(action_point)
+
+func get_action_points_of_type(ap_type: ActionPoint.ActionType) -> Array[ActionPoint]:
+	var result: Array[ActionPoint] = []
+	for ap in action_points:
+		if ap.type == ap_type and ap.is_active:
+			result.append(ap)
+	return result
+
+###################################
 ## Returns true when state changed
 func set_marked_for_mining(should_mine: bool) -> bool:
 	# Dont do anything if no change
@@ -152,7 +172,7 @@ func add_deco_element(new_deco: DecoBase) -> void:
 func get_poly_point(point: Enum.PolyPoint) -> Vector2:
 	return visual.get_poly_point(point) + global_position
 
-## Returns the center floor point, not exact if not exactly in center of cell
+## Returns the center floor point in world-space absolute
 func get_floor_point() -> Vector2:
 	return get_poly_point(Enum.PolyPoint.BOT)
 

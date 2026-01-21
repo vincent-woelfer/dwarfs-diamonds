@@ -28,7 +28,7 @@ func pickup_all_in_range(priority_items: Array[CarryableItemComponent]) -> bool:
 	)
 
 	for item: CarryableItemComponent in items:
-		if pickup(item):			
+		if pickup(item):
 			picked_up.append(item)
 
 	# Check if all priority items were picked up
@@ -82,8 +82,8 @@ func can_pickup(item: CarryableItemComponent) -> bool:
 	if item == null or not item.can_be_picked_up_right_now():
 		return false
 
-	# Check can_carry_at_all
-	if not can_carry_at_all(item):
+	# Check if can carry at all
+	if not can_carry_ignoring_position(item):
 		return false
 
 	# Check pickup range (currently same cell)
@@ -95,7 +95,7 @@ func can_pickup(item: CarryableItemComponent) -> bool:
 
 ## Can this carry component carry the given item at all (ignoring range etc)
 ## Used to filter jobs
-func can_carry_at_all(item: CarryableItemComponent) -> bool:
+func can_carry_ignoring_position(item: CarryableItemComponent) -> bool:
 	# Perform basic checks
 	if item == null:
 		return false
@@ -116,6 +116,9 @@ func is_carrying() -> bool:
 
 func get_carried_total_weight() -> float:
 	return _curr_total_weight
+
+func get_carried_load_percentage() -> float:
+	return _curr_total_weight / carry_capacity
 
 
 ## Returns all pickupable items in range (currently same cell)
@@ -171,12 +174,14 @@ func _get_carried_item_position(idx: int) -> Vector2:
 	var vertical_offset_base: float = Global.CELL_SIZE * 0.3
 	var horizontal_offset: float = Global.CELL_SIZE * -0.15 # - so its slightly to the back of the dwarf
 
-	if parent.get("look_dir"):
-		if parent.get("look_dir").x < 0:
-			horizontal_offset = - horizontal_offset
+	# Flip horizontal offset based on look dir if available
+	var look_dir: Variant = parent.get("look_dir")
+	@warning_ignore("unsafe_cast")
+	if look_dir != null and look_dir is Vector2 and (look_dir as Vector2).x < 0:
+		horizontal_offset = - horizontal_offset
 
+	# Calculate position
 	var base_pos: Vector2 = parent.global_position + Vector2(horizontal_offset, -vertical_offset_base)
+	var offset_y_per_item: Vector2 = Vector2(0.0, Global.CELL_SIZE * 0.15)
 
-	var offset_y_per_item: float = idx * Global.CELL_SIZE * 0.15
-
-	return base_pos + Vector2(0.0, offset_y_per_item)
+	return base_pos + idx * offset_y_per_item

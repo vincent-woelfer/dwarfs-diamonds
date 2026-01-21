@@ -121,8 +121,12 @@ func _enter_building(building: BuildingBase) -> void:
 		sm.transition_to(State.IDLE)
 		return
 
-	# TODO check if success (implement) -> abort if not
-	construction_comp.start_building(cell, cell_from, building)
+	# Check if success -> abort if not
+	if not construction_comp.start_building(cell, cell_from, building):
+		push_error("%s failed to start building %s, aborting" % [self, building])
+		construction_comp.stop_building()
+		sm.transition_to(State.IDLE)
+		return
 
 	# Look at cell where building is built
 	_look_into_dir(job_with_path.job.center_cell.grid_pos - grid_pos)
@@ -175,7 +179,7 @@ func _on_finished_path() -> void:
 		sm.transition_to(State.IDLE)
 		return
 
-	_perform_job(job_with_path.job)
+	_perform_job_at_location(job_with_path.job)
 	
 
 ## Triggered by MovementComponent
@@ -202,15 +206,14 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 	if new_cell == null:
 		return
 
-	# Place Torch but only place if idle or walking
-	if sm.state != State.IDLE and sm.state != State.MOVING:
-		return
-
-	# Check for torch placement
-	if num_torches > 0 and new_cell.deco_elements.is_empty() and Global.level.should_contain_torch(grid_pos):
-		print_rich("%s placing torch at %s" % [self, grid_pos])
-		num_torches -= 1
-		new_cell.add_deco_element(DecoTorch.instantiate())
+	# Most actions can only be done when idle or moving
+	if sm.state == State.IDLE or sm.state == State.MOVING:
+		# Check if should place torch
+		if num_torches > 0 and new_cell.deco_elements.is_empty() and Global.level.should_contain_torch(grid_pos):
+			print_rich("%s placing torch at %s" % [self, grid_pos])
+			num_torches -= 1
+			new_cell.add_deco_element(DecoTorch.instantiate())
+			Audio.play_at_pos("item_placing", new_cell.get_floor_point())
 
 
 ## Triggered by MovementComponent
@@ -295,13 +298,15 @@ func _stop_working_job_enter_idle(transition_to_idle: bool = true) -> void:
 		return
 
 	# For printing later
-	var temp_job: Job = job_with_path.job
+	var last_job: Job = job_with_path.job
 	
 	if job_with_path.path != null:
 		if movement_comp.sm.state == MovementComponent.State.FOLLOWING_PATH:
 			movement_comp.abort_path()
 
-		# TODO abort building ???? 
+		if construction_comp.is_currently_building():
+			construction_comp.stop_building()
+		
 		job_with_path.path = null
 	if job_with_path.job != null:
 		job_with_path.job.unassign_dwarf(self)
@@ -309,21 +314,21 @@ func _stop_working_job_enter_idle(transition_to_idle: bool = true) -> void:
 
 	# Transition back to idle but dont override falling state
 	if transition_to_idle and sm.state != State.FALLING:
-		if temp_job.success:
-			print_rich("%s finished %s and transitions to IDLE" % [self, temp_job])
+		if last_job.success:
+			print_rich("%s finished %s and transitions to IDLE" % [self, last_job])
 		else:
-			print_rich("%s stops working on %s and transitions to IDLE" % [self, temp_job])
+			print_rich("%s stops working on %s and transitions to IDLE" % [self, last_job])
 
 		sm.transition_to(State.IDLE)
 	else:
-		if temp_job.success:
-			print_rich("%s finished %s but stays in %s" % [self, temp_job, Enum.to_str(State, sm.state)])
+		if last_job.success:
+			print_rich("%s finished %s but stays in %s" % [self, last_job, Enum.to_str(State, sm.state)])
 		else:
-			print_rich("%s stops working on %s but stays in %s" % [self, temp_job, Enum.to_str(State, sm.state)])
+			print_rich("%s stops working on %s but stays in %s" % [self, last_job, Enum.to_str(State, sm.state)])
 
 
 ## Called by _on_finished_path when arrived at job location
-func _perform_job(job: Job) -> void:
+func _perform_job_at_location(job: Job) -> void:
 	if job == null:
 		print_rich("%s cannot perform null job, transitioning to idle" % [self])
 		_stop_working_job_enter_idle()

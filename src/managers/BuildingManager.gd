@@ -18,6 +18,7 @@ static var outpost_building_data: BuildingDataRes = preload("res://scenes/buildi
 ###################################
 # REGISTRATION
 ###################################
+## Called by BuildingBase to register itself when created
 func register_building(building: BuildingBase) -> void:
 	if building in buildings:
 		push_error("BuildingManager: Trying to register building that is already registered: %s" % building)
@@ -27,20 +28,20 @@ func register_building(building: BuildingBase) -> void:
 	add_child(building)
 
 
+## Called by BuildingBase to unregister itself when removed
 func remove_building(building: BuildingBase) -> void:
 	if not building in buildings:
 		push_error("BuildingManager: Trying to remove building that is not registered: %s" % building)
 		return
 
-	# Remove action points associated with this building
-	for ap: ActionPoint in building.action_points:
-		action_points.erase(ap)
+	_unregister_action_points(building)
 
 	buildings.erase(building)
 	remove_child(building)
 	building.queue_free()
 
 
+## Called by BuildingBase to register its action points when construction is complete
 func register_action_points(building: BuildingBase) -> void:
 	if not building in buildings:
 		push_error("BuildingManager: Trying to add action points for building that is not registered: %s" % building)
@@ -52,6 +53,12 @@ func register_action_points(building: BuildingBase) -> void:
 			continue
 
 		action_points.append(ap)
+
+		# Add to cell
+		var cell: Cell = Global.level.get_cell(ap.grid_pos)
+		if cell != null:
+			cell.add_action_point(ap)
+
 
 ###################################
 # Fetching Data
@@ -80,3 +87,16 @@ func get_all_action_points(type: ActionPoint.ActionType) -> Array[ActionPoint]:
 ########################################################################################################################
 # PRIVATE METHODS
 ########################################################################################################################
+## Only called from remove_building()
+func _unregister_action_points(building: BuildingBase) -> void:
+	for ap: ActionPoint in building.action_points:
+		if ap not in action_points:
+			push_error("BuildingManager: Trying to unregister action point that is not registered: %s" % ap)
+			continue
+
+		action_points.erase(ap)
+
+		# Remove from cell
+		var cell: Cell = Global.level.get_cell(ap.grid_pos)
+		if cell != null:
+			cell.remove_action_point(ap)

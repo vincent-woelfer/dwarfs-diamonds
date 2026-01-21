@@ -1,4 +1,5 @@
 # No class_name here, the name of the singleton is set in the autoload
+@tool
 extends Node
 
 func to_str(enum_dict: Dictionary, value: int) -> String:

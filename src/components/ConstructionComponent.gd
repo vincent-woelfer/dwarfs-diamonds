@@ -23,11 +23,11 @@ var _audio_player: AudioStreamPlayer2D = null
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################
-func start_building(cell: Cell, cell_from: Cell, building: BuildingBase) -> void:
+func start_building(cell: Cell, cell_from: Cell, building: BuildingBase) -> bool:
 	# Check for errors
 	if is_currently_building() or (cell == null or cell_from == null or building == null):
 		assert(false)
-		return
+		return false
 
 	# Verify that the building is being built on the correct cell
 	assert(cell.buildings.count(building) == 1)
@@ -37,6 +37,8 @@ func start_building(cell: Cell, cell_from: Cell, building: BuildingBase) -> void
 	_curr_building_building = building
 
 	_audio_player = Audio.play_at_pos("hammering_looped", building.global_position)
+
+	return true
 
 
 func stop_building() -> void:
