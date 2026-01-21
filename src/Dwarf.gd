@@ -341,7 +341,7 @@ func _perform_job(job: Job) -> void:
 		sm.transition_to(State.MINING, job.center_cell)
 		return
 	
-	### RUBBLE JOB ###
+	### PICKUP JOB ###
 	elif job.job_type == Job.Type.PICKUP:
 		print_rich("%s reached %s and starts picking up %s" % [self, job.center_cell, job.carryable_item.parent])
 		# No pickup-state, simply try to pick up item. Success -> goes into idle directly, failure -> abandon job.

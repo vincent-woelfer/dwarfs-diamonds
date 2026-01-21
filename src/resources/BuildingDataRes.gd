@@ -37,6 +37,7 @@ const pattern_solid_ground_color: Color = Color(0.3, 0.15, 0.1) # Dark brown
 ########################################################################################################################
 @export_group("Action Points")
 
+## Action points associated with this building
 @export var action_points: Array[ActionPointRes]
 
 ########################################################################################################################

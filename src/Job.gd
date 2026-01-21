@@ -24,6 +24,9 @@ var workable_from_poses: Array[Vector2i] = []
 # Currently assigned dwarfs
 var assigned_dwarfs: Array[Dwarf] = []
 
+# Associated action point (if any)
+var action_point: ActionPoint = null
+
 # Only active jobs are listed in job-manager.
 # Non-active means completed or aborted and are only used for dwarfs to reference them in their finished-job callback.
 var is_active: bool
@@ -54,12 +57,15 @@ var building: BuildingBase = null
 func get_capacity() -> int:
 	match job_type:
 		Job.Type.MINE:
-			return 2 # Up to 2 dwarfs can mine simultaneously
+			# Up to 2 dwarfs can mine simultaneously (if enough space)
+			return min(2, workable_from_poses.size())
 
 		Job.Type.BUILD:
 			# Only allow multiple dwarfs for big buildings
-			if building != null and building.building_data.build_time >= 4.0 and building.build_process == 0.0 and workable_from_poses.size() >= 2:
+			const big_building_build_time_threshold := 4.0 # seconds
+			if building.building_data.build_time >= big_building_build_time_threshold and building.build_process == 0.0 and workable_from_poses.size() >= 2:
 				return 2
+
 			return 1
 
 		Job.Type.PICKUP:

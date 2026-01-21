@@ -14,6 +14,10 @@ static var outpost_building_data: BuildingDataRes = preload("res://scenes/buildi
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################
+
+###################################
+# REGISTRATION
+###################################
 func register_building(building: BuildingBase) -> void:
 	if building in buildings:
 		push_error("BuildingManager: Trying to register building that is already registered: %s" % building)
@@ -49,6 +53,29 @@ func register_action_points(building: BuildingBase) -> void:
 
 		action_points.append(ap)
 
+###################################
+# Fetching Data
+###################################
+func get_all_action_points(type: ActionPoint.ActionType) -> Array[ActionPoint]:
+	var filtered_aps: Array[ActionPoint] = []
+	for ap: ActionPoint in action_points:
+		# Check type
+		if ap.type != type:
+			continue
+
+		# Check if active
+		if not ap.is_active:
+			continue
+
+		# Verify that the cell is reachable in nav-mesh
+		var cell: Cell = Global.level.get_cell(ap.grid_pos)
+		if cell == null or not Global.level.nav_manager.is_cell_enabled(ap.grid_pos):
+			continue
+
+		# Finally add
+		filtered_aps.append(ap)
+
+	return filtered_aps
 
 ########################################################################################################################
 # PRIVATE METHODS

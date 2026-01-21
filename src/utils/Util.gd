@@ -209,6 +209,12 @@ static func array_append_unique_not_null(arr: Array, item: Variant) -> void:
 		arr.append(item)
 
 
+static func get_action_points_grid_positions(aps: Array[ActionPoint]) -> Array[Vector2i]:
+	var grid_positions: Array[Vector2i] = []
+	for ap: ActionPoint in aps:
+		grid_positions.append(ap.grid_pos)
+	return grid_positions
+
 ########################################################################################################################
 # Hash
 ########################################################################################################################

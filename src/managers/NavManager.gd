@@ -41,6 +41,7 @@ func find_path_to_one_of(start: Vector2i, goals: Array[Vector2i]) -> Path:
 	if goals.is_empty():
 		return null
 
+	# Check if start is valid
 	var from_id: int = Util.hash(start)
 	if not _is_id_enabled(from_id):
 		return null
