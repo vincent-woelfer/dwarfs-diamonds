@@ -146,6 +146,7 @@ func _filter_workable_jobs_for_dwarf(dwarf: Dwarf) -> Array[Job]:
 		match job.job_type:
 			Job.Type.MINE:
 				assert(dwarf.mining_comp != null)
+				assert(job.center_cell != null)
 				if not dwarf.mining_comp.can_mine_at_all(job.center_cell):
 					continue
 

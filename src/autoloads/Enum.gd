@@ -62,3 +62,8 @@ enum MoveMode {
 	CLIMB_LADDER_UP,
 	CLIMB_LADDER_DOWN,
 }
+
+enum CarryableItemType {
+	RUBBLE,
+	DIAMOND,
+}

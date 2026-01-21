@@ -2,7 +2,8 @@ class_name MovementComponent
 extends Node2D
 
 ################ Signals ################
-signal Signal_OnStartedFalling()
+# if mining cell below (and the one below that is solid) => fall_height = 1
+signal Signal_OnStartedFalling(est_fall_height_cells: int)
 
 # fall_height_cells can be 0 (e.g. after spawning in mid-air in same cell)
 signal Signal_OnLanded(fall_height_cells: int)
@@ -114,7 +115,22 @@ func _physics_process(delta: float) -> void:
 func _enter_falling() -> void:
 	curr_falling_speed = movement_capabilities.falling_starting_speed
 	fall_start_y = parent.grid_pos.y
-	Signal_OnStartedFalling.emit()
+
+	# Estimate fall height in cells
+	var curr_y := fall_start_y
+	while true:
+		curr_y += 1
+		var cell_below: Cell = Global.level.get_cell(Vector2i(parent.grid_pos.x, curr_y))
+		if cell_below == null:
+			break
+
+		# Check if can stand here
+		if cell_below.is_standable(_get_can_use_ladders()):
+			break
+			
+
+	var est_fall_height_cells: int = abs(curr_y - fall_start_y)
+	Signal_OnStartedFalling.emit(est_fall_height_cells)
 
 func _exit_falling() -> void:
 	# TODO this also triggers when beeing grabbed while falling, maybe differentiate?

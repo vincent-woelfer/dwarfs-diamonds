@@ -19,6 +19,9 @@ func _ready() -> void:
 	movement_comp.movement_capabilities.can_use_ladders = false
 	movement_comp.movement_capabilities.can_use_ladders_when_falling = false
 
+	# Set carryable item type
+	carryable_item_comp.item_type = Enum.CarryableItemType.RUBBLE
+
 	# Modulate color randomly
 	sprite.modulate = Colors.rand_rubble_color()
 
@@ -67,7 +70,7 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 		pickup_job.update_workable_from_cells()
 
 
-func _on_started_falling() -> void:
+func _on_started_falling(est_fall_height_cells: int) -> void:
 	pass
 
 

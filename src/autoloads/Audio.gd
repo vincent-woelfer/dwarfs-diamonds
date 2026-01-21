@@ -15,7 +15,18 @@ static var sounds: Dictionary[String, AudioStream] = {
 	"mining_3_looped": preload("res://assets/audio/mining_3_looped.wav"),
 	"rubble_impact": preload("res://assets/audio/rubble_impact.wav"),
 	"item_placing": preload("res://assets/audio/item_placing.wav"),
+	"ohoh": preload("res://assets/audio/ohoh_amelie.wav"),
 }
+
+# Relative volume adjustments in dB for each sound, assuming 0.0 as default (no modification, original volume from track)
+static var sounds_volume_db: Dictionary[String, float] = {
+    "dwarf_on_landing": - 4.0,
+	"item_placing": + 8.0,
+	"ohoh": + 4.0,
+}
+
+# General volume adjustment in dB applied to all sounds
+static var general_sounds_volume_db: float = 5.0
 
 
 ########################################################################################################################
@@ -33,6 +44,7 @@ func play_at_pos_with_pitch(audio_name: String, pos: Vector2, pitch: float) -> A
 	player.stream = stream
 	player.global_position = pos
 	player.pitch_scale = pitch
+	player.volume_db = _get_volume_db(audio_name)
 	player.play()
 
 	return player
@@ -84,6 +96,9 @@ func _create_new_player() -> AudioStreamPlayer2D:
 	_players.append(p)
 	return p
 
+
+func _get_volume_db(audio_name: String) -> float:
+	return general_sounds_volume_db + sounds_volume_db.get(audio_name, 0.0)
 
 func _cleanup_idle_players() -> void:
 	if _players.size() <= _default_number_of_players:

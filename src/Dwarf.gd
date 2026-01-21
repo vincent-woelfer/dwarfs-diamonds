@@ -215,6 +215,11 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 			new_cell.add_deco_element(DecoTorch.instantiate())
 			Audio.play_at_pos("item_placing", new_cell.get_floor_point())
 
+		# Check for rubble disposal
+		if carry_comp.is_carrying_item_of_type(Enum.CarryableItemType.RUBBLE):
+			var rubble_action_points: Array[ActionPoint] = new_cell.get_action_points_of_type(ActionPoint.ActionType.DISPOSE_RUBBLE)
+			if not rubble_action_points.is_empty():
+				print_rich("%s is disposing rubble at AP %s" % [self, rubble_action_points[0]])
 
 ## Triggered by MovementComponent
 func _on_movement_direction_changed(new_dir: Vector2) -> void:
@@ -222,7 +227,11 @@ func _on_movement_direction_changed(new_dir: Vector2) -> void:
 
 
 ## Triggered by MovementComponent
-func _on_started_falling() -> void:
+func _on_started_falling(est_fall_height_cells: int) -> void:
+	# Not for normal mining downwards
+	if est_fall_height_cells > 1:
+		Audio.play_at_pos("ohoh", global_position)
+
 	_stop_working_job_enter_idle(false)
 	sm.transition_to(State.FALLING)
 

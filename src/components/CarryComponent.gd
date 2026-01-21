@@ -10,10 +10,12 @@ var _curr_total_weight: float = 0.0
 
 @onready var parent: GridObject2D = get_parent()
 
-# ########################################################################################################################
-# # PUBLIC METHODS
-# ########################################################################################################################
-
+########################################################################################################################
+# PUBLIC METHODS
+########################################################################################################################
+###################################
+# PICKUP
+###################################
 # Picks up all pickupable items in range until capacity is full, prioritizing the given items first.
 # Returns true if ALL priority items were picked up
 func pickup_all_in_range(priority_items: Array[CarryableItemComponent]) -> bool:
@@ -55,6 +57,9 @@ func pickup(item: CarryableItemComponent) -> bool:
 	return true
 
 
+###################################
+# DROP
+###################################
 func drop(item: CarryableItemComponent) -> void:
 	if item == null or not _curr_carried_items.has(item):
 		return
@@ -76,6 +81,9 @@ func drop_all() -> void:
 		drop(item)
 
 
+###################################
+# CAN CARRY / PICKUP
+###################################
 ## Can this carrier pick up the given item right now
 func can_pickup(item: CarryableItemComponent) -> bool:
 	# Perform basic checks
@@ -109,10 +117,11 @@ func can_carry_ignoring_position(item: CarryableItemComponent) -> bool:
 
 	return true
 
-
+###################################
+# Getters
+###################################
 func is_carrying() -> bool:
 	return not _curr_carried_items.is_empty()
-
 
 func get_carried_total_weight() -> float:
 	return _curr_total_weight
@@ -136,9 +145,15 @@ func get_all_pickupable_items_in_range() -> Array[CarryableItemComponent]:
 	return items
 
 
-# ########################################################################################################################
-# # PRIVATE METHODS
-# ########################################################################################################################
+func is_carrying_item_of_type(item_type: Enum.CarryableItemType) -> bool:
+	for item: CarryableItemComponent in _curr_carried_items:
+		if item.item_type == item_type:
+			return true
+	return false
+
+########################################################################################################################
+# PRIVATE METHODS
+########################################################################################################################
 func _ready() -> void:
 	assert(parent != null)
 	assert(parent is GridObject2D)

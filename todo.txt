@@ -1,3 +1,7 @@
+########################################################################################################################
+# TODO
+########################################################################################################################
+
 ============ Implement Important ============
 Bis einschl. 1.2. ALPHA-0.1
 
@@ -14,11 +18,14 @@ ActionPoints aus ActionPointsRes erstellen wenn building completed ist.
 
 
 
+
+
 ============ Implement Nice to Have ============
 - VFX-Manager (or particles / effects manager)
 -> global instance (from level i guess) to spwan particle effects like dust uppon destroyed cell
 
 
+- Can build ladder from other ladder (so one can build up)
 
 - Rubble change sprite. oon ground = dirt, carried = bag
 
@@ -54,4 +61,31 @@ Platforms are only boardabile if still and at entrance, exception for maybe mine
 - MAYBE split BuildingData into Ressource and instantiated object
 
 
+
+########################################################################################################################
+# DOCUMENTATION
+########################################################################################################################
+
+JOB:
+- Globale Aufgabe. Muss erledigt werden, kann von allen (mit Einschränkungen natürlich) bearbeitet werden, manchmal sogar mehrere auf einmal.
+- Wird erstellt von dem was bearbeiter werden muss (building für construction, cell für mining, rubble für pickup usw.)
+
+
+Dwarf-Task-Logic:
+beinhaltet:
+- jobs
+- pfade (plural!)
+- Action Points
+- "needs" wie torch refill, rubble disposal
+- Interactionen (Torch Placement?)
+
+-> Eventuell stack/liste mit "teilschritten" des aktuellen plans. Das ist immer max ein job (der halt aus unterschritten besteht) oder kein job sondern "eigene ziele"/needs
+
+
+-> Würde auch die ganze JobWithPath Logic vereinfachen denke ich.
+-> Dwarf sollte eigene TaskQueue oder so als Component bekommen.
+-> Sorgt auch dafür das leichter dinge dazwischen kommen können, z.B. torch placen ohne dass es vorher gepplant ist.
+
+Dwarf State Machine:
+-> Umfasst nur States die der Dwarf physisch ausführt (laufen, mining, bauen), kein "Planning".
 
