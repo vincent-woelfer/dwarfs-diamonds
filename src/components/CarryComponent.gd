@@ -80,6 +80,7 @@ func drop_all() -> void:
 	for item: CarryableItemComponent in _curr_carried_items.duplicate():
 		drop(item)
 
+# TODO DROP/TRansfer to other container/storage/disposal
 
 ###################################
 # CAN CARRY / PICKUP

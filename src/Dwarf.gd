@@ -15,7 +15,9 @@ static var next_dwarf_id: int = 0
 var dwarf_id: int
 var dwarf_color: Color
 
-var job_with_path: JobWithPath
+# var job_with_path: JobWithPath
+var curr_job: Job = null
+var curr_path: Path = null
 
 var num_torches: int = 50
 var look_dir: Vector2 = Vector2.RIGHT
@@ -81,6 +83,7 @@ func _enter_idle() -> void:
 	animated_sprite.play("idle")
 	
 func _physics_process_idle(delta: float) -> void:
+	# TODO only if no tasks
 	_find_new_job()
 
 ###################################
@@ -221,6 +224,8 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 			var rubble_action_points: Array[ActionPoint] = new_cell.get_action_points_of_type(ActionPoint.ActionType.DISPOSE_RUBBLE)
 			if not rubble_action_points.is_empty():
 				print_rich("%s is disposing rubble at AP %s" % [self, rubble_action_points[0]])
+				carry_comp.drop_all()
+				Audio.play_at_pos("dispose_trash", new_cell.get_floor_point())
 
 ## Triggered by MovementComponent
 func _on_movement_direction_changed(new_dir: Vector2) -> void:

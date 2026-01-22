@@ -22,10 +22,10 @@ func append_array_end(tasks: Array[Task]) -> void:
 	_task_queue.append_array(tasks)
 
 
-func pop_front() -> Task:
-	if _task_queue.is_empty():
-		return null
-	return _task_queue.pop_front()
+# func pop_front() -> Task:
+# 	if _task_queue.is_empty():
+# 		return null
+# 	return _task_queue.pop_front()
 
 
 func size() -> int:
