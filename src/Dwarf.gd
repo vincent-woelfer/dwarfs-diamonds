@@ -8,6 +8,7 @@ extends GridObject2D
 @onready var construction_comp: ConstructionComponent = $ConstructionComponent
 @onready var movement_comp: MovementComponent = $MovementComponent
 @onready var carry_comp: CarryComponent = $CarryComponent
+@onready var task_queue_comp: TaskQueueComponent = $TaskQueueComponent
 
 # Static ID generator
 static var next_dwarf_id: int = 0

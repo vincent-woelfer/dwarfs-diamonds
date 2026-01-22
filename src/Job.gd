@@ -54,7 +54,28 @@ var building: BuildingBase = null
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################
-func get_capacity() -> int:
+
+## Generates the list of tasks required to complete this job.
+func generate_tasks() -> Array[Task]:
+	var tasks: Array[Task] = []
+
+	match job_type:
+		Job.Type.MINE:
+			tasks.append(Task.create_move_to_job_task(self))
+			tasks.append(Task.create_mine_task(center_cell.grid_pos))
+
+		Job.Type.BUILD:
+			tasks.append(Task.create_move_to_job_task(self))
+			tasks.append(Task.create_construct_task(center_cell.grid_pos, building))
+
+		Job.Type.PICKUP:
+			tasks.append(Task.create_move_to_job_task(self))
+			tasks.append(Task.create_pickup_task(center_cell.grid_pos, carryable_item))
+	return tasks
+
+
+########################################################################################################################
+func calculate_capacity() -> int:
 	match job_type:
 		Job.Type.MINE:
 			# Up to 2 dwarfs can mine simultaneously (if enough space)
@@ -77,7 +98,7 @@ func get_capacity() -> int:
 
 ## Basic checks whether this job is blocked or ready
 func is_workable() -> bool:
-	if assigned_dwarfs.size() >= get_capacity():
+	if assigned_dwarfs.size() >= calculate_capacity():
 		return false
 	if workable_from_poses.is_empty():
 		return false
@@ -90,7 +111,7 @@ func assign_dwarf(dwarf: Dwarf) -> bool:
 
 	if dwarf in assigned_dwarfs:
 		return false
-	if assigned_dwarfs.size() >= get_capacity():
+	if assigned_dwarfs.size() >= calculate_capacity():
 		return false
 
 	Util.array_append_unique_not_null(assigned_dwarfs, dwarf)
@@ -128,22 +149,20 @@ func update_workable_from_cells() -> void:
 		for n_offset: Vector2i in Util.neighbours_cardinal:
 			var n_cell: Cell = center_cell.get_neighbour(n_offset)
 
-			if n_cell == null:
+			if n_cell == null or not n_cell.is_standable(false):
 				continue
 
-			if n_cell.is_standable(false):
-				workable_from_poses.append(n_cell.grid_pos)
+			workable_from_poses.append(n_cell.grid_pos)
 
 	# BUILD
 	elif job_type == Job.Type.BUILD:
 		for n_grid_pos: Vector2i in building.building_data.pattern_build_from.get_world_positions():
 			var n_cell: Cell = Global.level.get_cell(n_grid_pos)
 
-			if n_cell == null:
+			if n_cell == null or not n_cell.is_standable(false):
 				continue
-
-			if n_cell.is_standable(false):
-				workable_from_poses.append(n_cell.grid_pos)
+			
+			workable_from_poses.append(n_cell.grid_pos)
 
 	# RUBBLE
 	elif job_type == Job.Type.PICKUP:
@@ -248,7 +267,7 @@ func get_debug_info() -> Array:
 			info[1] = "READY"
 			info[2] = Colors.JOB_COLOR_READY
 		else:
-			info[1] = "DOING %d/%d" % [assigned_dwarfs.size(), get_capacity()]
+			info[1] = "DOING %d/%d" % [assigned_dwarfs.size(), calculate_capacity()]
 			info[2] = Colors.JOB_COLOR_DOING
 
 	return info

@@ -100,6 +100,9 @@ static func create_place_torch_task(target_grid_pos_: Vector2i) -> Task:
 	return task
 
 
+########################################################################################################################
+# DEBUG
+########################################################################################################################
 func _to_string() -> String:
 	var print_color := Colors.to_print_color(Colors.TASK_PRINT_COLOR)
 	return Util.color_string("Task (%s @%s)" % [Enum.to_str(Task.Type, type), target_grid_pos], print_color)
