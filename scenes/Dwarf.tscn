@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://b56e6awnf6woo" path="res://src/components/ConstructionComponent.gd" id="5_56axy"]
 [ext_resource type="Script" uid="uid://12nby18asb05" path="res://src/components/MovementComponent.gd" id="5_o7n6f"]
 [ext_resource type="Script" uid="uid://ca0ir7bdht3kr" path="res://src/components/CarryComponent.gd" id="7_2lrks"]
+[ext_resource type="Script" uid="uid://bgr3cdguef030" path="res://src/components/TaskQueueComponent.gd" id="8_gwb0r"]
 
 [node name="Dwarf" type="Node2D" unique_id=1095445124]
 script = ExtResource("1_po7l6")
@@ -41,3 +42,7 @@ script = ExtResource("5_o7n6f")
 [node name="CarryComponent" type="Node2D" parent="." unique_id=935967982]
 script = ExtResource("7_2lrks")
 metadata/_custom_type_script = "uid://ca0ir7bdht3kr"
+
+[node name="TaskQueueComponent" type="Node2D" parent="." unique_id=1669064102]
+script = ExtResource("8_gwb0r")
+metadata/_custom_type_script = "uid://bgr3cdguef030"
