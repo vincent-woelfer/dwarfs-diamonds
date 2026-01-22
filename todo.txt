@@ -82,10 +82,9 @@ beinhaltet:
 -> Eventuell stack/liste mit "teilschritten" des aktuellen plans. Das ist immer max ein job (der halt aus unterschritten besteht) oder kein job sondern "eigene ziele"/needs
 
 
--> Würde auch die ganze JobWithPath Logic vereinfachen denke ich.
--> Dwarf sollte eigene TaskQueue oder so als Component bekommen.
 -> Sorgt auch dafür das leichter dinge dazwischen kommen können, z.B. torch placen ohne dass es vorher gepplant ist.
 
 Dwarf State Machine:
 -> Umfasst nur States die der Dwarf physisch ausführt (laufen, mining, bauen), kein "Planning".
+-> TaskQeueueComponent beinhaltet das Planning, also was "im Kopf" vor sich geht.
 
