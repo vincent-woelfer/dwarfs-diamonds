@@ -114,6 +114,7 @@ func get_new_job_for_dwarf(dwarf: Dwarf) -> JobWithPath:
 		print_rich(Util.color_string("- Score: %6.0f" % [scored_job.score], print_color) + (" - %s" % [scored_job.job]))
 	print() # New line as separator
 
+	# Return best job
 	return JobWithPath.new(scored_jobs[0].job, scored_jobs[0].path)
 	
 
@@ -198,6 +199,7 @@ func _score_job(job: Job, path: Path, dwarf: Dwarf) -> ScoredJob:
 
 	return ScoredJob.new(job, path, score)
 
+	
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
