@@ -68,10 +68,6 @@ func _ready() -> void:
 
 	# TODO carry_comp signals?
 
-func _look_into_dir(dir: Vector2) -> void:
-	if dir.x != 0:
-		animated_sprite.flip_h = dir.x < 0
-		look_dir = dir.normalized()
 
 ########################################################################################################################
 # STATE MACHINE HANDLERS
@@ -236,13 +232,14 @@ func _on_movement_direction_changed(new_dir: Vector2) -> void:
 func _on_started_falling(est_fall_height_cells: int) -> void:
 	# Not for normal mining downwards
 	if est_fall_height_cells > 1:
-		Audio.play_at_pos("ohoh", global_position)
+		var audio_name: String = "ohoh_%d" % randi_range(1, 3)
+		Audio.play_at_pos(audio_name, global_position)
 
 	_stop_working_job_enter_idle(false)
 	sm.transition_to(State.FALLING)
 
 
-## Triggered by MiningComponent
+## Triggered by MiningComponent for any finished cell (doesnt necessarily means dwarf is no longer mining)
 func _on_mining_completed(mined_cell: Cell) -> void:
 	# Normal case: Mining was part of job which has already been finished (-> implicitly entered idle)
 	if sm.state != State.MINING:
