@@ -336,39 +336,47 @@ func _on_nav_updated() -> void:
 # OWN (UTILITY) FUNCTIONS
 ########################################################################################################################
 func _stop_working_job_enter_idle(transition_to_idle: bool = true) -> void:
-	if job_with_path == null:
-		if sm.state != State.FALLING:
-			sm.transition_to(State.IDLE)
-		return
+	print_rich("%s _stop_working_job_enter_idle" % [self])
+	curr_job = null
+	curr_path = null
 
-	# For printing later
-	var last_job: Job = job_with_path.job
-	
-	if job_with_path.path != null:
-		if movement_comp.sm.state == MovementComponent.State.FOLLOWING_PATH:
-			movement_comp.abort_path()
-
-		if construction_comp.is_currently_building():
-			construction_comp.stop_building()
-		
-		job_with_path.path = null
-	if job_with_path.job != null:
-		job_with_path.job.unassign_dwarf(self)
-	job_with_path = null
-
-	# Transition back to idle but dont override falling state
-	if transition_to_idle and sm.state != State.FALLING:
-		if last_job.success:
-			print_rich("%s finished %s and transitions to IDLE" % [self, last_job])
-		else:
-			print_rich("%s stops working on %s and transitions to IDLE" % [self, last_job])
-
+	if sm.state != State.FALLING:
 		sm.transition_to(State.IDLE)
-	else:
-		if last_job.success:
-			print_rich("%s finished %s but stays in %s" % [self, last_job, Enum.to_str(State, sm.state)])
-		else:
-			print_rich("%s stops working on %s but stays in %s" % [self, last_job, Enum.to_str(State, sm.state)])
+
+
+	# if job_with_path == null:
+	# 	if sm.state != State.FALLING:
+	# 		sm.transition_to(State.IDLE)
+	# 	return
+
+	# # For printing later
+	# var last_job: Job = job_with_path.job
+	
+	# if job_with_path.path != null:
+	# 	if movement_comp.sm.state == MovementComponent.State.FOLLOWING_PATH:
+	# 		movement_comp.abort_path()
+
+	# 	if construction_comp.is_currently_building():
+	# 		construction_comp.stop_building()
+		
+	# 	job_with_path.path = null
+	# if job_with_path.job != null:
+	# 	job_with_path.job.unassign_dwarf(self)
+	# job_with_path = null
+
+	# # Transition back to idle but dont override falling state
+	# if transition_to_idle and sm.state != State.FALLING:
+	# 	if last_job.success:
+	# 		print_rich("%s finished %s and transitions to IDLE" % [self, last_job])
+	# 	else:
+	# 		print_rich("%s stops working on %s and transitions to IDLE" % [self, last_job])
+
+	# 	sm.transition_to(State.IDLE)
+	# else:
+	# 	if last_job.success:
+	# 		print_rich("%s finished %s but stays in %s" % [self, last_job, Enum.to_str(State, sm.state)])
+	# 	else:
+	# 		print_rich("%s stops working on %s but stays in %s" % [self, last_job, Enum.to_str(State, sm.state)])
 
 
 func _find_new_job() -> void:
@@ -462,46 +470,123 @@ func _start_next_task() -> void:
 		return
 
 	# This only sets curr_task to new one.
-	task_queue_comp.start_next_task()
+	if not task_queue_comp.start_next_task():
+		print_rich("%s failed to start next task, remaining idle" % [self])
+		sm.transition_to(State.IDLE)
+		return
 
 	# Actually start working on it
-	# TODO
-	# TODO
-	# TODO
+	if task_queue_comp.curr_task.is_move_to_task():
+		_perform_move_to_task(task_queue_comp.curr_task)
+	elif task_queue_comp.curr_task.is_stationary_task():
+		_perform_stationary_task(task_queue_comp.curr_task)
+
+
+# TODO for now we recalculate path every time, later optimize by caching path in task?
+func _perform_move_to_task(task: Task) -> void:
+	assert(task != null)
+	assert(task.is_move_to_task())
+
+	# Find valid target positions
+	var target_positions: Array[Vector2i] = []
+
+	if task.type == Task.Type.MOVE_TO_JOB:
+		assert(task.job != null)
+		task.job.update_workable_from_cells()
+		target_positions = task.job.workable_from_poses
+	elif task.type == Task.Type.MOVE_TO_CELL:
+		target_positions.append(task.target_grid_pos)
+	else:
+		push_error("%s tried to perform move-to task of invalid type %s" % [self, Enum.to_str(Task.Type, task.type)])
+		return
+
+	# Actual path query
+	var path: Path = Global.level.nav_manager.find_path_to_one_of(grid_pos, target_positions)
+
+	if path == null:
+		print_rich("%s failed to find path to target positions %s for task %s, abandoning job" % [self, target_positions, task])
+		# TODO
+		_stop_working_job_enter_idle()
+		return
+
+	# Assign path to movement component
+	if not movement_comp.assign_path(path):
+		print_rich("%s failed to assign path %s for task %s, abandoning job" % [self, path, task])
+		# TODO
+		_stop_working_job_enter_idle()
+		return
+
+	# Success
+	print_rich("%s started moving to target position %s for task %s" % [self, path._grid_points.back(), task])
+	curr_path = path
+	curr_path.set_debug_draw_color(dwarf_color)
+	sm.transition_to(State.MOVING)
 
 
 func _perform_stationary_task(task: Task) -> void:
 	assert(task != null)
 	assert(task.is_stationary_task())
 
-	var workable_from_poses: Array[Vector2i] = []
+	# Find valid workable-from-positions
+	# TODO For now just use job, later maybe refactor the "update workable from" logic into Task?
+	task.job_workable_from_access.update_workable_from_cells()
+	var workable_from_poses: Array[Vector2i] = task.job_workable_from_access.workable_from_poses
 
 	# Validate if we can work on the job
-	if not (curr_cell.grid_pos in job.workable_from_poses):
-		print_rich("%s reached %s but cannot work from here, abandoning job" % [self, job])
+	if not (grid_pos in workable_from_poses):
+		print_rich("%s tried to work on %s but cannot work from here, aborting task" % [self, task])
+		# TODO
 		_stop_working_job_enter_idle()
 		return
 
-	### MINE JOB ###
-	if job.job_type == Job.Type.MINE:
-		print_rich("%s reached %s and starts mining" % [self, job.center_cell])
-		sm.transition_to(State.MINING, job.center_cell)
+	# Work depending on task type 
+
+	### MINE TASK ###
+	if task.type == Task.Type.MINE:
+		var cell: Cell = Global.level.get_cell(task.target_grid_pos)
+		print_rich("%s reached %s and starts mining" % [self, cell])
+		sm.transition_to(State.MINING, cell)
 		return
 	
-	### PICKUP JOB ###
-	elif job.job_type == Job.Type.PICKUP:
-		print_rich("%s reached %s and starts picking up %s" % [self, job.center_cell, job.carryable_item.parent])
+	### PICKUP TASK ###
+	elif task.type == Task.Type.PICKUP:
+		print_rich("%s reached %s and starts picking up %s" % [self, task.target_grid_pos, task.carryable_item.parent])
+
 		# No pickup-state, simply try to pick up item. Success -> goes into idle directly, failure -> abandon job.
-		if not carry_comp.pickup_all_in_range([job.carryable_item]):
-			print_rich("%s failed to pick up object %s, abandoning job" % [self, job.carryable_item])
+		if not carry_comp.pickup_all_in_range([task.carryable_item]):
+			print_rich("%s failed to pick up object %s, abandoning task" % [self, task.carryable_item])
+			# TODO
 			_stop_working_job_enter_idle()
+			return
+
+		print_rich("%s successfully picked up %s, finishing task" % [self, task.carryable_item.parent])
+		_finish_task_and_start_next(Task.Type.PICKUP)
 		return
 
-	### BUILD JOB ###
-	elif job.job_type == Job.Type.BUILD:
-		print_rich("%s reached %s and starts building %s" % [self, job.center_cell, job.building])
+	### CONSTRUCT JOB ###
+	elif task.type == Task.Type.CONSTRUCT:
+		print_rich("%s reached %s and starts building %s" % [self, task.target_grid_pos, task.building])
 		# enter_building catches errors with building.
-		sm.transition_to(State.BUILDING, job.building)
+		sm.transition_to(State.BUILDING, task.building)
+		return
+
+	### ACTION POINT TASK ###
+	# elif task.type == Task.Type.ACTION_POINT:
+	# 	print_rich("%s reached %s and starts performing action point %s" % [self, task.target_grid_pos, task.action_point])
+	# 	# TODO implement action point logic
+	# 	push_error("%s tried to perform ACTION_POINT task which is not yet implemented, abandoning task" % [self])
+	# 	# TODO
+	# 	_stop_working_job_enter_idle()
+	# 	return
+
+	### TORCH PLACEMENT TASK ###
+	# TODO 
+
+	### UNKNOWN STATIONARY TASK ###
+	else:
+		push_error("%s tried to perform stationary task of unknown type %s" % [self, Enum.to_str(Task.Type, task.type)])
+		# TODO
+		_stop_working_job_enter_idle()
 		return
 
 ########################################################################################################################

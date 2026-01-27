@@ -18,6 +18,19 @@ ActionPoints aus ActionPointsRes erstellen wenn building completed ist.
 
 
 
+=========================================
+BUG (validate path called after job done):
+Dwarf-0 (BUILDING @(7, 3)) finished task Task(CONSTRUCT @(5, 3))
+TaskQueue:
+ - <empty>
+
+Dwarf-0 (BUILDING @(7, 3)) finished last task and has non remaining, returning to IDLE
+Updated 1024 nav-connections in: 25 ms
+Dwarf-0 (IDLE @(7, 3)) validating current path to job Job(BUILD - ARCHIVED @(5, 3)) NOT IMPLEMENTED DOING NOTHING FOR NOW
+Dwarf-0 (IDLE @(7, 3)) found no job, remains idle
+Dwarf-0 (IDLE @(7, 3)) found no job, remains idle
+
+
 
 
 ============ Implement Nice to Have ============

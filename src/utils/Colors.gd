@@ -128,4 +128,4 @@ static var JOB_COLOR_DOING: Color = Color.GREEN
 # GLOBAL MISC COLORS
 ########################################################################################################################
 static var GLOBAL_ACTION_HIGHLIGHT_COLOR: Color = to_print_color(Color.MAGENTA)
-static var TASK_PRINT_COLOR: Color = to_print_color(Color.CYAN)
+static var TASK_PRINT_COLOR: Color = to_print_color(Color.DARK_CYAN)

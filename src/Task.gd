@@ -31,6 +31,9 @@ var target_grid_pos: Vector2i
 # Optional
 # var finishes_job: Job = null
 
+# TODO for now only temp solution
+var job_workable_from_access: Job
+
 ###################################
 # TASK SPECIFIC VARIABLES
 ###################################
@@ -137,4 +140,4 @@ static func create_place_torch_task(target_grid_pos_: Vector2i) -> Task:
 ########################################################################################################################
 func _to_string() -> String:
 	var print_color := Colors.to_print_color(Colors.TASK_PRINT_COLOR)
-	return Util.color_string("Task (%s @%s)" % [Enum.to_str(Task.Type, type), target_grid_pos], print_color)
+	return Util.color_string("Task(%s @%s)" % [Enum.to_str(Task.Type, type), target_grid_pos], print_color)

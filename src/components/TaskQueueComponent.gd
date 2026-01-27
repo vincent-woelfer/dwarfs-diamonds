@@ -40,6 +40,10 @@ func add_job(job: Job) -> void:
 		push_warning("Tried to add job to task queue, but job generated no tasks!")
 		return
 
+	# TODO for now add link to job for every task
+	for task in tasks:
+		task.job_workable_from_access = job
+
 	# Set the last task to finish the job
 	# tasks[tasks.size() - 1].set_finishes_job(job)
 
@@ -69,10 +73,11 @@ func finish_current_task(expected_task_type: Task.Type) -> bool:
 
 	# Remove from queue
 	_task_queue.pop_front()
-	curr_task = null
 
 	print_rich("%s finished task %s" % [parent, curr_task])
 	print_rich(self)
+
+	curr_task = null
 
 	return true
 
@@ -140,8 +145,15 @@ func _ready() -> void:
 # DEBUG
 ########################################################################################################################
 func _to_string() -> String:
-	var msg: String = "TaskQueue:\n"
-	for task in _task_queue:
-		msg += " - %s\n" % task._to_string()
-	msg += "\n"
+	var msg: String = "TaskQueue:"
+
+	if _task_queue.is_empty():
+		msg += " - <empty>\n"
+		
+	else:
+		msg += "\n"
+		for task in _task_queue:
+			msg += " - %s\n" % task._to_string()
+		msg += "\n"
+
 	return msg
