@@ -13,6 +13,7 @@ var rubbles: Array[Rubble] = []
 var nav_manager: NavManager
 var job_manager: JobManager
 var building_manager: BuildingManager
+var level_stats_manager: LevelStatsManager
 
 var sun_system: SunSystem
 
@@ -36,6 +37,9 @@ func _ready() -> void:
 
 	building_manager = BuildingManager.new()
 	add_child(building_manager)
+
+	level_stats_manager = LevelStatsManager.new()
+	add_child(level_stats_manager)
 
 	# SUN / LIGHTING
 	sun_system = SunSystem.new()
@@ -104,7 +108,8 @@ func _generate_grid() -> void:
 	texture.height = ceil(Global.LEVEL_HEIGHT * noise_scale)
 	
 	var fast_noise_lite := FastNoiseLite.new()
-	fast_noise_lite.seed = 57
+	# fast_noise_lite.seed = 57
+	fast_noise_lite.seed = randi()
 	texture.noise = fast_noise_lite
 	await texture.changed
 	var image := texture.get_image()
