@@ -6,8 +6,11 @@ signal Signal_StateChanged(prev_state: int, next_state: int)
 ## Current state
 var state: int
 
+# Reference to parent
 var owner: Object
-var enum_type_name: String
+
+# Transitions from within enter/exit states is not allowed. Prevent this by tracking if in transition.
+var currently_in_transition: bool = false
 
 # List of state names corresponding to enum values. Index matches enum value.
 var state_names: Array[String]
@@ -26,7 +29,7 @@ func _init(owner_: Object, enum_type_: Dictionary, initial_state: int) -> void:
     state_names = Enum.to_string_array(enum_type_)
     assert(state_names.size() > 0, "Enum type must have at least one value.")
 
-    # Init exitable array, default to true
+    # Init exitable array, default to true for all entries
     state_exitable.resize(state_names.size())
     state_exitable.fill(true)
 
@@ -51,10 +54,20 @@ func transition_to(next_state: int, ...enter_args: Array) -> void:
         push_error("Cannot exit state %s as it is marked non-exitable." % _state_to_name(state))
         return
 
+    # Prevent re-entrance
+    if currently_in_transition:
+        push_error("Cannot transition to state %s while exiting current state %s!" % [_state_to_name(next_state), _state_to_name(state)])
+        assert(false)
+        return
+    currently_in_transition = true
+
     var prev_state := state
     _call_state_func("_exit_", state, [])
 
     state = next_state
+
+    # Reset transition flag
+    currently_in_transition = false
 
     if enter_args.is_empty():
         _call_state_func("_enter_", state, [])

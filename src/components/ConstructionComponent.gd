@@ -29,8 +29,10 @@ func start_building(cell: Cell, cell_from: Cell, building: BuildingBase) -> bool
 		assert(false)
 		return false
 
-	# Verify that the building is being built on the correct cell
+	# Verify that the building is at the current cell
 	assert(cell.buildings.count(building) == 1)
+
+	# TODO add check if in workable from poses?
 
 	_curr_building_cell = cell
 	_curr_building_from_cell = cell_from

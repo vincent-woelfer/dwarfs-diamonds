@@ -14,20 +14,25 @@ var _currently_mining_cells: Array[Cell] = []
 # Reference to the used audio player
 var _audio_player: AudioStreamPlayer2D = null
 
+# TODO add mining tool restrictions (e.g. can only mine stone with pickaxe, etc.)
+# TODO add different mining sounds per material but also per miner (e.g. pickaxe sound for pickaxe, etc.)
+
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################
-func start_mining(cell: Cell) -> void:
+func start_mining(cell: Cell) -> bool:
 	if cell in _currently_mining_cells or cell == null or not cell.is_solid:
-		return
+		return false
 	if _currently_mining_cells.size() >= max_simultaneous_mining_cells:
-		return
+		return false
 
 	_currently_mining_cells.append(cell)
 
 	if _audio_player == null:
 		var audio_name: String = "mining_%d_looped" % randi_range(1, 3)
 		_audio_player = Audio.play_at_pos(audio_name, cell.global_position)
+
+	return true
 
 
 func stop_mining_cell(cell: Cell) -> void:

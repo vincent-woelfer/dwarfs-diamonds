@@ -26,8 +26,10 @@ enum Type {
 ###################################
 var type: Task.Type
 
-# used by all tasks
 var target_grid_pos: Vector2i
+
+# Optional
+# var finishes_job: Job = null
 
 ###################################
 # TASK SPECIFIC VARIABLES
@@ -36,8 +38,10 @@ var target_grid_pos: Vector2i
 var job: Job = null
 
 # MOVE_TO_CELL
+# (uses target_grid_pos)
 
 # MINE
+# (uses target_grid_pos)
 
 # CONSTRUCT
 var building: BuildingBase = null
@@ -56,6 +60,34 @@ var action_point: ActionPoint = null
 ########################################################################################################################
 func _init(type_: Type) -> void:
 	type = type_
+
+
+# func set_finishes_job(job_: Job) -> Task:
+	# finishes_job = job_
+	# return self
+
+
+func is_move_to_task() -> bool:
+	return type == Type.MOVE_TO_JOB or type == Type.MOVE_TO_CELL
+
+func is_stationary_task() -> bool:
+	return type == Type.MINE or type == Type.CONSTRUCT or type == Type.PICKUP or type == Type.ACTION_POINT or type == Type.PLACE_TORCH
+
+
+func reached_move_to_position(dwarf: Dwarf) -> bool:
+	assert(dwarf != null)
+	assert(is_move_to_task())
+
+	if type == Type.MOVE_TO_JOB:
+		assert(job != null)
+		job.update_workable_from_cells()
+		if dwarf.grid_pos in job.workable_from_poses:
+			return true
+
+	elif type == Type.MOVE_TO_CELL:
+		return dwarf.grid_pos == target_grid_pos
+
+	return false
 
 ###################################
 # STATIC FACTORY METHODS

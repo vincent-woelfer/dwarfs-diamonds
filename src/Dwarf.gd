@@ -72,6 +72,11 @@ func _ready() -> void:
 ########################################################################################################################
 # STATE MACHINE HANDLERS
 ########################################################################################################################
+# ENTER actually enters that state and triggers components
+# EXIT stops components but task-finishing logic is handled where exit transition is called (mostly signal handlers).
+# Transitions from within _exit functions are NOT ALLOWED
+# Transitions from within _enter (as "enter checks") are allowed!
+
 ###################################
 # IDLE
 ###################################
@@ -79,7 +84,18 @@ func _enter_idle() -> void:
 	animated_sprite.play("idle")
 	
 func _physics_process_idle(delta: float) -> void:
-	# TODO only if no tasks
+	# Should have no active task because then it would not be idle. But check anyways
+	if task_queue_comp.has_current_task():
+		print_rich("%s is in IDLE state but has current task %s, not doing anything right now (might stall)." % [self, task_queue_comp.curr_task])
+		print_rich(task_queue_comp)
+		return
+	
+	# Start new task if available
+	if not task_queue_comp.is_empty():
+		_start_next_task()
+		return
+
+	# Otherwise try to find new job
 	_find_new_job()
 
 ###################################
@@ -87,18 +103,30 @@ func _physics_process_idle(delta: float) -> void:
 ###################################
 func _enter_moving() -> void:
 	animated_sprite.play("walk")
+	
+	# Walking audio is handled by MovementComponent
 
 ###################################
 # MINING
 ###################################
 func _enter_mining(cell_to_mine: Cell) -> void:
-	animated_sprite.play("swing_vertical")
-	mining_comp.start_mining(cell_to_mine)
+	if cell_to_mine == null:
+		print_rich("%s cannot enter mining state with null cell, aborting" % [self])
+		sm.transition_to(State.IDLE)
+		return
+	
+	if not mining_comp.start_mining(cell_to_mine):
+		print_rich("%s failed to start mining %s, aborting" % [self, cell_to_mine])
+		sm.transition_to(State.IDLE)
+		return
 
 	# Look at mined cell
+	animated_sprite.play("swing_vertical")
 	_look_into_dir(cell_to_mine.grid_pos - grid_pos)
 
+
 func _exit_mining() -> void:
+	# Abort mining
 	mining_comp.stop_mining_all_cells()
 
 
@@ -106,10 +134,8 @@ func _exit_mining() -> void:
 # BUILDING
 ###################################
 func _enter_building(building: BuildingBase) -> void:
-	animated_sprite.play("swing_horizontal")
-
 	if building == null:
-		push_error("%s cannot enter building state with null building, aborting" % [self])
+		print_rich("%s cannot enter building state with null building, aborting" % [self])
 		sm.transition_to(State.IDLE)
 		return
 
@@ -117,19 +143,19 @@ func _enter_building(building: BuildingBase) -> void:
 	var cell_from: Cell = self.curr_cell
 
 	if cell == null or cell_from == null:
-		push_error("%s cannot enter building state with null cells, aborting" % [self])
+		print_rich("%s cannot enter building state with null cells, aborting" % [self])
 		sm.transition_to(State.IDLE)
 		return
 
 	# Check if success -> abort if not
 	if not construction_comp.start_building(cell, cell_from, building):
-		push_error("%s failed to start building %s, aborting" % [self, building])
-		construction_comp.stop_building()
+		print_rich("%s failed to start building %s, aborting" % [self, building])
 		sm.transition_to(State.IDLE)
 		return
 
 	# Look at cell where building is built
-	_look_into_dir(job_with_path.job.center_cell.grid_pos - grid_pos)
+	animated_sprite.play("swing_horizontal")
+	_look_into_dir(curr_job.center_cell.grid_pos - grid_pos)
 
 func _exit_building() -> void:
 	# Abort building
@@ -168,19 +194,65 @@ func _enter_dying() -> void:
 
 ## Triggered by MovementComponent
 func _on_finished_path() -> void:
-	if job_with_path == null:
-		_stop_working_job_enter_idle()
-		return
-
-	job_with_path.path = null
-
-	if job_with_path.job == null:
-		print_rich("%s finished path but has no job, transitioning to idle" % [self])
+	if not task_queue_comp.has_current_task():
+		print_rich("%s finished path but has no current task, transitioning to IDLE!" % [self])
 		sm.transition_to(State.IDLE)
 		return
 
-	_perform_job_at_location(job_with_path.job)
+	if not task_queue_comp.curr_task.is_move_to_task():
+		print_rich("%s finished path but current task is of type %s instead of any MOVE_TO task!" % [self, Enum.to_str(Task.Type, task_queue_comp.curr_task.type)])
+		# TODO handle
+		return
+
+	# -> We have a task and it is a move-to task. Verify that we are at the right location
+	if not task_queue_comp.curr_task.reached_move_to_position(self):
+		print_rich("%s finished path but has not reached move-to position for task %s, replanning!" % [self, task_queue_comp.curr_task])
+		push_error("TODO REPLAN PATH HERE")
+		# TODO
+		return
+
+	# Normally this should be the exact type, MOVE_TO has two subtypes
+	_finish_task_and_start_next(task_queue_comp.curr_task.type)
+
+
+## Triggered by MiningComponent for any finished cell (doesnt necessarily means dwarf is no longer mining)
+func _on_mining_completed(mined_cell: Cell) -> void:
+	# Normal case: Mining was part of job which has already been finished (-> implicitly entered idle)
+	if sm.state != State.MINING:
+		# Check if we need to finish mining task
+		if task_queue_comp.has_current_task() and task_queue_comp.curr_task.type == Task.Type.MINE:
+			if task_queue_comp.curr_task.target_grid_pos != mined_cell.grid_pos:
+				print_rich("%s completed mining %s but current task %s is for different cell, not finishing task!" % [self, mined_cell, task_queue_comp.curr_task])
+				return
+
+			_finish_task_and_start_next(Task.Type.MINE)
+		return
+
+	# Finished mining while in MINING state
+	print_rich("%s completed mining %s" % [self, mined_cell])
+	_finish_task_and_start_next(Task.Type.MINE)
+
+	# TODO previously had this, still necessary???
+	#Actions.archive_job(job_with_path.job, true)
+
 	
+## Triggered by ConstructionComponent
+func _on_construction_completed(building: BuildingBase) -> void:
+	# Normal case: Building was part of job which has already been finished (-> implicitly entered idle)
+	if sm.state != State.BUILDING:
+		# Check if we need to finish building task
+		if task_queue_comp.has_current_task() and task_queue_comp.curr_task.type == Task.Type.CONSTRUCT:
+			if task_queue_comp.curr_task.building != building:
+				print_rich("%s completed building %s but current task %s is for different building, not finishing task!" % [self, building, task_queue_comp.curr_task])
+				return
+
+			_finish_task_and_start_next(Task.Type.CONSTRUCT)
+		return
+
+	# Finished building while in BUILDING state
+	print_rich("%s completed building %s" % [self, building])
+	_finish_task_and_start_next(Task.Type.CONSTRUCT)
+
 
 ## Triggered by MovementComponent
 func _on_landed(fall_height_cells: int) -> void:
@@ -195,7 +267,7 @@ func _on_landed(fall_height_cells: int) -> void:
 
 	sm.transition_to(State.IDLE)
 
-	# Simulate entering cell anew with idle (to place torches)
+	# Simulate entering cell anew with idle (to trigger placing torches)
 	_on_new_cell_entered(curr_cell)
 
 
@@ -223,6 +295,7 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 				carry_comp.drop_all()
 				Audio.play_at_pos("dispose_trash", new_cell.get_floor_point())
 
+
 ## Triggered by MovementComponent
 func _on_movement_direction_changed(new_dir: Vector2) -> void:
 	_look_into_dir(new_dir)
@@ -235,60 +308,19 @@ func _on_started_falling(est_fall_height_cells: int) -> void:
 		var audio_name: String = "ohoh_%d" % randi_range(1, 3)
 		Audio.play_at_pos(audio_name, global_position)
 
+	# TODO is flush task queue correct?
 	_stop_working_job_enter_idle(false)
 	sm.transition_to(State.FALLING)
 
 
-## Triggered by MiningComponent for any finished cell (doesnt necessarily means dwarf is no longer mining)
-func _on_mining_completed(mined_cell: Cell) -> void:
-	# Normal case: Mining was part of job which has already been finished (-> implicitly entered idle)
-	if sm.state != State.MINING:
-		return
-
-	if job_with_path != null and job_with_path.job != null:
-		print_rich("%s completed mining %s" % [self, job_with_path.job])
-
-		# This will set job to null and enter idle -> simply return
-		Actions.archive_job(job_with_path.job, true)
-		return
-		
-	else:
-		print_rich("%s completed mining cell %s but has no job" % [self, mined_cell])
-		# Stay in mining state if still mining, -> idle otherwise
-		if not mining_comp.is_currently_mining():
-			if sm.state != State.FALLING:
-				sm.transition_to(State.IDLE)
-
-	
-## Triggered by ConstructionComponent
-func _on_construction_completed(building: BuildingBase) -> void:
-	# Normal case: Building was part of job which has already been finished (-> implicitly entered idle)
-	if sm.state != State.BUILDING:
-		return
-
-	if job_with_path != null and job_with_path.job != null:
-		print_rich("%s completed %s and build %s" % [self, job_with_path.job, building])
-
-		# This will set job to null and enter idle -> simply return
-		Actions.archive_job(job_with_path.job, true)
-		return
-
-	else:
-		print_rich("%s completed building %s but has no job" % [self, building])
-		# Stay in building state if still building, -> idle otherwise
-		if not construction_comp.is_currently_building():
-			if sm.state != State.FALLING:
-				sm.transition_to(State.IDLE)
-	
-
 ## Triggered by Job when job is not active anymore. This can be because the job was completed or aborted.
 # May be called during different states, always enter idle or stay in falling.
 func _on_job_archived() -> void:
-	if job_with_path == null or job_with_path.job == null:
+	if curr_job == null:
 		return
 
-	if not job_with_path.job.success:
-		print_rich("%s's job %s was aborted (_on_job_archived with success = false)" % [self, job_with_path.job])
+	if not curr_job.success:
+		print_rich("%s's job %s was aborted (_on_job_archived with success = false)" % [self, curr_job])
 
 	_stop_working_job_enter_idle()
 
@@ -296,7 +328,7 @@ func _on_job_archived() -> void:
 ## Triggered by NavMesh updates (via EventBus)
 func _on_nav_updated() -> void:
 	# If nav updated while following a path -> recalculate path for job or abort if not valid
-	if job_with_path != null:
+	if curr_path != null:
 		_validate_current_path()
 
 
@@ -339,12 +371,110 @@ func _stop_working_job_enter_idle(transition_to_idle: bool = true) -> void:
 			print_rich("%s stops working on %s but stays in %s" % [self, last_job, Enum.to_str(State, sm.state)])
 
 
-## Called by _on_finished_path when arrived at job location
-func _perform_job_at_location(job: Job) -> void:
-	if job == null:
-		print_rich("%s cannot perform null job, transitioning to idle" % [self])
-		_stop_working_job_enter_idle()
+func _find_new_job() -> void:
+	# Try to get a new job	
+	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_dwarf(self)
+
+	if new_job_with_path == null:
+		HexLog.print_throttled(self, "%s found no job, remains idle" % [self], NO_JOB_THROTTLED_PRINT_INTERVALL)
 		return
+
+	# Try to assign path + job
+	curr_job = new_job_with_path.job
+	# curr_path = new_job_with_path.path
+
+	# Add to task queue
+	task_queue_comp.add_job(curr_job)
+
+	_start_next_task()
+
+
+	# TODO OLD MIGRATE SOMEWHERE ELSE
+	# var success: bool = false
+	# if movement_comp.assign_path(new_job_with_path.path):
+	# 	if new_job_with_path.job.assign_dwarf(self):
+	# 		success = true
+	# 		job_with_path = new_job_with_path
+	# 		job_with_path.path.set_debug_draw_color(dwarf_color)
+		
+	# 		sm.transition_to(State.MOVING)
+	# 		print_rich("%s started %s" % [self, job_with_path.job])
+
+	# if not success:
+	# 	# Cleanup on failure
+	# 	movement_comp.abort_path()
+	# 	print_rich("%s failed to assign job/path to %s, remaining idle" % [self, new_job_with_path.job])
+
+
+func _look_into_dir(dir: Vector2) -> void:
+	if dir.x != 0:
+		animated_sprite.flip_h = dir.x < 0
+		look_dir = dir.normalized()
+
+
+func _validate_current_path() -> void:
+	print_rich("%s validating current path to job %s NOT IMPLEMENTED DOING NOTHING FOR NOW" % [self, curr_job])
+	# if not job_with_path or not job_with_path.path:
+	# 	return
+
+	# job_with_path.path = null
+	
+	# # Force job to update workable cells first
+	# job_with_path.job.update_workable_from_cells()
+	# var new_path: Path = Global.level.nav_manager.find_path_to_one_of(grid_pos, job_with_path.job.workable_from_poses)
+
+	# if new_path != null:
+	# 	if movement_comp.assign_path(new_path):
+	# 		job_with_path.path = new_path
+	# 		job_with_path.path.set_debug_draw_color(dwarf_color)
+		
+	# else:
+	# 	print_rich("%s lost path to job at %s" % [self, job_with_path.job.center_cell])
+	# 	_stop_working_job_enter_idle()
+
+
+########################################################################################################################
+# TASK QUEUE LOGIC
+########################################################################################################################
+
+func _finish_task_and_start_next(expected_curr_task_type: Task.Type) -> void:
+	# Finish current task
+	task_queue_comp.finish_current_task(expected_curr_task_type)
+
+	# jobs are finished by the job-creator (e.g. building, rubble) directly when appropriate.
+	# We dont need to do that here but we may need to add checks for it.
+
+	# If no more tasks -> stop working job and enter idle. IDLE will search for new job.
+	if task_queue_comp.is_empty():
+		print_rich("%s finished last task and has non remaining, returning to IDLE" % [self])
+		sm.transition_to(State.IDLE)
+		return
+
+	_start_next_task()
+
+
+# TODO maybe refactor and merge with above?
+func _start_next_task() -> void:
+	# If no more tasks -> stop working job and enter idle. IDLE will search for new job.
+	if task_queue_comp.is_empty():
+		print_rich("%s called _start_next_task but has no more tasks to start, returning to IDLE" % [self])
+		sm.transition_to(State.IDLE)
+		return
+
+	# This only sets curr_task to new one.
+	task_queue_comp.start_next_task()
+
+	# Actually start working on it
+	# TODO
+	# TODO
+	# TODO
+
+
+func _perform_stationary_task(task: Task) -> void:
+	assert(task != null)
+	assert(task.is_stationary_task())
+
+	var workable_from_poses: Array[Vector2i] = []
 
 	# Validate if we can work on the job
 	if not (curr_cell.grid_pos in job.workable_from_poses):
@@ -373,56 +503,6 @@ func _perform_job_at_location(job: Job) -> void:
 		# enter_building catches errors with building.
 		sm.transition_to(State.BUILDING, job.building)
 		return
-
-	### INVALID JOB ###
-	else:
-		print_rich("%s reached %s but job type %s is unhandled, abandoning job" % [self, job.center_cell, Enum.to_str(Job.Type, job.job_type)])
-		_stop_working_job_enter_idle()
-
-
-func _find_new_job() -> void:
-	# Try to get a new job	
-	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_dwarf(self)
-
-	if new_job_with_path == null:
-		HexLog.print_throttled(self, "%s found no job, remains idle" % [self], NO_JOB_THROTTLED_PRINT_INTERVALL)
-		return
-
-	var success: bool = false
-	if movement_comp.assign_path(new_job_with_path.path):
-		if new_job_with_path.job.assign_dwarf(self):
-			success = true
-			job_with_path = new_job_with_path
-			job_with_path.path.set_debug_draw_color(dwarf_color)
-		
-			sm.transition_to(State.MOVING)
-			print_rich("%s started %s" % [self, job_with_path.job])
-
-	if not success:
-		# Cleanup on failure
-		movement_comp.abort_path()
-		print_rich("%s failed to assign job/path to %s, remaining idle" % [self, new_job_with_path.job])
-
-
-func _validate_current_path() -> void:
-	if not job_with_path or not job_with_path.path:
-		return
-
-	job_with_path.path = null
-	
-	# Force job to update workable cells first
-	job_with_path.job.update_workable_from_cells()
-	var new_path: Path = Global.level.nav_manager.find_path_to_one_of(grid_pos, job_with_path.job.workable_from_poses)
-
-	if new_path != null:
-		if movement_comp.assign_path(new_path):
-			job_with_path.path = new_path
-			job_with_path.path.set_debug_draw_color(dwarf_color)
-		
-	else:
-		print_rich("%s lost path to job at %s" % [self, job_with_path.job.center_cell])
-		_stop_working_job_enter_idle()
-
 
 ########################################################################################################################
 # DEBUG DRAWING

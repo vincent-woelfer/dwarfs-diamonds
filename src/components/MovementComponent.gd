@@ -26,6 +26,8 @@ var parent_width: float = Global.CELL_SIZE * 0.3
 # Ground Checks with downward "ray casts". One must be on ground to consider standing. 
 var ground_check_sample_points: Array[float] = []
 
+@onready var parent: GridObject2D = get_parent()
+
 ################ Current Internal State ################
 var path: Path
 
@@ -34,7 +36,8 @@ var curr_falling_speed: float = 0.0
 # For tracking fall distance in cells
 var fall_start_y: int
 
-@onready var parent: GridObject2D = get_parent()
+# Reference to the used audio player
+var _audio_player: AudioStreamPlayer2D = null
 
 ########################################################################################################################
 # PUBLIC
@@ -158,10 +161,20 @@ func _enter_following_path(new_path: Path) -> void:
 	path = new_path
 	path.start_following_from_pos(parent.global_position, parent_width, true)
 
+	# Start audio
+	if _audio_player == null:
+		_audio_player = Audio.play_at_pos("dwarf_walk_1_looped", parent.global_position)
+
 func _exit_following_path() -> void:
 	if path:
 		path.debug_draw = false
 	path = null
+
+	# Stop audio
+	if _audio_player != null:
+		Audio.stop_player(_audio_player)
+		_audio_player = null
+	
 	
 func _physics_process_following_path(delta: float) -> void:
 	if _update_on_ground_check():
@@ -172,8 +185,8 @@ func _physics_process_following_path(delta: float) -> void:
 		# This should never happen! Maybe emit signal as error handling, otherwise we get stuck here
 		assert(false)
 		print_rich("MovementComponent from %s: FOLLOWING_PATH but path=null!" % [parent])
-		sm.transition_to(State.NOT_MOVING)
 		Signal_OnFinishedPath.emit()
+		sm.transition_to(State.NOT_MOVING)
 		return
 
 	# Follow path
@@ -183,6 +196,9 @@ func _physics_process_following_path(delta: float) -> void:
 	# Direction for flipping sprite
 	var movement_dir: Vector2 = path.get_next_grid_pos() - parent.grid_pos
 	Signal_MovementDirectionChanged.emit(movement_dir)
+
+	# Update audio player position
+	Audio.update_player_position(_audio_player, parent.global_position)
 
 	# Check if we reached the end of the path
 	if path.reached_end():

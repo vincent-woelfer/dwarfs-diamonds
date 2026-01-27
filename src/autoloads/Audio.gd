@@ -19,6 +19,7 @@ static var sounds: Dictionary[String, AudioStream] = {
 	"ohoh_2": preload("res://assets/audio/ohoh_amelie_2.wav"),
 	"ohoh_3": preload("res://assets/audio/ohoh_amelie_3.wav"),
 	"dispose_trash": preload("res://assets/audio/dirt_block_break.mp3"),
+	"dwarf_walk_1_looped": preload("res://assets/audio/dwarf_walk_1_looped.wav"),
 }
 
 # Relative volume adjustments in dB for each sound, assuming 0.0 as default (no modification, original volume from track)
@@ -61,6 +62,12 @@ func stop_player(player: AudioStreamPlayer2D) -> void:
 
 	player.stop()
 
+
+func update_player_position(player: AudioStreamPlayer2D, new_pos: Vector2) -> void:
+	if player == null or player not in _players:
+		return
+
+	player.global_position = new_pos
 
 ########################################################################################################################
 # INTERNAL API
