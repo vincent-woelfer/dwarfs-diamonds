@@ -154,6 +154,5 @@ func _to_string() -> String:
 		msg += "\n"
 		for task in _task_queue:
 			msg += " - %s\n" % task._to_string()
-		msg += "\n"
 
 	return msg
