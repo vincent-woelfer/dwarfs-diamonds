@@ -6,7 +6,8 @@ var c: Cell
 
 # Material
 var unshaded_material: CanvasItemMaterial = preload("res://assets/materials/unshaded_material.tres")
-# var ladder: CompressedTexture2D = preload("res://assets/sprites/ladder.png")
+
+var cell_global_texture_shader: ShaderMaterial = preload("res://assets/materials/cell_global_texture_material.tres")
 
 var background_poly: Polygon2D
 var stencil_poly: Polygon2D
@@ -39,7 +40,15 @@ func _ready() -> void:
 	background_poly = Polygon2D.new()
 	background_poly.polygon = poly_points
 	background_poly.visibility_layer = Util.LAYER_1
-	
+
+	# Add material
+	if c.type != Enum.CellType.SKY:
+		# var mat: ShaderMaterial = ShaderMaterial.new()
+		# mat.shader = cell_global_texture_shader
+		background_poly.material = cell_global_texture_shader
+		
+
+	# with shader sky does not get dark at night
 	# if c.type == Enum.CellType.SKY:
 		# background_poly.material = unshaded_material
 		
@@ -71,6 +80,9 @@ func set_dirty() -> void:
 
 # dirty flag IS ONLY A PERFOCMANCE OPTIMIZATION -> ignore for now
 func _process(delta: float) -> void:
+	if Global.camera:
+		cell_global_texture_shader.set_shader_parameter("zoom", Global.camera.zoom_curr)
+
 	if dirty:
 		dirty = false
 		update()

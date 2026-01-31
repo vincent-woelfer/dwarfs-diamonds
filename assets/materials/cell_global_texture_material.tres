@@ -1,0 +1,10 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://drnssi2sgr8v3"]
+
+[ext_resource type="Shader" uid="uid://b18fg7258hpby" path="res://shaders/CellGlobalTexture.gdshader" id="1_kedid"]
+[ext_resource type="Texture2D" uid="uid://c1nasnuff5qk6" path="res://assets/textures/stone_background_1.jpg" id="2_brdep"]
+
+[resource]
+shader = ExtResource("1_kedid")
+shader_parameter/bg_texture = ExtResource("2_brdep")
+shader_parameter/tex_scale = 0.001
+shader_parameter/zoom = 1.0
