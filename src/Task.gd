@@ -31,8 +31,9 @@ var target_grid_pos: Vector2i
 # Optional
 # var finishes_job: Job = null
 
-# TODO for now only temp solution
-var job_workable_from_access: Job
+# Task was created by this job (or null) and should therefore be discarded when job is aborted
+# TOOD renamed to created_for_job from assicoated_job. TODO Maybe dont use after all
+var created_by_job: Job = null
 
 ###################################
 # TASK SPECIFIC VARIABLES

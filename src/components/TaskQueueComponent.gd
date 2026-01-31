@@ -42,7 +42,7 @@ func add_job(job: Job) -> void:
 
 	# TODO for now add link to job for every task
 	for task in tasks:
-		task.job_workable_from_access = job
+		task.created_by_job = job
 
 	# Set the last task to finish the job
 	# tasks[tasks.size() - 1].set_finishes_job(job)
@@ -100,6 +100,10 @@ func start_next_task() -> bool:
 func has_current_task() -> bool:
 	return curr_task != null
 
+
+func flush_all_tasks() -> void:
+	_task_queue.clear()
+	curr_task = null
 
 ########################################################################################################################
 # METHODS PUPLIC / PRIVATE ????
