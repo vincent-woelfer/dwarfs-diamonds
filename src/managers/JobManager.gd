@@ -123,7 +123,13 @@ func get_new_job_for_dwarf(dwarf: Dwarf) -> JobWithPath:
 ########################################################################################################################
 func _ready() -> void:
 	self.process_priority = Enum.ProcessPriority.JOBS
+
+	# Signals
 	EventBus.Signal_NavUpdated.connect(_on_nav_updated)
+
+	# Dev Signals
+	EventBus.Signal_DevToogleJobsDraw.connect(_dev_toogle_jobs_draw)
+	_dev_toogle_jobs_draw()
 
 
 func _process(delta: float) -> void:
@@ -203,7 +209,7 @@ func _score_job(job: Job, path: Path, dwarf: Dwarf) -> ScoredJob:
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
-var _debug_draw_proxy_relative := DebugDrawProxy.new(self)
+var _debug_draw_proxy_relative := DebugDrawProxy.new(self )
 
 # Multiple jobs per cell are placed from top to bottom with an offset
 const debug_offset_start := Vector2(-0.44, -0.35) * Global.CELL_SIZE_VEC
@@ -236,7 +242,6 @@ func _debug_get_offset(idx: int) -> Vector2:
 	return debug_offset_start + debug_offset_inc * idx
 
 
-func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("dev_toogle_jobs_draw"):
-		_debug_draw_proxy_relative.visible = not _debug_draw_proxy_relative.visible
-		_debug_draw_proxy_relative.queue_redraw()
+func _dev_toogle_jobs_draw() -> void:
+	_debug_draw_proxy_relative.visible = EventBus.dev_draw_jobs
+	_debug_draw_proxy_relative.queue_redraw()

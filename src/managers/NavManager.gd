@@ -70,11 +70,13 @@ func is_cell_enabled(grid_pos: Vector2i) -> bool:
 ########################################################################################################################
 # PRIVATE METHODS
 ########################################################################################################################
-func _init() -> void:
+func _ready() -> void:
 	self.process_priority = Enum.ProcessPriority.NAV
 
+	# Signals
+	EventBus.Signal_DevToogleNavDraw.connect(_dev_toogle_nav_draw)
+	_dev_toogle_nav_draw()	
 
-func _ready() -> void:
 	_generate_nav_grid()
 
 
@@ -221,7 +223,7 @@ func _is_id_enabled(id: int) -> bool:
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
-var _debug_draw_proxy_relative := DebugDrawProxy.new(self)
+var _debug_draw_proxy_relative := DebugDrawProxy.new(self )
 
 const debug_colors := {
 	# Points
@@ -304,7 +306,6 @@ func _draw_arrow(ui_layer: CanvasItem, from_pos: Vector2, to_pos: Vector2, color
 	ui_layer.draw_colored_polygon([arrowtip_point, left_point, right_point], color)
 
 
-func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("dev_toogle_nav_draw"):
-		_debug_draw_proxy_relative.visible = not _debug_draw_proxy_relative.visible
-		_debug_draw_proxy_relative.queue_redraw()
+func _dev_toogle_nav_draw() -> void:
+	_debug_draw_proxy_relative.visible = EventBus.dev_draw_nav
+	_debug_draw_proxy_relative.queue_redraw()

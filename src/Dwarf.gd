@@ -51,10 +51,14 @@ func _ready() -> void:
 	# Initial Position
 	global_position = Global.level.get_cell(grid_pos).get_floor_point()
 
-	# SIGNALS
-	EventBus.Signal_NavUpdated.connect(_on_nav_updated)
+	# Dev Signals
 	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
 	EventBus.Signal_DevToogleDwarfDrawInfo.connect(_dev_toogle_dwarf_draw_info)
+	_dev_toogle_light()
+	_dev_toogle_dwarf_draw_info()
+
+	# SIGNALS
+	EventBus.Signal_NavUpdated.connect(_on_nav_updated)
 
 	mining_comp.Signal_OnMiningCompleted.connect(_on_mining_completed)
 	
@@ -634,11 +638,11 @@ func _debug_draw_in_ui_absolute(ui_layer: CanvasItem) -> void:
 		ui_layer.draw_colored_polygon(cell_poly_points, Colors.with_alpha(dwarf_color, debug_occupied_cell_alpha))
 
 
-func _dev_toogle_light(is_light_on: bool) -> void:
-	light.enabled = is_light_on
+func _dev_toogle_light() -> void:
+	light.enabled = EventBus.dev_light_on
 
 
-func _dev_toogle_dwarf_draw_info(draw_info: bool) -> void:
+func _dev_toogle_dwarf_draw_info() -> void:
 	_debug_draw_proxy_absolute.queue_redraw()
 	_debug_draw_proxy_relative.queue_redraw()
 

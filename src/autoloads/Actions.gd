@@ -87,6 +87,8 @@ func remove_building(building: BuildingBase) -> void:
 	# Call building destroy logic
 	building.destroy_building()
 
+	Audio.play_at_pos("building_on_destroy", building.global_position)
+
 	# Removes as child, calls queue_free	
 	Global.level.building_manager.remove_building(building)
 

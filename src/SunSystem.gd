@@ -29,9 +29,11 @@ var night_duration_factor: float = 1.0
 var margin_deg: float = 5.0
 
 func _ready() -> void:
-	# Connect Signals
+	# Dev Signals
 	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
 	EventBus.Signal_DevToogleSunFastForward.connect(_dev_toogle_sun_fast_forward)
+	_dev_toogle_light()
+	_dev_toogle_sun_fast_forward()
 
 	# Sunlight
 	sunlight = DirectionalLight2D.new()
@@ -91,8 +93,8 @@ func _process(delta: float) -> void:
 		sunlight.energy = lerp(sunset_energy, sunrise_energy, night_time)
 
 
-func _dev_toogle_light(is_light_on: bool) -> void:
-	if is_light_on:
+func _dev_toogle_light() -> void:
+	if EventBus.dev_light_on:
 		# WITH LIGHTING / DARKNESS		
 		darkness.visible = true
 		sunlight.enabled = true
@@ -102,8 +104,8 @@ func _dev_toogle_light(is_light_on: bool) -> void:
 		sunlight.enabled = false
 
 
-func _dev_toogle_sun_fast_forward(fast_forward: bool) -> void:
-	if fast_forward:
+func _dev_toogle_sun_fast_forward() -> void:
+	if EventBus.dev_sun_fast_forward:
 		day_duration_factor = 0.05
 		night_duration_factor = 0.05
 	else:

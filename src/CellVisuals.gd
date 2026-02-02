@@ -80,9 +80,6 @@ func set_dirty() -> void:
 
 # dirty flag IS ONLY A PERFOCMANCE OPTIMIZATION -> ignore for now
 func _process(delta: float) -> void:
-	if Global.camera:
-		cell_global_texture_shader.set_shader_parameter("zoom", Global.camera.zoom_curr)
-
 	if dirty:
 		dirty = false
 		update()

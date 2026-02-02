@@ -26,9 +26,11 @@ func place_in_cell(cell: Cell) -> void:
     self.position.y = Global.CELL_SIZE / 2.0
 
 func _ready() -> void:
-    # Signals
+    # Dev Signals
     EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
+    _dev_toogle_light()
 
+    # Signals
     animated_sprite.frame_changed.connect(_on_new_frame)
 
     # Read defaults
@@ -41,9 +43,6 @@ func _ready() -> void:
     # Start animation
     animated_sprite.play(animation_name)
     animated_sprite.set_frame_and_progress(randi_range(0, torch_sizes.size() - 1), randf())
-
-    # Initial light setup according to global state of dev setting
-    _dev_toogle_light(EventBus.dev_light_on)
    
 
 static func instantiate() -> DecoTorch:
@@ -68,5 +67,5 @@ func _on_new_frame() -> void:
     tween.tween_property(light, "energy", target_energy, time_for_one_frame / 2.0)
     
     
-func _dev_toogle_light(is_light_on: bool) -> void:
-    light.enabled = is_light_on
+func _dev_toogle_light() -> void:
+    light.enabled = EventBus.dev_light_on
