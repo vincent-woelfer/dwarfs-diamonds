@@ -61,7 +61,7 @@ func _ready() -> void:
 
 
 	# DWARF
-	spawn_dwarf(Vector2i(3, 5))
+	spawn_dwarf(Vector2i(8, 5))
 	# spawn_dwarf(Vector2i(10, 6))
 
 	# other side
