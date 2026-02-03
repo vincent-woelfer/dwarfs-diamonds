@@ -44,13 +44,10 @@ func add_job(job: Job) -> void:
 	for task in tasks:
 		task.created_by_job = job
 
-	# Set the last task to finish the job
-	# tasks[tasks.size() - 1].set_finishes_job(job)
-
 	append_array_end(tasks)
 
 	print_rich("%s added job %s with %d tasks to task queue" % [parent, job, tasks.size()])
-	print_rich(self)
+	print_rich(self )
 
 
 # The task-type is only as an error-detection mechanism.
@@ -66,16 +63,10 @@ func finish_current_task(expected_task_type: Task.Type) -> bool:
 	assert(_task_queue.size() > 0)
 	assert(curr_task == _task_queue[0])
 
-	# Finish job if applicable
-	# TODO MAYBE IMPLEMENT HERE BUT FOR NOW, the job-creator (e.g. building, rubble) handles this directly.
-	# if curr_task.finishes_job != null:
-		# curr_task.finishes_job.is_active = false
-
 	# Remove from queue
 	_task_queue.pop_front()
 
-	print_rich("%s finished task %s" % [parent, curr_task])
-	print_rich(self)
+	print_rich("%s finished task %s. %s" % [parent, curr_task, self ])
 
 	curr_task = null
 
@@ -90,8 +81,7 @@ func start_next_task() -> bool:
 		push_warning("Tried to start next task but task queue is empty!")
 		return false
 
-	print_rich("%s starting next task %s" % [parent, _task_queue[0]])
-	print_rich(self)
+	print_rich("%s starting next task %s. %s" % [parent, _task_queue[0], self ])
 
 	curr_task = _task_queue[0]
 	return true

@@ -22,7 +22,7 @@ func destroy_cell(cell: Cell) -> void:
 	# Signal MiningComponets that mining was completed
 	EventBus.Signal_GlobalCellDestroyed.emit(cell)
 
-	# Call global action to trigger all steps
+	# Call global action to trigger all steps (including job archiving)
 	Actions.mark_cell_for_mining(cell, false)
 
 	# Spawn Rubble
