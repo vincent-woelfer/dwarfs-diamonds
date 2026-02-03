@@ -169,3 +169,10 @@ dev_toogle_sun_fast_forward={
 
 2d_render/layer_1="Normal"
 2d_render/layer_2="Stencil"
+
+[shader_globals]
+
+sky_scroll_offset={
+"type": "vec2",
+"value": Vector2(0, 0)
+}

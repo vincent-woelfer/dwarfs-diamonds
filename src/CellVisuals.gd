@@ -8,6 +8,7 @@ var c: Cell
 var unshaded_material: CanvasItemMaterial = preload("res://assets/materials/unshaded_material.tres")
 
 var cell_global_texture_shader: ShaderMaterial = preload("res://assets/materials/cell_global_texture_material.tres")
+var sky_global_texture_shader: ShaderMaterial = preload("res://assets/materials/sky_global_texture_material.tres")
 
 var background_poly: Polygon2D
 var stencil_poly: Polygon2D
@@ -43,10 +44,9 @@ func _ready() -> void:
 
 	# Add material
 	if c.type != Enum.CellType.SKY:
-		# var mat: ShaderMaterial = ShaderMaterial.new()
-		# mat.shader = cell_global_texture_shader
 		background_poly.material = cell_global_texture_shader
-		
+	else:
+		background_poly.material = sky_global_texture_shader
 
 	# with shader sky does not get dark at night
 	# if c.type == Enum.CellType.SKY:

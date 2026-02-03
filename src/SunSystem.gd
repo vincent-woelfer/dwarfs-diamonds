@@ -28,6 +28,10 @@ var night_duration_factor: float = 1.0
 # Margin to avoid sun being exactly horizontal at sunrise/sunset
 var margin_deg: float = 5.0
 
+# Sky scroll offset
+var sky_scroll_speed: Vector2 = Vector2(0.04, 0.0)
+var sky_scroll_offset: Vector2 = Vector2.ZERO
+
 func _ready() -> void:
 	# Dev Signals
 	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
@@ -91,6 +95,13 @@ func _process(delta: float) -> void:
 		var sunset_energy: float = energy_curve.sample(1.0)
 		var sunrise_energy: float = energy_curve.sample(0.0)
 		sunlight.energy = lerp(sunset_energy, sunrise_energy, night_time)
+
+
+	# Sky scroll offset
+	# Always use day_duration_factor for sky scrolling to keep it consistent
+	# sky_scroll_offset += sky_scroll_speed * (delta / day_duration_factor)
+	sky_scroll_offset += sky_scroll_speed * delta
+	RenderingServer.global_shader_parameter_set("sky_scroll_offset", sky_scroll_offset)
 
 
 func _dev_toogle_light() -> void:

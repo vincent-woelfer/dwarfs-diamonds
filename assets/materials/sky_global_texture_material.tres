@@ -1,0 +1,8 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://du37luexqri22"]
+
+[ext_resource type="Shader" uid="uid://hdai8y1u3g5d" path="res://shaders/SkyGlobalTexture.gdshader" id="1_5kxw5"]
+[ext_resource type="Texture2D" uid="uid://c1qh4c1pq6xp" path="res://assets/textures/clouds_background_transparent.png" id="2_jyqfd"]
+
+[resource]
+shader = ExtResource("1_5kxw5")
+shader_parameter/bg_texture = ExtResource("2_jyqfd")

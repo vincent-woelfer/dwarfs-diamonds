@@ -12,8 +12,8 @@ const CELL_SIZE_VEC_HALF: Vector2 = CELL_SIZE_VEC * 0.5
 const CELL_OFFSET_CORNER_TO_CENTER_FLOOR: Vector2 = Vector2(0.5, 1.0) * CELL_SIZE_VEC
 
 # Size=128 at 3840x2160 (4K) gives 30x16.8 cells
-const LEVEL_WIDTH: int = 30
-const LEVEL_HEIGHT: int = 20
+const LEVEL_WIDTH: int = 40
+const LEVEL_HEIGHT: int = 30
 const LEVEL_SIZE_VEC: Vector2 = Vector2(LEVEL_WIDTH, LEVEL_HEIGHT)
 # Aspect setting "keep-width" = width is constant (3840), height changes with aspect ratio
 # Aspect setting "expand" = both width and height change with aspect ratio.
@@ -27,7 +27,7 @@ const VEC_RIGHT := Vector2(1, 0)
 const VEC_UP := Vector2(0, -1)
 const VEC_DOWN := Vector2(0, 1)
 
-const SKY_HEIGHT: int = 3
+const SKY_HEIGHT: int = 6
 
 const CellMiningHardness := {
 	Enum.CellType.A: 1.0,

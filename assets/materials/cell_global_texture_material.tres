@@ -6,5 +6,3 @@
 [resource]
 shader = ExtResource("1_kedid")
 shader_parameter/bg_texture = ExtResource("2_brdep")
-shader_parameter/tex_scale = 0.001
-shader_parameter/zoom = 1.0
