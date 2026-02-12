@@ -17,8 +17,18 @@ var curr_task: Task = null
 @onready var parent: Dwarf = get_parent()
 
 ########################################################################################################################
-# METHODS PUPLIC!!!!
+# METHODS PUPLIC
 ########################################################################################################################
+func add_tasks(tasks: Array[Task]) -> void:
+	if tasks.is_empty():
+		push_warning("Tried to add empty task array to task queue!")
+		return
+
+	append_array_end(tasks)
+
+	print_rich("%s added %d tasks to task queue" % [parent, tasks.size()])
+	print_rich(self )
+
 
 func add_job(job: Job) -> void:
 	if not job:

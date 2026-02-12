@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://12nby18asb05" path="res://src/components/MovementComponent.gd" id="5_o7n6f"]
 [ext_resource type="Script" uid="uid://ca0ir7bdht3kr" path="res://src/components/CarryComponent.gd" id="7_2lrks"]
 [ext_resource type="Script" uid="uid://bgr3cdguef030" path="res://src/components/TaskQueueComponent.gd" id="8_gwb0r"]
+[ext_resource type="Script" uid="uid://c6ev22w02fxwg" path="res://src/components/ActionPointComponent.gd" id="9_0mwxv"]
 
 [node name="Dwarf" type="Node2D" unique_id=1095445124]
 script = ExtResource("1_po7l6")
@@ -18,8 +19,8 @@ texture_filter = 1
 position = Vector2(0, -64.99999)
 scale = Vector2(5, 5)
 sprite_frames = ExtResource("1_ms7vq")
-animation = &"idle"
-frame_progress = 0.3747187
+animation = &"interact"
+frame_progress = 0.08628503
 
 [node name="PointLight2D" type="PointLight2D" parent="." unique_id=2112066260]
 position = Vector2(0, -64)
@@ -46,3 +47,7 @@ metadata/_custom_type_script = "uid://ca0ir7bdht3kr"
 [node name="TaskQueueComponent" type="Node2D" parent="." unique_id=1669064102]
 script = ExtResource("8_gwb0r")
 metadata/_custom_type_script = "uid://bgr3cdguef030"
+
+[node name="ActionPointComponent" type="Node2D" parent="." unique_id=1955297445]
+script = ExtResource("9_0mwxv")
+metadata/_custom_type_script = "uid://c6ev22w02fxwg"

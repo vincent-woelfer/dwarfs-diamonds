@@ -41,4 +41,4 @@ func _ready() -> void:
 
 func _to_string() -> String:
 	var print_color := Colors.to_print_color(Colors.get_action_point_color(type))
-	return Util.color_string("%s @%s" % [Enum.to_str(ActionType, type), grid_pos], print_color)
+	return Util.color_string("AP-%s @%s" % [Enum.to_str(ActionType, type), grid_pos], print_color)

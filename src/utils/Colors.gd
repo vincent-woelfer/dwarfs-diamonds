@@ -101,7 +101,7 @@ static func get_action_point_color(type: ActionPoint.ActionType) -> Color:
 	return ActionPointColor.get(type, FALLBACK_COLOR)
 
 static var ActionPointColor := {
-	ActionPoint.ActionType.DISPOSE_RUBBLE: Color.INDIGO,
+	ActionPoint.ActionType.DISPOSE_RUBBLE: Color.DARK_ORANGE,
 }
 
 ########################################################################################################################

@@ -9,6 +9,7 @@ extends GridObject2D
 @onready var movement_comp: MovementComponent = $MovementComponent
 @onready var carry_comp: CarryComponent = $CarryComponent
 @onready var task_queue: TaskQueueComponent = $TaskQueueComponent
+@onready var action_point_comp: ActionPointComponent = $ActionPointComponent
 
 # Static ID generator
 static var next_dwarf_id: int = 0
@@ -23,7 +24,7 @@ var num_torches: int = 50
 var look_dir: Vector2 = Vector2.RIGHT
 
 # State machine
-enum State {IDLE, MOVING, MINING, BUILDING, FALLING, DYING}
+enum State {IDLE, MOVING, MINING, BUILDING, FALLING, DYING, ACTION}
 var sm: StateMachine
 func _physics_process(delta: float) -> void:
 	sm.physics_process(delta)
@@ -70,6 +71,8 @@ func _ready() -> void:
 	movement_comp.Signal_OnLanded.connect(_on_landed)
 	# movement_comp.Signal_StateChanged.connect(_on_movement_state_changed)
 
+	action_point_comp.Signal_OnActionCompleted.connect(_on_action_completed)
+
 	# TODO carry_comp signals?
 
 
@@ -90,6 +93,7 @@ func _enter_idle() -> void:
 func _physics_process_idle(delta: float) -> void:
 	# Should have no active task because then it would not be idle. But check anyways
 	if task_queue.has_current_task():
+		push_warning()
 		print_rich("%s is in IDLE state but has current task %s, not doing anything right now (might stall)." % [ self , task_queue.curr_task])
 		print_rich(task_queue)
 		return
@@ -99,15 +103,52 @@ func _physics_process_idle(delta: float) -> void:
 		_start_next_task()
 		return
 
+	# Check for tasks coming from own "needs"
+	_create_own_tasks()
+
 	# Otherwise try to find new job
 	_find_new_job()
+
+
+func _create_own_tasks() -> void:
+	var tasks: Array[Task] = []
+
+	# Dispose Rubble
+	if carry_comp.is_carrying_item_of_type(Enum.CarryableItemType.RUBBLE):
+		# Seatch for rubble disposal action points
+		var rubble_aps: Array[ActionPoint] = Global.level.building_manager.get_all_action_points(ActionPoint.ActionType.DISPOSE_RUBBLE)
+
+		if rubble_aps.is_empty():
+			print_rich("%s is carrying rubble but found no disposal action points, will not create dispose task" % [ self ])
+			return
+
+		var target_positions: Array[Vector2i] = []
+		for ap in rubble_aps:
+			target_positions.append(ap.grid_pos)
+
+		var path: Path = Global.level.nav_manager.find_path_to_one_of(curr_cell.grid_pos, target_positions)
+		if not path:
+			print_rich("%s failed to find path to target positions %s for rubble disposal" % [ self , target_positions])
+			return
+
+		# Back-reference path to AP
+		var target_ap: ActionPoint = null
+		for ap in rubble_aps:
+			if ap.grid_pos == path._grid_points.back():
+				target_ap = ap
+				break
+
+		# Actually create tasks
+		tasks.append(Task.create_move_to_cell_task(target_ap.grid_pos))
+		tasks.append(Task.create_action_point_task(target_ap.grid_pos, target_ap))
+		task_queue.add_tasks(tasks)
+		
 
 ###################################
 # MOVING
 ###################################
 func _enter_moving() -> void:
 	animated_sprite.play("walk")
-	
 
 func _exit_moving() -> void:
 	# Stop movement
@@ -163,11 +204,34 @@ func _enter_building(building: BuildingBase) -> void:
 
 	# Look at cell where building is built
 	animated_sprite.play("swing_horizontal")
-	_look_into_dir(curr_job.center_cell.grid_pos - grid_pos)
+	_look_into_dir(building.grid_pos - grid_pos)
 
 func _exit_building() -> void:
 	# Abort building
 	construction_comp.stop_building()
+
+
+###################################
+# ACTION
+###################################
+func _enter_action(action_point: ActionPoint) -> void:
+	if action_point == null:
+		print_rich("%s cannot enter interacting state with null action point, aborting" % [ self ])
+		sm.transition_to(State.IDLE)
+		return
+
+	if not action_point_comp.start_action(action_point):
+		print_rich("%s failed to start action for action point %s, aborting" % [ self , action_point])
+		sm.transition_to(State.IDLE)
+		return
+
+	# Look at action point
+	animated_sprite.play("interact")
+	_look_into_dir(action_point.grid_pos - grid_pos)
+
+
+func _exit_action() -> void:
+	action_point_comp.stop_interacting()
 
 
 ###################################
@@ -244,6 +308,17 @@ func _on_construction_completed(building: BuildingBase) -> void:
 	_finish_task_and_start_next(Task.Type.CONSTRUCT)
 
 
+## Triggered by ActionPointComponent
+func _on_action_completed(action_point: ActionPoint) -> void:
+	# For action points this is the normal case since this callback is triggered AFTER the action point has completed itself and finished the task.
+	if !task_queue.has_current_task() or task_queue.curr_task.type != Task.Type.ACTION_POINT or task_queue.curr_task.action_point != action_point:
+		print_rich("%s completed action for %s but doesnt match current task %s, ignoring!" % [ self , action_point, task_queue.curr_task])
+		return
+
+	print_rich("%s completed action for %s" % [ self , action_point])
+	_finish_task_and_start_next(Task.Type.ACTION_POINT)
+
+
 ## Triggered by MovementComponent
 func _on_landed(fall_height_cells: int) -> void:
 	# Once cell is normal after mining below -> dont do anything special
@@ -273,14 +348,6 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 		# Check if should place torch
 		if num_torches > 0 and new_cell.deco_elements.is_empty() and Global.level.should_contain_torch(grid_pos):
 			_place_torch(new_cell)
-
-		# Check for rubble disposal
-		if carry_comp.is_carrying_item_of_type(Enum.CarryableItemType.RUBBLE):
-			var rubble_action_points: Array[ActionPoint] = new_cell.get_action_points_of_type(ActionPoint.ActionType.DISPOSE_RUBBLE)
-			if not rubble_action_points.is_empty():
-				print_rich("%s is disposing rubble at AP %s" % [ self , rubble_action_points[0]])
-				carry_comp.drop_all()
-				Audio.play_at_pos("dispose_trash", new_cell.get_floor_point())
 
 
 ## Triggered by MovementComponent
@@ -501,9 +568,14 @@ func _perform_stationary_task(task: Task) -> void:
 	assert(task != null)
 	assert(task.is_stationary_task())
 
-	# Find valid workable-from-positions
-	task.created_by_job.update_workable_from_cells()
-	var workable_from_poses: Array[Vector2i] = task.created_by_job.workable_from_poses
+	# Find valid workable-from-positions - depends on if job is present or not
+	var workable_from_poses: Array[Vector2i]
+
+	if task.created_by_job:
+		task.created_by_job.update_workable_from_cells()
+		workable_from_poses = task.created_by_job.workable_from_poses
+	else:
+		workable_from_poses = [task.target_grid_pos]
 
 	# Validate if we can work on the job
 	if not (grid_pos in workable_from_poses):
@@ -554,13 +626,12 @@ func _perform_stationary_task(task: Task) -> void:
 			return
 
 	### ACTION POINT TASK ###
-	# elif task.type == Task.Type.ACTION_POINT:
-	# 	print_rich("%s reached %s and starts performing action point %s" % [self, task.target_grid_pos, task.action_point])
-	# 	# TODO implement action point logic
-	# 	push_error("%s tried to perform ACTION_POINT task which is not yet implemented, abandoning task" % [self])
-	# 	# TODO
-	# 	_abort_tasks_enter_idle()
-	# 	return
+	elif task.type == Task.Type.ACTION_POINT:
+		print_rich("%s reached %s and starts performing action for point %s" % [ self , task.target_grid_pos, task.action_point])
+		# enter_interacting catches errors with action point.
+		sm.transition_to(State.ACTION, task.action_point)
+		return
+
 
 	### UNKNOWN STATIONARY TASK ###
 	else:
@@ -581,6 +652,7 @@ const debug_state_colors := {
 	State.BUILDING: Color(0.0, 1.0, 0.0), # GREEN
 	State.FALLING: Color(1.0, 0.0, 1.0), # Magenta
 	State.DYING: Color(0.0, 0.0, 0.0), # Black
+	State.ACTION: Color(0.2, 0.2, 1.0), # Blue
 }
 
 const debug_label_width := 1.0 * Global.CELL_SIZE

@@ -74,7 +74,7 @@ func get_all_action_points(type: ActionPoint.ActionType) -> Array[ActionPoint]:
 		if not ap.is_active:
 			continue
 
-		# Verify that the cell is reachable in nav-mesh
+		# Verify that the cell is enabled in nav-mesh
 		var cell: Cell = Global.level.get_cell(ap.grid_pos)
 		if cell == null or not Global.level.nav_manager.is_cell_enabled(ap.grid_pos):
 			continue

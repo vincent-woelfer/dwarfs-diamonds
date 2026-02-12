@@ -204,6 +204,20 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_qipii")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_n01s3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_n6hrh")
+}],
+"loop": true,
+"name": &"interact",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_sw07y")
 }, {
 "duration": 1.0,

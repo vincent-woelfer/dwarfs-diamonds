@@ -27,7 +27,7 @@ const circle_alpha: float = 0.6
 # Text properties
 const label_width := 1.0 * Global.CELL_SIZE
 # relative to circle (cell center)
-const label_offset := Vector2(0.0, -0.3) * Global.CELL_SIZE_VEC + Vector2(-label_width / 2.0, 0.0)
+const label_offset := Vector2(0.0, -0.5) * Global.CELL_SIZE_VEC + Vector2(-label_width / 2.0, 0.0)
 
 var font := ThemeDB.fallback_font
 var font_size := 14
