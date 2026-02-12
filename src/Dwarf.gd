@@ -407,6 +407,10 @@ func _finish_task_and_start_next(expected_curr_task_type: Task.Type) -> void:
 
 	# jobs are finished by the job-creator (e.g. building, rubble) directly when appropriate.
 	# We dont need to do that here but we may need to add checks for it.
+	# For now still do this here as "backup"
+	if task_queue.has_current_task() and task_queue.curr_task.finishes_job:
+		print_rich("%s finished job %s by finishing task %s" % [ self , task_queue.curr_task.created_by_job, task_queue.curr_task])
+		Actions.archive_job(task_queue.curr_task.created_by_job, true)
 
 	# If no more tasks -> stop working job and enter idle. IDLE will search for new job.
 	if task_queue.is_empty():
