@@ -52,7 +52,7 @@ func pickup(item: CarryableItemComponent) -> bool:
 	_curr_total_weight += item.weight
 
 	# Modify item
-	item.on_picked_up(self)
+	item.on_picked_up(self )
 
 	return true
 
@@ -72,6 +72,7 @@ func drop(item: CarryableItemComponent) -> void:
 	item.on_dropped()
 
 	# Set item position to be inside cell of carrier
+	# TODO maybe animate this
 	item.parent.global_position = parent.global_position
 
 
@@ -81,6 +82,21 @@ func drop_all() -> void:
 		drop(item)
 
 # TODO DROP/TRansfer to other container/storage/disposal
+
+
+###################################
+# DELETE
+###################################
+func delete(item: CarryableItemComponent) -> void:
+	if item == null or not _curr_carried_items.has(item):
+		return
+
+	# Modify self
+	_curr_carried_items.erase(item)
+	_curr_total_weight -= item.weight
+
+	# Delete parent (since item is a component, we assume the whole object should be deleted)
+	item.parent.queue_free()
 
 ###################################
 # CAN CARRY / PICKUP
@@ -139,7 +155,6 @@ func get_all_pickupable_items_in_range() -> Array[CarryableItemComponent]:
 		# For performance, first check grid pos
 		if item.parent.grid_pos != parent.grid_pos:
 			continue
-
 		if can_pickup(item):
 			items.append(item)
 
@@ -151,6 +166,14 @@ func is_carrying_item_of_type(item_type: Enum.CarryableItemType) -> bool:
 		if item.item_type == item_type:
 			return true
 	return false
+
+
+func get_items_of_type(item_type: Enum.CarryableItemType) -> Array[CarryableItemComponent]:
+	var items_of_type: Array[CarryableItemComponent] = []
+	for item: CarryableItemComponent in _curr_carried_items:
+		if item.item_type == item_type:
+			items_of_type.append(item)
+	return items_of_type
 
 ########################################################################################################################
 # PRIVATE METHODS

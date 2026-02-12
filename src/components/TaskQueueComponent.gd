@@ -26,7 +26,7 @@ func add_tasks(tasks: Array[Task]) -> void:
 
 	append_array_end(tasks)
 
-	print_rich("%s added %d tasks to task queue" % [parent, tasks.size()])
+	print_rich("%s added %d new stand-alone tasks to task queue" % [parent, tasks.size()])
 	print_rich(self )
 
 

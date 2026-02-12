@@ -102,46 +102,13 @@ func _physics_process_idle(delta: float) -> void:
 	if not task_queue.is_empty():
 		_start_next_task()
 		return
-
-	# Check for tasks coming from own "needs"
-	_create_own_tasks()
-
+	
 	# Otherwise try to find new job
-	_find_new_job()
+	var new_job: bool = _find_new_job()
 
-
-func _create_own_tasks() -> void:
-	var tasks: Array[Task] = []
-
-	# Dispose Rubble
-	if carry_comp.is_carrying_item_of_type(Enum.CarryableItemType.RUBBLE):
-		# Seatch for rubble disposal action points
-		var rubble_aps: Array[ActionPoint] = Global.level.building_manager.get_all_action_points(ActionPoint.ActionType.DISPOSE_RUBBLE)
-
-		if rubble_aps.is_empty():
-			print_rich("%s is carrying rubble but found no disposal action points, will not create dispose task" % [ self ])
-			return
-
-		var target_positions: Array[Vector2i] = []
-		for ap in rubble_aps:
-			target_positions.append(ap.grid_pos)
-
-		var path: Path = Global.level.nav_manager.find_path_to_one_of(curr_cell.grid_pos, target_positions)
-		if not path:
-			print_rich("%s failed to find path to target positions %s for rubble disposal" % [ self , target_positions])
-			return
-
-		# Back-reference path to AP
-		var target_ap: ActionPoint = null
-		for ap in rubble_aps:
-			if ap.grid_pos == path._grid_points.back():
-				target_ap = ap
-				break
-
-		# Actually create tasks
-		tasks.append(Task.create_move_to_cell_task(target_ap.grid_pos))
-		tasks.append(Task.create_action_point_task(target_ap.grid_pos, target_ap))
-		task_queue.add_tasks(tasks)
+	if not new_job:
+		# Check for tasks coming from own "needs"
+		_create_own_tasks()
 		
 
 ###################################
@@ -431,13 +398,13 @@ func _abort_tasks_enter_idle() -> void:
 		sm.transition_to(State.IDLE)
 
 
-func _find_new_job() -> void:
+func _find_new_job() -> bool:
 	# Try to get a new job	
 	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_dwarf(self )
 
 	if new_job_with_path == null:
 		HexLog.print_throttled(self , "%s found no job, remains idle" % [ self ], NO_JOB_THROTTLED_PRINT_INTERVALL)
-		return
+		return false
 
 	# Assign job
 	curr_job = new_job_with_path.job
@@ -449,6 +416,42 @@ func _find_new_job() -> void:
 	task_queue.add_job(curr_job)
 
 	_start_next_task()
+
+	return true
+
+
+func _create_own_tasks() -> void:
+	var tasks: Array[Task] = []
+
+	# Dispose Rubble
+	if carry_comp.is_carrying_item_of_type(Enum.CarryableItemType.RUBBLE):
+		# Seatch for rubble disposal action points
+		var rubble_aps: Array[ActionPoint] = Global.level.building_manager.get_all_action_points(ActionPoint.ActionType.DISPOSE_RUBBLE)
+
+		if rubble_aps.is_empty():
+			print_rich("%s is carrying rubble but found no disposal action points, will not create dispose task" % [ self ])
+			return
+
+		var target_positions: Array[Vector2i] = []
+		for ap in rubble_aps:
+			target_positions.append(ap.grid_pos)
+
+		var path: Path = Global.level.nav_manager.find_path_to_one_of(curr_cell.grid_pos, target_positions)
+		if not path:
+			print_rich("%s failed to find path to target positions %s for rubble disposal" % [ self , target_positions])
+			return
+
+		# Back-reference path to AP
+		var target_ap: ActionPoint = null
+		for ap in rubble_aps:
+			if ap.grid_pos == path._grid_points.back():
+				target_ap = ap
+				break
+
+		# Actually create tasks
+		tasks.append(Task.create_move_to_cell_task(target_ap.grid_pos))
+		tasks.append(Task.create_action_point_task(target_ap.grid_pos, target_ap))
+		task_queue.add_tasks(tasks)
 
 
 func _look_into_dir(dir: Vector2) -> void:

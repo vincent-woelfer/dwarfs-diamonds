@@ -11,7 +11,11 @@ var _curr_action_point: ActionPoint = null
 # Reference to the used audio player
 var _audio_player: AudioStreamPlayer2D = null
 
-var interaction_timestamp: float = 0.0
+## Timestamp of when interaction started, used for timing logic
+var action_started_timestamp: float = 0.0
+
+## Timestamp for repeated steps of one action, used for timing logic
+var repeated_tick_timestamp: float = 0.0
 
 # Reference to parent dwarf. Needs to be a dwarf since this is tighly coupled
 @onready var parent: Dwarf = get_parent()
@@ -31,7 +35,8 @@ func start_action(action_point: ActionPoint) -> bool:
 
 	_curr_action_point = action_point
 
-	interaction_timestamp = Util.now()
+	action_started_timestamp = Util.now()
+	repeated_tick_timestamp = Util.now()
 
 	# _audio_player = Audio.play_at_pos("dispose_trash", action_point.global_position)
 
@@ -101,18 +106,20 @@ func _physics_process(delta: float) -> void:
 # These return "done = true" if the interaction is completed
 
 func _dispose_rubble() -> bool:
+	const rubble_dispose_time := 0.75
+	const after_last_time := 0.3
+
 	var carry_comp: CarryComponent = parent.carry_comp
+	var has_rubble := carry_comp.is_carrying_item_of_type(Enum.CarryableItemType.RUBBLE)
 
 	# Check for rubble disposal
-	if Util.has_time_passed(interaction_timestamp, 1.2):
-		if carry_comp.is_carrying_item_of_type(Enum.CarryableItemType.RUBBLE):
-			print_rich("%s is disposing rubble at %s" % [parent, _curr_action_point])
-			carry_comp.drop_all()
+	if has_rubble and Util.has_time_passed(repeated_tick_timestamp, rubble_dispose_time):
+		carry_comp.delete(carry_comp.get_items_of_type(Enum.CarryableItemType.RUBBLE)[-1])
+		Audio.play_at_pos("dispose_trash", _curr_action_point.get_global_position())
+		repeated_tick_timestamp = Util.now()
 
-			Audio.play_at_pos("dispose_trash", _curr_action_point.get_global_position())
-
-	# Check for done
-	if Util.has_time_passed(interaction_timestamp, 1.5):
+	# Check for done - 0.5 after last rubble was deleted
+	if not has_rubble and Util.has_time_passed(repeated_tick_timestamp, after_last_time):
 		return true
 
 	return false
