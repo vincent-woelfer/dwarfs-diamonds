@@ -33,12 +33,6 @@ var sky_scroll_speed: Vector2 = Vector2(0.04, 0.0)
 var sky_scroll_offset: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
-	# Dev Signals
-	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
-	EventBus.Signal_DevToogleSunFastForward.connect(_dev_toogle_sun_fast_forward)
-	_dev_toogle_light()
-	_dev_toogle_sun_fast_forward()
-
 	# Sunlight
 	sunlight = DirectionalLight2D.new()
 	sunlight.shadow_enabled = true
@@ -52,6 +46,12 @@ func _ready() -> void:
 
 	# start early morning
 	time = 0.25
+
+		# Dev Signals
+	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
+	EventBus.Signal_DevToogleSunFastForward.connect(_dev_toogle_sun_fast_forward)
+	_dev_toogle_light()
+	_dev_toogle_sun_fast_forward()
 
 
 func _process(delta: float) -> void:
