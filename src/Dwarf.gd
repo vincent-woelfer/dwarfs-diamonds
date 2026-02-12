@@ -272,10 +272,7 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 	if sm.state == State.IDLE or sm.state == State.MOVING:
 		# Check if should place torch
 		if num_torches > 0 and new_cell.deco_elements.is_empty() and Global.level.should_contain_torch(grid_pos):
-			print_rich("%s placing torch at %s" % [ self , grid_pos])
-			num_torches -= 1
-			new_cell.add_deco_element(DecoTorch.instantiate())
-			Audio.play_at_pos("item_placing", new_cell.get_floor_point())
+			_place_torch(new_cell)
 
 		# Check for rubble disposal
 		if carry_comp.is_carrying_item_of_type(Enum.CarryableItemType.RUBBLE):
@@ -402,6 +399,24 @@ func _validate_current_path() -> void:
 		_perform_move_to_task(task_queue.curr_task)
 
 
+func _place_torch(cell: Cell) -> bool:
+	assert(cell != null)
+
+	if num_torches <= 0:
+		print_rich("%s tried to place torch at %s but has no torches left!" % [ self , cell])
+		return false
+
+	if not cell.deco_elements.is_empty():
+		print_rich("%s tried to place torch at %s but cell is not empty!" % [ self , cell])
+		return false
+
+	print_rich("%s placing torch at %s" % [ self , grid_pos])
+	num_torches -= 1
+	cell.add_deco_element(DecoTorch.instantiate())
+	Audio.play_at_pos("item_placing", cell.get_floor_point())
+	return true
+
+
 ########################################################################################################################
 # TASK QUEUE LOGIC
 ########################################################################################################################
@@ -526,6 +541,18 @@ func _perform_stationary_task(task: Task) -> void:
 		sm.transition_to(State.BUILDING, task.building)
 		return
 
+	### TORCH PLACEMENT TASK ###
+	elif task.type == Task.Type.PLACE_TORCH:
+		var cell: Cell = Global.level.get_cell(task.target_grid_pos)
+
+		if _place_torch(cell):
+			_finish_task_and_start_next(Task.Type.PLACE_TORCH)
+			return
+		else:
+			print_rich("%s failed to place torch at %s, abandoning task" % [ self , cell])
+			_abort_tasks_enter_idle()
+			return
+
 	### ACTION POINT TASK ###
 	# elif task.type == Task.Type.ACTION_POINT:
 	# 	print_rich("%s reached %s and starts performing action point %s" % [self, task.target_grid_pos, task.action_point])
@@ -534,9 +561,6 @@ func _perform_stationary_task(task: Task) -> void:
 	# 	# TODO
 	# 	_abort_tasks_enter_idle()
 	# 	return
-
-	### TORCH PLACEMENT TASK ###
-	# TODO 
 
 	### UNKNOWN STATIONARY TASK ###
 	else:
