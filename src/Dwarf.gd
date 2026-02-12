@@ -226,12 +226,14 @@ func _on_mining_completed(mined_cell: Cell) -> void:
 		return
 
 	print_rich("%s completed mining %s" % [ self , mined_cell])
-	Actions.archive_job(task_queue.curr_task.created_by_job, true)
+	if task_queue.curr_task.finishes_job:
+		Actions.archive_job(task_queue.curr_task.created_by_job, true)
 	_finish_task_and_start_next(Task.Type.MINE)
 
 	
 ## Triggered by ConstructionComponent
 func _on_construction_completed(building: BuildingBase) -> void:
+	# For buildings this is the normal case since this callback is triggered AFTER the building has completed itself and finished the task.
 	if !task_queue.has_current_task() or task_queue.curr_task.type != Task.Type.CONSTRUCT or task_queue.curr_task.building != building:
 		print_rich("%s completed construction of %s but doesnt match current task %s, ignoring!" % [ self , building, task_queue.curr_task])
 		return
@@ -325,8 +327,7 @@ func _on_nav_updated() -> void:
 # OWN (UTILITY) FUNCTIONS
 ########################################################################################################################
 func _abort_tasks_enter_idle() -> void:
-	print_rich("%s aborting tasks and current job + path" % [ self ])
-	
+	# print_rich("%s aborting tasks and current job + path" % [ self ])
 	# Store for printing
 	var last_job := curr_job
 	var last_task := task_queue.curr_task

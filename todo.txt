@@ -13,7 +13,6 @@ Diamanten spawnen in Gestein.
 Entweder lift oder minecard mit laden/entladen und ins pathfinding eingebunden. 
 
 
-
 ActionPoints aus ActionPointsRes erstellen wenn building completed ist.
 
 

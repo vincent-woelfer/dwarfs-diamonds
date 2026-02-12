@@ -128,7 +128,7 @@ func unassign_dwarf(dwarf: Dwarf) -> void:
 
 ## Signals all working dwarfs (also the one finishing this job) that the job is finished.
 ## ONLY CALL VIA GLOBAL ACTIONS.
-func archive(success_: bool) -> void:
+func archive_internal(success_: bool) -> void:
 	# Ensure this is only triggered once
 	if not is_active:
 		push_error("Trying to archive job %s but was archived before (is_active=false)" % [self])

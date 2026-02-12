@@ -28,17 +28,20 @@ var type: Task.Type
 
 var target_grid_pos: Vector2i
 
-# Optional
-# var finishes_job: Job = null
+# Optional - if true, completing this task also finishes the job that created it (if any).
+# Set to true for the last task of a job by TaskQueue
+# TODO for now this is not really used since the dwarf does not usually finish the job, the creator (cell, building) does it.
+var finishes_job: bool = false
 
-# Task was created by this job (or null) and should therefore be discarded when job is aborted
-# TOOD renamed to created_for_job from assicoated_job. TODO Maybe dont use after all
+# Task was created by this job (or null) and should therefore be discarded when job is aborted.
+# Also used to finish jobs when last task is completed.
 var created_by_job: Job = null
 
 ###################################
 # TASK SPECIFIC VARIABLES
 ###################################
 # MOVE_TO_JOB
+# TODO maybe refactor to just used "created_by_job"
 var job: Job = null
 
 # MOVE_TO_CELL
@@ -64,12 +67,6 @@ var action_point: ActionPoint = null
 ########################################################################################################################
 func _init(type_: Type) -> void:
 	type = type_
-
-
-# func set_finishes_job(job_: Job) -> Task:
-	# finishes_job = job_
-	# return self
-
 
 func is_move_to_task() -> bool:
 	return type == Type.MOVE_TO_JOB or type == Type.MOVE_TO_CELL

@@ -114,6 +114,7 @@ func archive_job(job: Job, success: bool) -> void:
 		push_error("Tried to archive job %s but was archived before (is_active=false)" % [job])
 		return
 
+	# Print before actually calling archive so log order makes more sense. This has the downside that the pinted job is still printed as active.
 	if success:
 		print_action("Completing (archiving) job %s" % [job])
 	else:
@@ -121,7 +122,7 @@ func archive_job(job: Job, success: bool) -> void:
 
 	# Signals all dwarfs to call on_job_finished().
 	# ONLY place where job.archive() is called.
-	job.archive(success)
+	job.archive_internal(success)
 
 	# This requires is_active=false
 	Global.level.job_manager.remove_job(job)

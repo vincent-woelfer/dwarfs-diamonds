@@ -40,9 +40,11 @@ func add_job(job: Job) -> void:
 		push_warning("Tried to add job to task queue, but job generated no tasks!")
 		return
 
-	# TODO for now add link to job for every task
 	for task in tasks:
 		task.created_by_job = job
+
+	# last task finishes job
+	tasks.back().finishes_job = true
 
 	append_array_end(tasks)
 
