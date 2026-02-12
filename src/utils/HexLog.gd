@@ -6,6 +6,10 @@ class_name HexLog
 const BANNER_WIDTH: int = 64
 const BANNER_CHAR: String = "="
 
+# Print Throttle Intervalls
+const NO_JOB_INTERVALL := 3.0
+const NO_PATH_AP_INTERVALL := 3.0
+
 ## Prints a one-line banner
 static func print_only_banner() -> void:
 	print(BANNER_CHAR.repeat(BANNER_WIDTH))

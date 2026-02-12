@@ -403,7 +403,7 @@ func _find_new_job() -> bool:
 	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_dwarf(self )
 
 	if new_job_with_path == null:
-		HexLog.print_throttled(self , "%s found no job, remains idle" % [ self ], NO_JOB_THROTTLED_PRINT_INTERVALL)
+		HexLog.print_throttled(self , "%s found no job, remains idle" % [ self ], HexLog.NO_JOB_INTERVALL)
 		return false
 
 	# Assign job
@@ -438,7 +438,7 @@ func _create_own_tasks() -> void:
 
 		var path: Path = Global.level.nav_manager.find_path_to_one_of(curr_cell.grid_pos, target_positions)
 		if not path:
-			print_rich("%s failed to find path to target positions %s for rubble disposal" % [ self , target_positions])
+			HexLog.print_throttled(self , "%s failed to find path to target positions %s for rubble disposal" % [ self , target_positions], HexLog.NO_PATH_AP_INTERVALL)
 			return
 
 		# Back-reference path to AP
@@ -664,9 +664,6 @@ const debug_occupied_cell_alpha := 0.1
 
 var debug_font := ThemeDB.fallback_font
 var debug_font_size := 20
-
-# For throttled printing above
-static var NO_JOB_THROTTLED_PRINT_INTERVALL := 3.0
 
 
 func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
