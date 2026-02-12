@@ -55,7 +55,7 @@ func add_job(job: Job) -> void:
 # The task-type is only as an error-detection mechanism.
 func finish_current_task(expected_task_type: Task.Type) -> bool:
 	if curr_task == null:
-		print_rich("%s tried to finish current task but there is no current task!" % [parent])
+		# print_rich("%s tried to finish current task but there is no current task!" % [parent])
 		return false
 
 	if curr_task.type != expected_task_type:

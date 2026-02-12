@@ -293,10 +293,15 @@ func _on_movement_direction_changed(new_dir: Vector2) -> void:
 
 ## Triggered by MovementComponent
 func _on_started_falling(est_fall_height_cells: int) -> void:
-	# Not for normal mining downwards
+	# Not for normal mining downwards, only actually falling
 	if est_fall_height_cells > 1:
 		var audio_name: String = "ohoh_%d" % randi_range(1, 3)
 		Audio.play_at_pos(audio_name, global_position)
+
+	if est_fall_height_cells <= 1:
+		print_rich("%s started falling" % [ self ])
+	else:
+		print_rich("%s started falling, estimated fall height is %d cells" % [ self , est_fall_height_cells])
 
 	# Transition to falling state BEFORE _abort_tasks_enter_idle
 	sm.transition_to(State.FALLING)
@@ -327,7 +332,6 @@ func _on_nav_updated() -> void:
 # OWN (UTILITY) FUNCTIONS
 ########################################################################################################################
 func _abort_tasks_enter_idle() -> void:
-	# print_rich("%s aborting tasks and current job + path" % [ self ])
 	# Store for printing
 	var last_job := curr_job
 	var last_task := task_queue.curr_task
@@ -345,7 +349,7 @@ func _abort_tasks_enter_idle() -> void:
 
 	# Determine if we can transition to idle
 	var transition_to_idle := sm.state != State.FALLING and sm.state != State.DYING
-	var transition_string: String = "and transitions to IDLE" if transition_to_idle else "but remains in current state %s" % Enum.to_str(State, sm.state)
+	var transition_string: String = "transitions to IDLE" if transition_to_idle else "remains in current state %s" % Enum.to_str(State, sm.state)
 	
 	# Print
 	if last_job != null:
@@ -416,9 +420,8 @@ func _finish_task_and_start_next(expected_curr_task_type: Task.Type) -> void:
 	if task_queue.is_empty():
 		print_rich("%s finished last task and has non remaining, returning to IDLE" % [ self ])
 		sm.transition_to(State.IDLE)
-		return
-
-	_start_next_task()
+	else:
+		_start_next_task()
 
 
 func _start_next_task() -> void:
