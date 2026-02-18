@@ -43,6 +43,9 @@ func _init(grid_points_: Array[Vector2i]) -> void:
 	self._center_points = Util.grid_to_world_cell_center_array(_grid_points)
 	_calculate_floor_points()
 
+func delete() -> void:
+	queue_free()
+
 ########################################################################################################################
 # PUBLIC
 ########################################################################################################################
@@ -83,8 +86,6 @@ func tick_follow_path(delta: float, movement_capa: MovementCapabilities) -> Vect
 	assert(_curr_pos != Vector2.INF) # Make sure start_following_from_pos was called
 	var final_pos: Vector2 = _curr_pos
 
-	# print("Path tick_follow_path: delta=%.2f, curr_pos=%s, next_floor_idx=%d, next_center_idx=%d" % [delta, _curr_pos, _next_floor_idx, _next_center_idx])
-
 	while not _reached_end:
 		var next_waypoint: Vector2 = _floor_points[_next_floor_idx]
 		var vec_to_next: Vector2 = next_waypoint - _curr_pos
@@ -94,8 +95,6 @@ func tick_follow_path(delta: float, movement_capa: MovementCapabilities) -> Vect
 		var move_mode := _floor_point_move_modes[_next_floor_idx]
 		var speed: float = movement_capa.get_speed(move_mode)
 		var distance: float = speed * delta
-
-		# print("  Next waypoint: %s, dist_to_next=%.2f, move_mode=%s, speed=%.2f, distance=%.2f" % [next_waypoint, dist_to_next, Enum.to_str(Enum.MoveMode, move_mode), speed, distance])
 
 		# Distance no enough to reach new waypoint -> break
 		if distance < dist_to_next:
@@ -108,10 +107,6 @@ func tick_follow_path(delta: float, movement_capa: MovementCapabilities) -> Vect
 		final_pos = next_waypoint
 		delta -= dist_to_next / speed
 		_update_next_indices(_next_floor_idx + 1)
-
-
-	# print("  Final pos: %s, remaining delta=%.2f, reached_end: %s" % [final_pos, delta, _reached_end])
-	# print()
 
 	_curr_pos = final_pos
 	return final_pos
@@ -367,7 +362,7 @@ var debug_draw: bool = false:
 		_debug_draw_proxy_relative.queue_redraw()
 
 # Visual params -> redraw on change
-var debug_color := Color.ORANGE:
+var debug_color := Colors.FALLBACK_COLOR:
 	set(value):
 		debug_color = value
 		_debug_draw_proxy_relative.queue_redraw()
@@ -416,3 +411,8 @@ func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
 		ui_layer.draw_polyline(completed_points, completed_color, debug_width)
 	if remaining_points.size() >= 2:
 		ui_layer.draw_polyline(remaining_points, debug_color, debug_width)
+
+
+func _to_string() -> String:
+	var print_color := Colors.to_print_color(debug_color)
+	return Util.color_string("Path(%d points)" % _grid_points.size(), print_color)

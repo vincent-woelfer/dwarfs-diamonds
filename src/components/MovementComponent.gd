@@ -55,18 +55,15 @@ func assign_path(new_path: Path) -> bool:
 	if new_path == null or sm.state == State.FALLING or sm.state == State.CARRIED:
 		return false
 
-	# Hide OLD path, in case reference still stored elsewhere
-	if path:
-		path.debug_draw = false
+	# Hide old path
+	if path: path.delete()
 	
 	sm.transition_to(State.FOLLOWING_PATH, new_path)
 	return true
 
 func abort_path() -> void:
-	# Hide path, even if reference still stored elsewhere
-	if path:
-		path.debug_draw = false
-		
+	# Hide old path
+	if path: path.delete()
 	path = null
 
 	if sm.state == State.FOLLOWING_PATH:

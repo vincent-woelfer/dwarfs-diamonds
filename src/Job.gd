@@ -192,7 +192,7 @@ func estimate_remaining_time() -> float:
 
 				# Dwarf still walking to job
 				else:
-					if dwarf.curr_job and dwarf.curr_path:
+					if dwarf.curr_path:
 						# Estimate time based on path length and walking speed
 						var path_length: float = dwarf.curr_path.get_remaining_length_world_space()
 						var walking_speed := dwarf.movement_comp.movement_capabilities.get_speed(Enum.MoveMode.WALK)
@@ -211,7 +211,7 @@ func estimate_remaining_time() -> float:
 
 				# Dwarf still walking to job
 				else:
-					if dwarf.curr_job and dwarf.curr_path:
+					if dwarf.curr_path:
 						# Estimate time based on path length and walking speed
 						var path_length: float = dwarf.curr_path.get_remaining_length_world_space()
 						var walking_speed := dwarf.movement_comp.movement_capabilities.get_speed(Enum.MoveMode.WALK)

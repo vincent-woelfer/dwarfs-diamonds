@@ -376,6 +376,7 @@ func _abort_tasks_enter_idle() -> void:
 
 	# Clear curr job + path
 	curr_job = null
+	if curr_path: curr_path.delete()
 	curr_path = null
 
 	# Determine if we can transition to idle
@@ -562,8 +563,10 @@ func _perform_move_to_task(task: Task) -> void:
 
 	# Success
 	print_rich("%s started moving to target position %s for task %s" % [ self , path._grid_points.back(), task])
+	if curr_path: curr_path.delete()
 	curr_path = path
 	curr_path.set_debug_draw_color(dwarf_color)
+	curr_path.set_debug_draw_enabled(EventBus.dev_draw_dwarf_info)
 	sm.transition_to(State.MOVING)
 
 
@@ -706,6 +709,9 @@ func _dev_toogle_light() -> void:
 func _dev_toogle_dwarf_draw_info() -> void:
 	_debug_draw_proxy_absolute.queue_redraw()
 	_debug_draw_proxy_relative.queue_redraw()
+
+	if curr_path != null:
+		curr_path.set_debug_draw_enabled(EventBus.dev_draw_dwarf_info)
 
 
 func _to_string() -> String:
