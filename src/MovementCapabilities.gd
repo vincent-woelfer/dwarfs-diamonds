@@ -11,7 +11,7 @@ var can_use_ladders_when_falling: bool = false
 var speed_walking: float = 260.0
 var speed_climbing_ladder_up: float = 140.0
 var speed_climbing_ladder_down: float = 180.0
-var speed_climbing_wall_up: float = 110.0
+var speed_climbing_wall_up: float = 90.0
 var speed_climbing_wall_down: float = 150.0
 
 
@@ -35,4 +35,4 @@ func get_speed(move_mode: Enum.MoveMode) -> float:
             return speed_climbing_wall_down
 
     assert(false)
-    return 0.0
+    return 10.0

@@ -83,6 +83,8 @@ func tick_follow_path(delta: float, movement_capa: MovementCapabilities) -> Vect
 	assert(_curr_pos != Vector2.INF) # Make sure start_following_from_pos was called
 	var final_pos: Vector2 = _curr_pos
 
+	# print("Path tick_follow_path: delta=%.2f, curr_pos=%s, next_floor_idx=%d, next_center_idx=%d" % [delta, _curr_pos, _next_floor_idx, _next_center_idx])
+
 	while not _reached_end:
 		var next_waypoint: Vector2 = _floor_points[_next_floor_idx]
 		var vec_to_next: Vector2 = next_waypoint - _curr_pos
@@ -93,9 +95,13 @@ func tick_follow_path(delta: float, movement_capa: MovementCapabilities) -> Vect
 		var speed: float = movement_capa.get_speed(move_mode)
 		var distance: float = speed * delta
 
-		# Distance covered and no new waypoint reached -> break
+		# print("  Next waypoint: %s, dist_to_next=%.2f, move_mode=%s, speed=%.2f, distance=%.2f" % [next_waypoint, dist_to_next, Enum.to_str(Enum.MoveMode, move_mode), speed, distance])
+
+		# Distance no enough to reach new waypoint -> break
 		if distance < dist_to_next:
 			final_pos += dir_to_next * distance
+			# Update here aswell to correctly switch to next cell
+			_update_next_indices(_next_floor_idx)
 			break
 
 		# New waypoint reached, continue to next and reduce remaining delta
@@ -103,12 +109,16 @@ func tick_follow_path(delta: float, movement_capa: MovementCapabilities) -> Vect
 		delta -= dist_to_next / speed
 		_update_next_indices(_next_floor_idx + 1)
 
+
+	# print("  Final pos: %s, remaining delta=%.2f, reached_end: %s" % [final_pos, delta, _reached_end])
+	# print()
+
 	_curr_pos = final_pos
 	return final_pos
 
 
 ## Returns the current cell the following parent is in.
-## This is limited to the grid_cells of the path (relevant for diagonal movement)
+## This is limited to the grid_cells of the path (relevant for diagonal movement (climbing))
 func get_curr_grid_pos() -> Vector2i:
 	return _grid_points[_get_curr_grid_pos_index()]
 
@@ -173,14 +183,17 @@ func _get_curr_grid_pos_index() -> int:
 
 	# if between cells -> check which is closer
 	else:
+		var sample_offset: Vector2 = Global.VERT_SAMPLE_OFFSET_SMALL
+
 		# Get cell centers
 		var prev_cell_center := _center_points[_floor_to_grid_point_map[prev_floor_idx]]
 		var next_cell_center := _center_points[_floor_to_grid_point_map[_next_floor_idx]]
 
-		var dist_to_prev: float = _curr_pos.distance_squared_to(prev_cell_center)
-		var dist_to_next: float = _curr_pos.distance_squared_to(next_cell_center)
+		var sample_pos: Vector2 = _curr_pos + sample_offset
+		var dist_to_prev: float = sample_pos.distance_squared_to(prev_cell_center)
+		var dist_to_next: float = sample_pos.distance_squared_to(next_cell_center)
 
-		if dist_to_prev <= dist_to_next:
+		if dist_to_prev < dist_to_next:
 			return _floor_to_grid_point_map[prev_floor_idx]
 		else:
 			return _floor_to_grid_point_map[_next_floor_idx]
@@ -346,7 +359,7 @@ func _get_remaining_length_grid_space() -> float:
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
-var _debug_draw_proxy_relative := DebugDrawProxy.new(self)
+var _debug_draw_proxy_relative := DebugDrawProxy.new(self )
 
 var debug_draw: bool = false:
 	set(value):

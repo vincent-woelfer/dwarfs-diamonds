@@ -94,7 +94,7 @@ func set_parent_width(new_parent_width: float) -> void:
 # PRIVATE
 ########################################################################################################################
 func _ready() -> void:
-	sm = StateMachine.new(self, State, State.NOT_MOVING)
+	sm = StateMachine.new(self , State, State.NOT_MOVING)
 
 	assert(parent != null)
 	assert(parent is GridObject2D)
@@ -135,10 +135,12 @@ func _enter_falling() -> void:
 	var est_fall_height_cells: int = abs(curr_y - fall_start_y)
 	Signal_OnStartedFalling.emit(est_fall_height_cells)
 
+
 func _exit_falling() -> void:
 	# TODO this also triggers when beeing grabbed while falling, maybe differentiate?
 	var fall_height_cells: int = abs(fall_start_y - parent.grid_pos.y)
 	Signal_OnLanded.emit(fall_height_cells)
+
 
 func _physics_process_falling(delta: float) -> void:
 	curr_falling_speed = min(curr_falling_speed + movement_capabilities.falling_acceleration * delta, movement_capabilities.falling_max_speed)
@@ -189,7 +191,7 @@ func _physics_process_following_path(delta: float) -> void:
 		sm.transition_to(State.NOT_MOVING)
 		return
 
-	# Follow path
+	# Follow path and update position
 	parent.global_position = path.tick_follow_path(delta, movement_capabilities)
 	parent.update_grid_pos(path.get_curr_grid_pos())
 
@@ -262,7 +264,7 @@ func _is_on_floor_downward_ray_cast_check() -> bool:
 		return false
 
 	# small offset upwards to avoid sampling wrong cell when exactly/close  on floor line
-	var vertical_sample_offset: Vector2 = Vector2(0.0, -Global.CELL_SIZE * 0.25)
+	var vertical_sample_offset: Vector2 = Global.VERT_SAMPLE_OFFSET_SMALL
 
 	for sample_x_offset in ground_check_sample_points:
 		# World position to sample and corresponding cell (might be in another cell)

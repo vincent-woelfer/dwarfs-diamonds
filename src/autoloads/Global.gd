@@ -20,7 +20,8 @@ const LEVEL_SIZE_VEC: Vector2 = Vector2(LEVEL_WIDTH, LEVEL_HEIGHT)
 # Both will never be smaller than the base mouse_size (3840x2160), one will always be larger or exact base mouse_size.
 
 ## For sampling grid_position from world_position
-const VERT_SAMPLE_OFFSET_SMALL := Vector2(0, -CELL_SIZE * 0.5)
+# Sample a bit above the center of the cell to avoid issues with sampling when right at the edge of a cell
+const VERT_SAMPLE_OFFSET_SMALL := Vector2(0, -CELL_SIZE * 0.1)
 
 const VEC_LEFT := Vector2(-1, 0)
 const VEC_RIGHT := Vector2(1, 0)
@@ -43,6 +44,7 @@ const GROUP_CARRYABLE_ITEMS: String = "carryable_items"
 # Relevant Game Objects
 @onready var camera: Camera
 @onready var level: Level
+@onready var mouse_pointer: MousePointer
 
 # Relevant UI Objects
 @onready var stencil_viewport: StencilViewport
@@ -59,6 +61,7 @@ func _load_global_references() -> void:
 	# Relevant Game Objects
 	camera = _get_from_root("Camera")
 	level = _get_from_root("Level")
+	mouse_pointer = _get_from_root("UICanvasLayer-WorldSpace-2/MousePointer")
 
 	# Relevant UI Objects
 	stencil_viewport = _get_from_root("StencilViewport")

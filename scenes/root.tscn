@@ -18,9 +18,6 @@ shader = ExtResource("4_sqa0i")
 shader_parameter/STENCIL_TEXTURE = SubResource("ViewportTexture_j287u")
 shader_parameter/zoom = 1.0
 
-[sub_resource type="LabelSettings" id="LabelSettings_5sfjl"]
-font_size = 40
-
 [node name="root" type="Node2D" unique_id=890682335]
 visibility_layer = 3
 
@@ -59,22 +56,27 @@ follow_viewport_enabled = true
 [node name="UICanvasLayer-ScreenSpace-3" type="CanvasLayer" parent="." unique_id=54543899]
 layer = 3
 
-[node name="DevStatsLabel" type="Label" parent="UICanvasLayer-ScreenSpace-3" unique_id=1382461387]
+[node name="DevStatsLabel" type="RichTextLabel" parent="UICanvasLayer-ScreenSpace-3" unique_id=266096656]
 unique_name_in_owner = true
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -81.0
-offset_right = 81.0
-offset_bottom = 114.666664
+offset_left = -300.0
+offset_right = 300.0
+offset_bottom = 180.0
 grow_horizontal = 2
+bbcode_enabled = true
 text = "text test
-sdfsdf"
-label_settings = SubResource("LabelSettings_5sfjl")
+sdfsdf ddddddddddddddddddddddddddddddd"
+fit_content = true
+scroll_active = false
 horizontal_alignment = 1
 
-[node name="DevFpsLabel" type="Label" parent="UICanvasLayer-ScreenSpace-3" unique_id=1297960500]
-offset_right = 1.0
+[node name="DevFpsLabel" type="RichTextLabel" parent="UICanvasLayer-ScreenSpace-3" unique_id=144725806]
+offset_right = 890.0
 offset_bottom = 45.0
-text = "FPS: 60"
+bbcode_enabled = true
+text = "FPS: 60 | Cell"
+fit_content = true
+scroll_active = false
 script = ExtResource("8_5sfjl")

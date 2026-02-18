@@ -169,7 +169,8 @@ func get_cell(grid_pos: Vector2i) -> Cell:
 	return cells[grid_pos.x][grid_pos.y] as Cell
 
 
-# TODO improve accuracy for irregular polygon shapes
+# TODO improve accuracy for irregular polygon shapes.
+# TODO maybe add -1 pixel (upwards) offset to avoid sampling wrong cell when exactly/close on floor line
 func sample_cell_at_world_pos(world_pos: Vector2) -> Cell:
 	var grid_pos := Vector2i(floori(world_pos.x / Global.CELL_SIZE), floori(world_pos.y / Global.CELL_SIZE))
 	return get_cell(grid_pos)

@@ -185,8 +185,6 @@ func get_floor_point_at_world_x(world_x: float) -> Vector2:
 	var p_r: Vector2 = get_poly_point(Enum.PolyPoint.BOT_RIGHT)
 
 	# Even if outside cell, code below correctly clamps to edges of cell floor
-	# assert(world_x >= p_l.x and world_x <= p_r.x)
-
 	if world_x <= p_m.x:
 		var t: float = inverse_lerp(p_l.x, p_m.x, world_x)
 		return p_l.lerp(p_m, clampf(t, 0.0, 1.0))

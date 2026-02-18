@@ -2,7 +2,7 @@ class_name LevelStatsManager
 extends Node2D
 
 
-var dev_stats_label: Label
+var dev_stats_label: RichTextLabel
 
 ########################################################################################################################
 # PUBLIC METHODS
