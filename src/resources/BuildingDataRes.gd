@@ -22,15 +22,18 @@ extends Resource
 
 ## Pattern defining the area the building occupies. Must be free (not solid, no other buildings) to place the building
 @export var pattern_building: GridPatternRes
-const pattern_building_color: Color = Color.BLUE
+@export_custom(PROPERTY_HINT_COLOR_NO_ALPHA, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY)
+var pattern_building_color: Color = Color.BLUE
 
 ## Pattern defining where the building can be built from (where dwarfs stand to build it)
 @export var pattern_build_from: GridPatternRes
-const pattern_build_from_color: Color = Color.GREEN
+@export_custom(PROPERTY_HINT_COLOR_NO_ALPHA, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY)
+var pattern_build_from_color: Color = Color.GREEN
 
 ## Pattern defining where the building requires solid ground
 @export var pattern_solid_ground: GridPatternRes
-const pattern_solid_ground_color: Color = Color(0.3, 0.15, 0.1) # Dark brown
+@export_custom(PROPERTY_HINT_COLOR_NO_ALPHA, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY)
+var pattern_solid_ground_color: Color = Color(0.3, 0.15, 0.1) # Dark brown
 
 ########################################################################################################################
 # Action Points
@@ -121,7 +124,7 @@ func instantiate_building_data(grid_pos: Vector2i) -> BuildingDataRes:
 
 func _instantiate_pattern_at(pattern: GridPatternRes, grid_pos: Vector2i, var_name: String) -> GridPatternRes:
 	if pattern == null:
-		push_error("BuildingDataRes %s has no '%s' defined." % [self.name, var_name])
+		push_error("BuildingDataRes %s has no '%s' defined." % [ self.name, var_name])
 		return GridPatternRes.new([], grid_pos)
 
 	return GridPatternRes.new(pattern.cells, grid_pos)
