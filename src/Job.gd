@@ -142,6 +142,7 @@ func archive_internal(success_: bool) -> void:
 
 
 func update_workable_from_cells() -> void:
+	var can_use_ladders: bool = true
 	workable_from_poses.clear()
 
 	# MINING
@@ -149,7 +150,7 @@ func update_workable_from_cells() -> void:
 		for n_offset: Vector2i in Util.neighbours_cardinal:
 			var n_cell: Cell = center_cell.get_neighbour(n_offset)
 
-			if n_cell == null or not n_cell.is_standable(false):
+			if !n_cell or not n_cell.is_standable(can_use_ladders):
 				continue
 
 			workable_from_poses.append(n_cell.grid_pos)
@@ -159,7 +160,7 @@ func update_workable_from_cells() -> void:
 		for n_grid_pos: Vector2i in building.building_data.pattern_build_from.get_world_positions():
 			var n_cell: Cell = Global.level.get_cell(n_grid_pos)
 
-			if n_cell == null or not n_cell.is_standable(false):
+			if !n_cell or not n_cell.is_standable(can_use_ladders):
 				continue
 			
 			workable_from_poses.append(n_cell.grid_pos)

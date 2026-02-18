@@ -70,7 +70,7 @@ func get_new_job_for_dwarf(dwarf: Dwarf) -> JobWithPath:
 
 	# Check if we are in a connected cell
 	if not Global.level.nav_manager.is_cell_enabled(start_pos):
-		HexLog.print_throttled(dwarf, "%s is in a disconnected cell, pathfinding is disabled!" % [dwarf])
+		HexLog.throttled(dwarf, "%s is in a disconnected cell, pathfinding is disabled!" % [dwarf])
 		return null
 
 	# Update all jobs first
@@ -95,7 +95,7 @@ func get_new_job_for_dwarf(dwarf: Dwarf) -> JobWithPath:
 	# Also, print all jobs, throttled AND only if we had any
 	if scored_jobs.is_empty():
 		if not _jobs.is_empty():
-			if HexLog.print_throttled(dwarf, "\nJobManager: No valid job for %s, rejected jobs (means no path or not workable for this dwarf):" % [dwarf],
+			if HexLog.throttled(dwarf, "\nJobManager: No valid job for %s, rejected jobs (means no path or not workable for this dwarf):" % [dwarf],
 					HexLog.NO_JOB_INTERVALL, print_color):
 				for rejected_job: Job in _jobs:
 					print_rich("- %s" % [rejected_job])

@@ -6,6 +6,7 @@
 
 [sub_resource type="Resource" id="Resource_416t3"]
 script = ExtResource("1_416t3")
+color = Color(1, 0.54901963, 0, 1)
 metadata/_custom_type_script = "uid://dg7m75nftn2bc"
 
 [sub_resource type="Resource" id="Resource_eniya"]

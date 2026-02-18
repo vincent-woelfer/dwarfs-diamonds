@@ -36,6 +36,7 @@ func is_standable(can_use_ladders: bool = true) -> bool:
 	else:
 		return n_bot and n_bot.is_solid
 
+# Solid Ground = solid cell below. Required e.g. for construction
 func has_solid_ground() -> bool:
 	var n_bot := get_neighbour(Global.VEC_DOWN)
 	return n_bot != null and n_bot.is_solid

@@ -7,8 +7,10 @@ const BANNER_WIDTH: int = 64
 const BANNER_CHAR: String = "="
 
 # Print Throttle Intervalls
+const DEFAULT_INTERVALL := 3.0
 const NO_JOB_INTERVALL := 3.0
 const NO_PATH_AP_INTERVALL := 3.0
+const AP_MISSING_INTERVALL := 3.0
 
 ## Prints a one-line banner
 static func print_only_banner() -> void:
@@ -34,7 +36,7 @@ static func print_multiline_banner_with_text(string: String) -> void:
 ## Returns true if the text was printed, false otherwise.
 ## ref_object is used to distinguish different callers, e.g. should be the dwarf and not the JobManager.
 static var _last_print_times: Dictionary[String, float] = {}
-static func print_throttled(ref_object: Object, text: String, min_interval: float = 1.0, color: Color = Color.WHITE) -> bool:
+static func throttled(ref_object: Object, text: String, min_interval: float = DEFAULT_INTERVALL, color: Color = Color.WHITE) -> bool:
 	var stack := get_stack()
 	var call_info: Dictionary = stack[1] if stack.size() > 1 else {}
 	var instance_id := ref_object.get_instance_id() if ref_object != null else 0
