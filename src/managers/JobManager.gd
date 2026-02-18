@@ -83,7 +83,7 @@ func get_new_job_for_dwarf(dwarf: Dwarf) -> JobWithPath:
 	var scored_jobs: Array[ScoredJob] = []
 
 	for job: Job in workable_jobs:
-		var path: Path = Global.level.nav_manager.find_path_to_one_of(start_pos, job.workable_from_poses)
+		var path: Path = Global.level.nav_manager.find_path_to_one_of(start_pos, job.workable_from_poses, dwarf.movement_comp.movement_stats)
 		if not path:
 			continue
 
@@ -179,14 +179,12 @@ func _filter_workable_jobs_for_dwarf(dwarf: Dwarf) -> Array[Job]:
 ## Unit = world space distance (because path length is the default score)
 ## Returns null if job should not be considered at all
 func _score_job(job: Job, path: Path, dwarf: Dwarf) -> ScoredJob:
-	var walking_speed := dwarf.movement_comp.movement_capabilities.get_speed(Enum.MoveMode.WALK)
-	
 	var remaining_time := job.estimate_remaining_time()
-	var path_length := path.get_total_length_world_space()
-	var score: float = path_length
+	var path_time := path.get_total_time(dwarf.movement_comp.movement_stats)
+	var score: float = path_time
 
 	# Dont start jobs that will be finished before we arrive
-	if path_length / walking_speed > remaining_time:
+	if path_time > remaining_time:
 		return null
 
 	# Penalize jobs which are already being worked on / are close to being finished

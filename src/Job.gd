@@ -61,15 +61,15 @@ func generate_tasks() -> Array[Task]:
 
 	match job_type:
 		Job.Type.MINE:
-			tasks.append(Task.create_move_to_job_task(self))
+			tasks.append(Task.create_move_to_job_task(self ))
 			tasks.append(Task.create_mine_task(center_cell.grid_pos))
 
 		Job.Type.BUILD:
-			tasks.append(Task.create_move_to_job_task(self))
+			tasks.append(Task.create_move_to_job_task(self ))
 			tasks.append(Task.create_construct_task(center_cell.grid_pos, building))
 
 		Job.Type.PICKUP:
-			tasks.append(Task.create_move_to_job_task(self))
+			tasks.append(Task.create_move_to_job_task(self ))
 			tasks.append(Task.create_pickup_task(center_cell.grid_pos, carryable_item))
 	return tasks
 
@@ -131,7 +131,7 @@ func unassign_dwarf(dwarf: Dwarf) -> void:
 func archive_internal(success_: bool) -> void:
 	# Ensure this is only triggered once
 	if not is_active:
-		push_error("Trying to archive job %s but was archived before (is_active=false)" % [self])
+		push_error("Trying to archive job %s but was archived before (is_active=false)" % [ self ])
 		return
 
 	is_active = false
@@ -194,9 +194,7 @@ func estimate_remaining_time() -> float:
 				else:
 					if dwarf.curr_path:
 						# Estimate time based on path length and walking speed
-						var path_length: float = dwarf.curr_path.get_remaining_length_world_space()
-						var walking_speed := dwarf.movement_comp.movement_capabilities.get_speed(Enum.MoveMode.WALK)
-						var time := path_length / walking_speed
+						var time := dwarf.curr_path.get_remaining_time(dwarf.movement_comp.movement_stats)
 						remaining_time = min(remaining_time, time + 5.0) # +5s buffer for starting mining
 
 			return remaining_time
@@ -213,10 +211,9 @@ func estimate_remaining_time() -> float:
 				else:
 					if dwarf.curr_path:
 						# Estimate time based on path length and walking speed
-						var path_length: float = dwarf.curr_path.get_remaining_length_world_space()
-						var walking_speed := dwarf.movement_comp.movement_capabilities.get_speed(Enum.MoveMode.WALK)
-						var time := path_length / walking_speed
+						var time := dwarf.curr_path.get_remaining_time(dwarf.movement_comp.movement_stats)
 						remaining_time = min(remaining_time, time + 5.0) # +5s buffer for starting building
+						
 			return 0.0
 
 		Job.Type.PICKUP:

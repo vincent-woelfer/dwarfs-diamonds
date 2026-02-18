@@ -37,7 +37,7 @@ func find_path(start: Vector2i, goal: Vector2i) -> Path:
 	return Path.new(path_grid_points)
 
 
-func find_path_to_one_of(start: Vector2i, goals: Array[Vector2i]) -> Path:
+func find_path_to_one_of(start: Vector2i, goals: Array[Vector2i], move_stats: MovementStats) -> Path:
 	if goals.is_empty():
 		return null
 
@@ -46,7 +46,7 @@ func find_path_to_one_of(start: Vector2i, goals: Array[Vector2i]) -> Path:
 	if not _is_id_enabled(from_id):
 		return null
 
-	var shortest_path: Path = null
+	var best_path: Path = null
 	for goal in goals:
 		var to_id: int = Util.hash(goal)
 		if not _is_id_enabled(to_id):
@@ -57,10 +57,14 @@ func find_path_to_one_of(start: Vector2i, goals: Array[Vector2i]) -> Path:
 			continue
 
 		var new_path := Path.new(path_grid_points)
-		if shortest_path == null or new_path.get_total_length_world_space() < shortest_path.get_total_length_world_space():
-			shortest_path = new_path
 
-	return shortest_path
+		# Select best path according to time or length
+		var new_path_time := new_path.get_total_time(move_stats)
+		var best_path_time := best_path.get_total_time(move_stats) if best_path else INF
+		if new_path_time < best_path_time:
+			best_path = new_path
+
+	return best_path
 
 
 func is_cell_enabled(grid_pos: Vector2i) -> bool:
@@ -75,7 +79,7 @@ func _ready() -> void:
 
 	# Signals
 	EventBus.Signal_DevToogleNavDraw.connect(_dev_toogle_nav_draw)
-	_dev_toogle_nav_draw()	
+	_dev_toogle_nav_draw()
 
 	_generate_nav_grid()
 

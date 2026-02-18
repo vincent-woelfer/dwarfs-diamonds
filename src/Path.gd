@@ -82,7 +82,7 @@ func start_following_from_pos(start_pos: Vector2, follower_width_: float = Globa
 ## Should be called exactly once per physics frame.
 ## Allows to call get_curr_cell and get_next_cell after moving.
 ## current_pos in world space
-func tick_follow_path(delta: float, movement_capa: MovementCapabilities) -> Vector2:
+func tick_follow_path(delta: float, movement_stats: MovementStats) -> Vector2:
 	assert(_curr_pos != Vector2.INF) # Make sure start_following_from_pos was called
 	var final_pos: Vector2 = _curr_pos
 
@@ -93,7 +93,7 @@ func tick_follow_path(delta: float, movement_capa: MovementCapabilities) -> Vect
 		var dir_to_next: Vector2 = vec_to_next.normalized()
 
 		var move_mode := _floor_point_move_modes[_next_floor_idx]
-		var speed: float = movement_capa.get_speed(move_mode)
+		var speed: float = movement_stats.get_speed(move_mode)
 		var distance: float = speed * delta
 
 		# Distance no enough to reach new waypoint -> break
@@ -140,11 +140,21 @@ func get_num_cells() -> int:
 
 ## Returns length of path in world space, accounting for diagonal movement
 func get_total_length_world_space() -> float:
-	return _get_total_length_grid_space() * Global.CELL_SIZE
+	return _get_length_grid_space(0) * Global.CELL_SIZE
+
 
 ## Returns length of path in world space, accounting for diagonal movement
 func get_remaining_length_world_space() -> float:
-	return _get_remaining_length_grid_space() * Global.CELL_SIZE
+	return _get_length_grid_space(_get_curr_grid_pos_index()) * Global.CELL_SIZE
+
+
+## Returns remaining time from current position
+func get_remaining_time(movement_stats: MovementStats) -> float:
+	return _get_time_for_path(_curr_pos, _next_floor_idx, movement_stats)
+
+
+func get_total_time(movement_stats: MovementStats) -> float:
+	return _get_time_for_path(_floor_points[0], 0, movement_stats)
 
 
 # Simply set is also fine, also calls queue_redraw
@@ -338,19 +348,23 @@ func _calculate_floor_points() -> void:
 
 
 ## Returns length of path in grid space (cells), accounting for diagonal movement
-func _get_total_length_grid_space() -> float:
+func _get_length_grid_space(start_index: int = 0) -> float:
 	var length: float = 0.0
-	for i in range(_grid_points.size() - 1):
+	for i in range(start_index, _grid_points.size() - 1):
 		length += (_grid_points[i + 1] - _grid_points[i]).length()
 	return length
 
-## Returns length of path in grid space (cells), accounting for diagonal movement
-func _get_remaining_length_grid_space() -> float:
-	var length: float = 0.0
-	for i in range(_get_curr_grid_pos_index(), _grid_points.size() - 1):
-		length += (_grid_points[i + 1] - _grid_points[i]).length()
-	return length
-	
+func _get_time_for_path(start_pos: Vector2, start_index: int, movement_stats: MovementStats) -> float:
+	var time: float = 0.0
+	for i in range(start_index, _floor_points.size() - 1):
+		var dist_to_next: float = (_floor_points[i + 1] - start_pos).length()
+		var move_mode := _floor_point_move_modes[i]
+		var speed: float = movement_stats.get_speed(move_mode)
+		time += dist_to_next / speed
+		start_pos = _floor_points[i + 1]
+
+	return time
+
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################

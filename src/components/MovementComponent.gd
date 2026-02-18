@@ -18,7 +18,7 @@ enum State {NOT_MOVING, FOLLOWING_PATH, FALLING, CARRIED}
 var sm: StateMachine
 
 ################ Configuration ################
-var movement_capabilities: MovementCapabilities = MovementCapabilities.new()
+var movement_stats: MovementStats = MovementStats.new()
 
 # Width of the parent GridObject2D for path following (e.g. climbing walls)
 var parent_width: float = Global.CELL_SIZE * 0.3
@@ -113,7 +113,7 @@ func _physics_process(delta: float) -> void:
 # Falling
 ###################################
 func _enter_falling() -> void:
-	curr_falling_speed = movement_capabilities.falling_starting_speed
+	curr_falling_speed = movement_stats.falling_starting_speed
 	fall_start_y = parent.grid_pos.y
 
 	# Estimate fall height in cells
@@ -140,7 +140,7 @@ func _exit_falling() -> void:
 
 
 func _physics_process_falling(delta: float) -> void:
-	curr_falling_speed = min(curr_falling_speed + movement_capabilities.falling_acceleration * delta, movement_capabilities.falling_max_speed)
+	curr_falling_speed = min(curr_falling_speed + movement_stats.falling_acceleration * delta, movement_stats.falling_max_speed)
 	parent.global_position.y += curr_falling_speed * delta
 
 	# Sample grid pos
@@ -153,7 +153,6 @@ func _physics_process_falling(delta: float) -> void:
 ###################################
 func _enter_following_path(new_path: Path) -> void:
 	if new_path == null:
-		print_rich("MovementComponent from %s: FOLLOWING_PATH but new_path=null!" % [parent])
 		sm.transition_to(State.NOT_MOVING)
 		return
 
@@ -165,8 +164,7 @@ func _enter_following_path(new_path: Path) -> void:
 		_audio_player = Audio.play_at_pos("dwarf_walk_1_looped", parent.global_position)
 
 func _exit_following_path() -> void:
-	if path:
-		path.debug_draw = false
+	if path: path.delete()
 	path = null
 
 	# Stop audio
@@ -189,7 +187,7 @@ func _physics_process_following_path(delta: float) -> void:
 		return
 
 	# Follow path and update position
-	parent.global_position = path.tick_follow_path(delta, movement_capabilities)
+	parent.global_position = path.tick_follow_path(delta, movement_stats)
 	parent.update_grid_pos(path.get_curr_grid_pos())
 
 	# Direction for flipping sprite
@@ -289,9 +287,9 @@ func _get_curr_move_mode() -> Enum.MoveMode:
 
 func _get_can_use_ladders() -> bool:
 	if is_falling():
-		return movement_capabilities.can_use_ladders_when_falling
+		return movement_stats.can_use_ladders_when_falling
 	else:
-		return movement_capabilities.can_use_ladders
+		return movement_stats.can_use_ladders
 
 func _is_climbing() -> bool:
 	var move_mode := _get_curr_move_mode()

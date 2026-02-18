@@ -16,8 +16,8 @@ func _ready() -> void:
 
 	self.z_index = Enum.ZIndex.RUBBLE
 
-	movement_comp.movement_capabilities.can_use_ladders = false
-	movement_comp.movement_capabilities.can_use_ladders_when_falling = false
+	movement_comp.movement_stats.can_use_ladders = false
+	movement_comp.movement_stats.can_use_ladders_when_falling = false
 
 	# Set carryable item type
 	carryable_item_comp.item_type = Enum.CarryableItemType.RUBBLE

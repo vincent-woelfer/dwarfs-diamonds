@@ -1,4 +1,4 @@
-class_name MovementCapabilities
+class_name MovementStats
 extends RefCounted
 
 # Capabilities

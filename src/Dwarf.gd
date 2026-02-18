@@ -437,7 +437,7 @@ func _create_own_tasks() -> void:
 		for ap in rubble_aps:
 			target_positions.append(ap.grid_pos)
 
-		var path: Path = Global.level.nav_manager.find_path_to_one_of(curr_cell.grid_pos, target_positions)
+		var path: Path = Global.level.nav_manager.find_path_to_one_of(curr_cell.grid_pos, target_positions, movement_comp.movement_stats)
 		if not path:
 			HexLog.throttled(self , "%s failed to find path to target positions %s for rubble disposal" % [ self , target_positions], HexLog.NO_PATH_AP_INTERVALL)
 			return
@@ -548,7 +548,7 @@ func _perform_move_to_task(task: Task) -> void:
 		return
 
 	# Actual path query
-	var path: Path = Global.level.nav_manager.find_path_to_one_of(grid_pos, target_positions)
+	var path: Path = Global.level.nav_manager.find_path_to_one_of(grid_pos, target_positions, movement_comp.movement_stats)
 
 	if path == null:
 		print_rich("%s failed to find path to target positions %s for task %s, abandoning job" % [ self , target_positions, task])

@@ -39,7 +39,9 @@ func update_grid_pos(new_grid_pos: Vector2i) -> void:
 		
 
 func sample_grid_pos() -> Vector2:
-	return Global.level.sample_cell_at_world_pos(global_position + _grid_pos_sample_offset).grid_pos
+	var cell: Cell = Global.level.sample_cell_at_world_pos(global_position + _grid_pos_sample_offset)
+	assert(cell != null, "GridObject2D: Tried to sample grid at world position %s but is outside of world!" % [global_position + _grid_pos_sample_offset])
+	return cell.grid_pos
 
 
 # Callback - > Should check if item is beeing carried and ignore in this case
