@@ -148,15 +148,18 @@ static func lerp_towards_f(curr: float, goal: float, speed: float, delta: float)
 # GEOMETRY
 ########################################################################################################################
 static func is_point_near_line_segment(p: Vector2, a: Vector2, b: Vector2) -> bool:
-	# Rather large epsilon because this is in world space units
+	# Epsilon is in world space units -> dont use "0.001" or similar
 	const epsilon: float = Util.EPSILON_PIXEL_DIST
 
 	var ab: Vector2 = b - a
-	var ap: Vector2 = p - a
-	var ab_len: float = ab.length()
-	var cross_product: float = ab.cross(ap)
-	var distance: float = abs(cross_product) / ab_len
-	return distance <= epsilon * ab_len
+	var ab_len_sq: float = ab.length_squared()
+	if ab_len_sq == 0.0:
+		return p.distance_to(a) <= epsilon
+
+	var t: float = (p - a).dot(ab) / ab_len_sq
+	t = clamp(t, 0.0, 1.0)
+	var closest: Vector2 = a + ab * t
+	return p.distance_to(closest) <= epsilon
 
 ########################################################################################################################
 # Physics stuff

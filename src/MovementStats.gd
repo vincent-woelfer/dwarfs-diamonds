@@ -22,17 +22,19 @@ const falling_max_speed: float = 2000.0
 
 
 func get_speed(move_mode: Enum.MoveMode) -> float:
+    var speed: float = 10.0 # default
     match move_mode:
-        Enum.MoveMode.WALK:
-            return speed_walking
+        Enum.MoveMode.WALK, Enum.MoveMode.WALK_NO_FALLING_SPECIAL:
+            speed = speed_walking
         Enum.MoveMode.CLIMB_LADDER_UP:
-            return speed_climbing_ladder_up
+            speed = speed_climbing_ladder_up
         Enum.MoveMode.CLIMB_LADDER_DOWN:
-            return speed_climbing_ladder_down
+            speed = speed_climbing_ladder_down
         Enum.MoveMode.CLIMB_WALL_UP:
-            return speed_climbing_wall_up
+            speed = speed_climbing_wall_up
         Enum.MoveMode.CLIMB_WALL_DOWN:
-            return speed_climbing_wall_down
+            speed = speed_climbing_wall_down
+        _:
+            assert(false, "Unhandled move mode: %s" % str(move_mode))
 
-    assert(false)
-    return 10.0
+    return speed

@@ -55,24 +55,17 @@ func start_following_from_pos(start_pos: Vector2, follower_width_: float = Globa
 	self._curr_pos = start_pos
 	self._follower_width = follower_width_
 
-	if _floor_points.size() == 0:
-		_update_next_indices(0)
-		return
+	# Init at start
+	_update_next_indices(0)
 
-	# Start following from closest floor point
+	# Check farthest segment still close to starting point
 	for i in range(_floor_points.size() - 1):
 		var from := _floor_points[i]
 		var to := _floor_points[i + 1]
 
-		# If close to segment, start from next point
+		# If start-pos on this segment, start with "to"-point as next point
 		if Util.is_point_near_line_segment(start_pos, from, to):
 			_update_next_indices(i + 1)
-			continue
-		else:
-			return
-	
-	# If we reached here, we are past all segments -> start at beginning
-	_update_next_indices(0)
 
 
 ## Returns new position in world space after following path for distance from current_pos.
@@ -234,7 +227,8 @@ func _calculate_floor_points_and_move_modes() -> void:
 	# We always assume from-center is already in follow_points, thats why we add it for the inital cell before the loop
 	p.append(Global.level.get_cell(_grid_points[0]).get_floor_point())
 	map.append(0)
-	move_modes.append(Enum.MoveMode.CLIMB_WALL_UP) # Dummy first point
+	# Dummy first point, use this to make sure dwarf does not fall if starting path while climbing
+	move_modes.append(Enum.MoveMode.WALK_NO_FALLING_SPECIAL)
 	
 	for i in range(_grid_points.size() - 1):
 		var from_idx := i

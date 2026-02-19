@@ -268,15 +268,17 @@ func _is_on_floor_downward_ray_cast_check() -> bool:
 	for sample_x_offset in ground_check_sample_points:
 		# World position to sample and corresponding cell (might be in another cell)
 		# small offset upwards to avoid sampling wrong cell when exactly/close on floor line
-		var sample_pos: Vector2 = parent.global_position + Vector2(sample_x_offset, 0.0) + Util.SAMPLE_OFFSET_VERTICAL_EPSILON
-		var sample_cell: Cell = Global.level.sample_cell_at_world_pos(sample_pos)
+		var cell_sampling_pos: Vector2 = parent.global_position + Vector2(sample_x_offset, 0.0) + Util.SAMPLE_OFFSET_VERTICAL_EPSILON
+		var sample_cell: Cell = Global.level.sample_cell_at_world_pos(cell_sampling_pos)
 
 		if sample_cell == null:
 			continue
 		
 		# y of floor at this x
-		var y_cell_floor_with_epsilon: float = sample_cell.get_floor_point_at_world_x(sample_pos.x).y - Util.EPSILON_PIXEL_DIST
-		var is_on_floor := parent.global_position.y >= y_cell_floor_with_epsilon
+		var y_cell_floor_interpolated: float = sample_cell.get_floor_point_at_world_x(cell_sampling_pos.x).y
+		# Consider on floor if we are below or at the floor line (with some epsilon to avoid issues with floating point precision).
+		# Downwards -> y increases
+		var is_on_floor := parent.global_position.y >= y_cell_floor_interpolated - Util.EPSILON_PIXEL_DIST
 
 		if is_on_floor:
 			return true
@@ -299,5 +301,5 @@ func _get_can_use_ladders() -> bool:
 
 func _is_climbing() -> bool:
 	var move_mode := _get_curr_move_mode()
-	var climbing_modes := [Enum.MoveMode.CLIMB_LADDER_UP, Enum.MoveMode.CLIMB_LADDER_DOWN, Enum.MoveMode.CLIMB_WALL_UP, Enum.MoveMode.CLIMB_WALL_DOWN]
+	var climbing_modes := [Enum.MoveMode.CLIMB_LADDER_UP, Enum.MoveMode.CLIMB_LADDER_DOWN, Enum.MoveMode.CLIMB_WALL_UP, Enum.MoveMode.CLIMB_WALL_DOWN, Enum.MoveMode.WALK_NO_FALLING_SPECIAL]
 	return move_mode in climbing_modes

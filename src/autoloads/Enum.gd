@@ -56,11 +56,12 @@ enum PolyPoint {
 
 # Movement Mode of path
 enum MoveMode {
-	WALK,
+	WALK,	
 	CLIMB_WALL_UP,
 	CLIMB_WALL_DOWN,
 	CLIMB_LADDER_UP,
 	CLIMB_LADDER_DOWN,
+	WALK_NO_FALLING_SPECIAL, # Used for pathfinding to ignore falling special case when walking (e.g. when already falling or climbing)
 }
 
 enum CarryableItemType {
