@@ -413,9 +413,8 @@ func _find_new_job() -> bool:
 
 	# We are throwing away the path here, as improvement we could cache it and reuse it.
 
-	# Add to task queue
+	# Add to task queue and start right away
 	task_queue.add_job(curr_job)
-
 	_start_next_task()
 
 	return true

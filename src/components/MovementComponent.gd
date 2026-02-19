@@ -123,16 +123,16 @@ func _enter_falling() -> void:
 	while true:
 		curr_y += 1
 		var cell_below: Cell = Global.level.get_cell(Vector2i(parent.grid_pos.x, curr_y))
+
 		if cell_below == null:
-			break
+			Signal_OnStartedFalling.emit(9999) # some large number to indicate falling into void
+			return
 
 		# Check if can stand here
 		if cell_below.is_standable(_get_can_use_ladders()):
-			break
-			
-
-	var est_fall_height_cells: int = abs(curr_y - fall_start_y)
-	Signal_OnStartedFalling.emit(est_fall_height_cells)
+			var est_fall_height_cells: int = abs(curr_y - fall_start_y)
+			Signal_OnStartedFalling.emit(est_fall_height_cells)
+			return
 
 
 func _exit_falling() -> void:
@@ -226,9 +226,7 @@ func _physics_process_not_moving(delta: float) -> void:
 ## Called in physics process of states: FALLING, NOT_MOVING, FOLLOWING_PATH
 func _update_on_ground_check() -> bool:
 	# Check if the current cell allows standing here (e.g. has a floor or ladder)
-	var can_stand_in_current_cell := parent.curr_cell.is_standable(_get_can_use_ladders())
-
-	# Check if climbing (ladders or climbing walls, determined by movement mode)
+	var can_stand_in_curr_cell := parent.curr_cell.is_standable(_get_can_use_ladders())
 	var is_climbing := _is_climbing()
 	var is_on_floor := _is_on_floor_downward_ray_cast_check()
 
@@ -237,18 +235,22 @@ func _update_on_ground_check() -> bool:
 
 	# Currently standing on solid ground or ladder or climbing wall
 	if not is_falling():
-		if (can_stand_in_current_cell and is_on_floor) or is_climbing:
+		if (can_stand_in_curr_cell and is_on_floor) or is_climbing:
 			# Nothing to do            
 			return false
 		else:
+			print("MovementComponent of %s: Started falling! can_stand_in_curr_cell=%s, is_on_floor=%s, is_climbing=%s, move_mode: %s" % [parent, can_stand_in_curr_cell, is_on_floor, is_climbing, Enum.to_str(Enum.MoveMode, _get_curr_move_mode())])
+			
+			# Enter falling state handles falling logic
 			sm.transition_to(State.FALLING)
 			return true
 
 	# Currently falling -> require cell to land on but also position inside of current cell to be on floor
 	else:
-		if can_stand_in_current_cell and is_on_floor:
+		if can_stand_in_curr_cell and is_on_floor:
 			# Snap position to floor
 			parent.global_position.y = y_cell_floor
+			# Exit-falling state handles landing logic
 			sm.transition_to(State.NOT_MOVING)
 			return true
 		else:

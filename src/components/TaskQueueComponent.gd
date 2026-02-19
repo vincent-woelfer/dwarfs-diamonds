@@ -58,8 +58,8 @@ func add_job(job: Job) -> void:
 
 	append_array_end(tasks)
 
-	print_rich("%s added job %s with %d tasks to task queue" % [parent, job, tasks.size()])
-	print_rich(self )
+	print_rich("%s added job %s with %d tasks to task queue." % [parent, job, tasks.size()])
+	# print_rich(self )
 
 
 # The task-type is only as an error-detection mechanism.
