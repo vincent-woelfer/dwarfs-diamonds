@@ -42,10 +42,9 @@ func has_solid_ground() -> bool:
 	return n_bot != null and n_bot.is_solid
 
 
-# TODO not really nice. Is inefficient
 func has_ladder() -> bool:
 	for building in buildings:
-		if building is Ladder and building.is_complete:
+		if building.building_data.type == BuildingDataRes.Type.LADDER and building.is_complete:
 			return true
 	return false
 
@@ -87,7 +86,7 @@ func increase_mining_process(mining_speed_with_delta: float) -> void:
 
 	if mining_process >= 1.0:
 		# This in turn emits Signal_GlobalCellMiningCompleted which this and all other MiningComponents listen to
-		Actions.destroy_cell(self) # calls destroy_cell()
+		Actions.destroy_cell(self ) # calls destroy_cell()
 
 ## Destroy cell itself (terrain)
 func destroy_cell() -> void:
@@ -163,7 +162,7 @@ func add_deco_element(new_deco: DecoBase) -> void:
 	if not deco_elements.is_empty():
 		return
 
-	new_deco.place_in_cell(self)
+	new_deco.place_in_cell(self )
 	deco_elements.append(new_deco)
 	add_child(new_deco)
 	visual.set_dirty()
@@ -214,7 +213,7 @@ func _ready() -> void:
 	# Required for chilren to be able to use these layers
 	self.visibility_layer = Util.LAYER_1 | Util.LAYER_2
 
-	visual = CellVisuals.new(self)
+	visual = CellVisuals.new(self )
 	add_child(visual)
 
 

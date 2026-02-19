@@ -2,6 +2,18 @@
 class_name BuildingDataRes
 extends Resource
 
+########################################################################################################################
+# ENUM DEFINITIONS BUILDING TYPES
+########################################################################################################################
+enum Type {
+	LADDER,
+	OUTPOST,
+}
+
+const BUILDING_TYPE_NAMES: Dictionary[Type, String] = {
+	Type.LADDER: "Ladder",
+	Type.OUTPOST: "Outpost",
+}
 
 ########################################################################################################################
 # Building Properties
@@ -9,8 +21,8 @@ extends Resource
 ########################################################################################################################
 @export_group("Building Properties")
 
-## Name of the building. Must match the scene name of the building
-@export var name: String
+## Type of the building, determines name aswell.
+@export var type: Type
 
 ## Build time in seconds (without modifiers)
 @export var build_time: float
@@ -78,15 +90,20 @@ func is_placeable_at(grid_pos: Vector2i) -> bool:
 
 	return true
 
+########################################################################################################################
+# Utility functions
+########################################################################################################################
+func name() -> String:
+	return BUILDING_TYPE_NAMES.get(type, "Unknown")
 
 ########################################################################################################################
 # Scene Instantiation
 ########################################################################################################################
 func instantiate_scene() -> Node2D:
-	return _load_scene_internal("res://scenes/buildings/%s.tscn" % name)
+	return _load_scene_internal("res://scenes/buildings/%s.tscn" % name())
 
 func instantiate_preview_scene() -> Node2D:
-	return _load_scene_internal("res://scenes/buildings/%sPreview.tscn" % name)
+	return _load_scene_internal("res://scenes/buildings/%sPreview.tscn" % name())
 
 func _load_scene_internal(path: String) -> Node2D:
 	var res: Resource = load(path)
@@ -107,7 +124,7 @@ func instantiate_building_data(grid_pos: Vector2i) -> BuildingDataRes:
 	var instance: BuildingDataRes = BuildingDataRes.new()
 
 	# Copy properties - TODO add new properties here
-	instance.name = self.name
+	instance.type = self.type
 	instance.build_time = self.build_time
 
 	instance.action_points = self.action_points.duplicate()
@@ -121,10 +138,9 @@ func instantiate_building_data(grid_pos: Vector2i) -> BuildingDataRes:
 
 	return instance
 
-
 func _instantiate_pattern_at(pattern: GridPatternRes, grid_pos: Vector2i, var_name: String) -> GridPatternRes:
 	if pattern == null:
-		push_error("BuildingDataRes %s has no '%s' defined." % [ self.name, var_name])
+		push_error("BuildingDataRes %s has no '%s' defined." % [ self.name(), var_name])
 		return GridPatternRes.new([], grid_pos)
 
 	return GridPatternRes.new(pattern.cells, grid_pos)
@@ -158,11 +174,11 @@ func _validate_property(property: Dictionary) -> void:
 		var prop_pattern: GridPatternRes = prop_variant
 
 		if prop_pattern == null:
-			push_warning("BuildingDataRes: '%s' is not set for building '%s'." % [property.name, name])
+			push_warning("BuildingDataRes: '%s' is not set for building '%s'." % [property.name, name()])
 			return
 
 		# Empty patterns are a warning, depending on which pattern it is. Check manually here.
 		var patterns_should_not_be_empty := ["pattern_building", "pattern_build_from"]
 		if prop_pattern.cells.is_empty():
 			if prop_name in patterns_should_not_be_empty:
-				push_warning("BuildingDataRes: '%s' has an empty pattern for building '%s'." % [property.name, name])
+				push_warning("BuildingDataRes: '%s' has an empty pattern for building '%s'." % [property.name, name()])

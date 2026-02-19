@@ -164,7 +164,7 @@ func _scan_node(node: Object) -> void:
 
 				# Check if ladder
 				@warning_ignore("unsafe_cast")
-				if (value as BuildingDataRes).name == "Ladder":
+				if (value as BuildingDataRes).type == BuildingDataRes.Type.LADDER:
 					never_draw_because_is_ladder = true
 
 	# recurse into children (only if it's a Node)

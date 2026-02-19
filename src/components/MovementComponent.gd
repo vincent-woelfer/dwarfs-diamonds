@@ -153,6 +153,7 @@ func _physics_process_falling(delta: float) -> void:
 ###################################
 func _enter_following_path(new_path: Path) -> void:
 	if new_path == null:
+		print_rich("MovementComponent of %s: Cannot enter FOLLOWING_PATH with null path!" % [parent])
 		sm.transition_to(State.NOT_MOVING)
 		return
 

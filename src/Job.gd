@@ -165,6 +165,12 @@ func update_workable_from_cells() -> void:
 			
 			workable_from_poses.append(n_cell.grid_pos)
 
+		# For ladders, only allow building from outside center cell if it isnt possible from there.
+		if building.building_data.type == BuildingDataRes.Type.LADDER:
+			if building.grid_pos in workable_from_poses:
+				workable_from_poses.clear()
+				workable_from_poses.append(building.grid_pos)
+
 	# RUBBLE
 	elif job_type == Job.Type.PICKUP:
 		if carryable_item.can_be_picked_up_right_now():
