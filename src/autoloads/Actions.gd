@@ -132,4 +132,4 @@ func archive_job(job: Job, success: bool) -> void:
 # PRINT UTILS
 ########################################################################################################################
 func print_action(text: String) -> void:
-	HexLog.print("ACTION => " + text, Colors.GLOBAL_ACTION_HIGHLIGHT_COLOR)
+	HexLog.print("ACTION => " + text, Colors.GLOBAL_ACTION_PRINT_COLOR)

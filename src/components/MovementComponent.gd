@@ -52,18 +52,20 @@ func get_state_string() -> String:
 	return Enum.to_str(MovementComponent.State, sm.state)
 
 func assign_path(new_path: Path) -> bool:
-	if new_path == null or sm.state == State.FALLING or sm.state == State.CARRIED:
+	if new_path == null or sm.state in [State.FALLING, State.CARRIED]:
 		return false
 
-	# Hide old path
-	if path: path.delete()
+	# Delete old path
+	if path:
+		path.delete()
 	
 	sm.transition_to(State.FOLLOWING_PATH, new_path)
 	return true
 
 func abort_path() -> void:
 	# Hide old path
-	if path: path.delete()
+	if path:
+		path.delete()
 	path = null
 
 	if sm.state == State.FOLLOWING_PATH:
@@ -158,14 +160,16 @@ func _enter_following_path(new_path: Path) -> void:
 		return
 
 	path = new_path
-	path.start_following_from_pos(parent.global_position, parent_width, true)
+	path.set_debug_draw_enabled(EventBus.dev_draw_dwarf_info)
+	path.start_following_from_pos(parent.global_position, parent_width)
 
 	# Start audio
 	if _audio_player == null:
 		_audio_player = Audio.play_at_pos("dwarf_walk_1_looped", parent.global_position)
 
 func _exit_following_path() -> void:
-	if path: path.delete()
+	if path:
+		path.delete()
 	path = null
 
 	# Stop audio
@@ -180,8 +184,8 @@ func _physics_process_following_path(delta: float) -> void:
 
 	# Check if we have a path
 	if path == null:
-		# This should never happen! Maybe emit signal as error handling, otherwise we get stuck here
-		assert(false)
+		# # This should never happen! Maybe emit signal as error handling, otherwise we get stuck here
+		# assert(false)
 		print_rich("MovementComponent from %s: FOLLOWING_PATH but path=null!" % [parent])
 		Signal_OnFinishedPath.emit()
 		sm.transition_to(State.NOT_MOVING)
@@ -259,12 +263,10 @@ func _is_on_floor_downward_ray_cast_check() -> bool:
 		push_warning("MovementComponent of %s: ground_check_sample_points is empty, cannot check for floor!" % [parent])
 		return false
 
-	# small offset upwards to avoid sampling wrong cell when exactly/close  on floor line
-	var vertical_sample_offset: Vector2 = Global.VERT_SAMPLE_OFFSET_SMALL
-
 	for sample_x_offset in ground_check_sample_points:
 		# World position to sample and corresponding cell (might be in another cell)
-		var sample_pos: Vector2 = parent.global_position + Vector2(sample_x_offset, 0.0) + vertical_sample_offset
+		# small offset upwards to avoid sampling wrong cell when exactly/close on floor line
+		var sample_pos: Vector2 = parent.global_position + Vector2(sample_x_offset, 0.0) + Util.SAMPLE_OFFSET_VERTICAL_EPSILON
 		var sample_cell: Cell = Global.level.sample_cell_at_world_pos(sample_pos)
 
 		if sample_cell == null:
@@ -284,6 +286,7 @@ func _get_curr_move_mode() -> Enum.MoveMode:
 	if path:
 		return path.get_curr_move_mode()
 	else:
+		# Walk as default, as opposed to climb. There is no Idle/Stand
 		return Enum.MoveMode.WALK
 
 func _get_can_use_ladders() -> bool:
@@ -295,4 +298,4 @@ func _get_can_use_ladders() -> bool:
 func _is_climbing() -> bool:
 	var move_mode := _get_curr_move_mode()
 	var climbing_modes := [Enum.MoveMode.CLIMB_LADDER_UP, Enum.MoveMode.CLIMB_LADDER_DOWN, Enum.MoveMode.CLIMB_WALL_UP, Enum.MoveMode.CLIMB_WALL_DOWN]
-	return climbing_modes.has(move_mode)
+	return move_mode in climbing_modes

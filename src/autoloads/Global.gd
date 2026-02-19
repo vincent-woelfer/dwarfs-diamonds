@@ -19,10 +19,6 @@ const LEVEL_SIZE_VEC: Vector2 = Vector2(LEVEL_WIDTH, LEVEL_HEIGHT)
 # Aspect setting "expand" = both width and height change with aspect ratio.
 # Both will never be smaller than the base mouse_size (3840x2160), one will always be larger or exact base mouse_size.
 
-## For sampling grid_position from world_position
-# Sample a bit above the center of the cell to avoid issues with sampling when right at the edge of a cell
-const VERT_SAMPLE_OFFSET_SMALL := Vector2(0, -CELL_SIZE * 0.1)
-
 const VEC_LEFT := Vector2(-1, 0)
 const VEC_RIGHT := Vector2(1, 0)
 const VEC_UP := Vector2(0, -1)

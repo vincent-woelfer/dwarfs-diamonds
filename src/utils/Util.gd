@@ -8,7 +8,11 @@ const LAYER_2 := 1 << 1
 
 
 const EPSILON_LERP: float = 0.001
-const EPSILON_PIXEL_DIST: float = Global.CELL_SIZE * 0.05
+const EPSILON_PIXEL_DIST: float = Global.CELL_SIZE * 0.1
+
+## For sampling grid_position from world_position
+# Sample a bit above the center of the cell to avoid issues with sampling when right at the edge of a cell
+const SAMPLE_OFFSET_VERTICAL_EPSILON := Vector2(0.0, -EPSILON_PIXEL_DIST)
 
 ########################################################################################################################
 # Dwardfs & Diamonds NEW
@@ -145,7 +149,8 @@ static func lerp_towards_f(curr: float, goal: float, speed: float, delta: float)
 ########################################################################################################################
 static func is_point_near_line_segment(p: Vector2, a: Vector2, b: Vector2) -> bool:
 	# Rather large epsilon because this is in world space units
-	const epsilon: float = Global.CELL_SIZE * 0.1
+	const epsilon: float = Util.EPSILON_PIXEL_DIST
+	
 	var ab: Vector2 = b - a
 	var ap: Vector2 = p - a
 	var ab_len: float = ab.length()

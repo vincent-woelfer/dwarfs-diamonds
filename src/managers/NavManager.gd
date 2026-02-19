@@ -112,8 +112,13 @@ func _update_cell_connections() -> void:
 	_debug_draw_proxy_relative.queue_redraw()
 
 	var duration := Time.get_ticks_msec() - start_time
-	if duration > 1:
-		print("Updated %d nav-connections in: %d ms" % [cell_connections, duration])
+	var important: bool = duration > 1
+
+	if important:
+		HexLog.print("Nav => Updated %d nav-connections in: %d ms" % [cell_connections, duration], Colors.NAV_IMPORTANT_PRINT_COLOR)
+	else:
+		pass
+		# HexLog.print("Nav => Updated %d nav-connections in: %d ms" % [cell_connections, duration], Colors.NAV_UNIMPORTANT_PRINT_COLOR)
 
 	EventBus.Signal_NavUpdated.emit()
 

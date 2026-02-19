@@ -41,7 +41,7 @@ func _init(grid_points_: Array[Vector2i]) -> void:
 	self._grid_points = grid_points_
 
 	self._center_points = Util.grid_to_world_cell_center_array(_grid_points)
-	_calculate_floor_points()
+	_calculate_floor_points_and_move_modes()
 
 func delete() -> void:
 	queue_free()
@@ -51,12 +51,8 @@ func delete() -> void:
 ########################################################################################################################
 
 ## Call when starting to follow path to start from closest point
-func start_following_from_pos(start_pos: Vector2, follower_width_: float = Global.CELL_SIZE * 0.3, debug_draw_: bool = true) -> void:
-	_curr_pos = start_pos
-
-	# Enable debug drawing
-	debug_draw = debug_draw_
-
+func start_following_from_pos(start_pos: Vector2, follower_width_: float = Global.CELL_SIZE * 0.3) -> void:
+	self._curr_pos = start_pos
 	self._follower_width = follower_width_
 
 	if _floor_points.size() == 0:
@@ -65,12 +61,14 @@ func start_following_from_pos(start_pos: Vector2, follower_width_: float = Globa
 
 	# Start following from closest floor point
 	for i in range(_floor_points.size() - 1):
-		var a := _floor_points[i]
-		var b := _floor_points[i + 1]
+		var from := _floor_points[i]
+		var to := _floor_points[i + 1]
 
 		# If close to segment, start from next point
-		if Util.is_point_near_line_segment(start_pos, a, b):
+		if Util.is_point_near_line_segment(start_pos, from, to):
 			_update_next_indices(i + 1)
+			continue
+		else:
 			return
 	
 	# If we reached here, we are past all segments -> start at beginning
@@ -188,13 +186,11 @@ func _get_curr_grid_pos_index() -> int:
 
 	# if between cells -> check which is closer
 	else:
-		var sample_offset: Vector2 = Global.VERT_SAMPLE_OFFSET_SMALL
-
 		# Get cell centers
 		var prev_cell_center := _center_points[_floor_to_grid_point_map[prev_floor_idx]]
 		var next_cell_center := _center_points[_floor_to_grid_point_map[_next_floor_idx]]
 
-		var sample_pos: Vector2 = _curr_pos + sample_offset
+		var sample_pos: Vector2 = _curr_pos + Util.SAMPLE_OFFSET_VERTICAL_EPSILON
 		var dist_to_prev: float = sample_pos.distance_squared_to(prev_cell_center)
 		var dist_to_next: float = sample_pos.distance_squared_to(next_cell_center)
 
@@ -222,7 +218,7 @@ func _update_next_indices(new_next_floor: int) -> void:
 
 ## Calculates floor-points based on _grid_points.
 ## Also fills _floor_to_grid_point_map.
-func _calculate_floor_points() -> void:
+func _calculate_floor_points_and_move_modes() -> void:
 	if _grid_points.size() == 0:
 		_floor_points = PackedVector2Array()
 		_floor_point_move_modes = []
@@ -238,7 +234,7 @@ func _calculate_floor_points() -> void:
 	# We always assume from-center is already in follow_points, thats why we add it for the inital cell before the loop
 	p.append(Global.level.get_cell(_grid_points[0]).get_floor_point())
 	map.append(0)
-	move_modes.append(Enum.MoveMode.WALK) # Dummy first point
+	move_modes.append(Enum.MoveMode.CLIMB_WALL_UP) # Dummy first point
 	
 	for i in range(_grid_points.size() - 1):
 		var from_idx := i
@@ -307,7 +303,7 @@ func _calculate_floor_points() -> void:
 				# First 3: up the wall, last 2: on top of to-cell
 				map.append_array([from_idx, from_idx, from_idx])
 				map.append_array([to_idx, to_idx])
-				move_modes.append_array([Enum.MoveMode.WALK, Enum.MoveMode.CLIMB_WALL_UP, Enum.MoveMode.CLIMB_WALL_UP])
+				move_modes.append_array([Enum.MoveMode.CLIMB_WALL_UP, Enum.MoveMode.CLIMB_WALL_UP, Enum.MoveMode.CLIMB_WALL_UP])
 				move_modes.append_array([Enum.MoveMode.WALK, Enum.MoveMode.WALK])
 
 			elif not upwards:
@@ -335,7 +331,7 @@ func _calculate_floor_points() -> void:
 				# First 3: down the wall, last 2: on top of to-cell
 				map.append(from_idx)
 				map.append_array([to_idx, to_idx, to_idx, to_idx])
-				move_modes.append_array([Enum.MoveMode.WALK, Enum.MoveMode.CLIMB_WALL_DOWN, Enum.MoveMode.CLIMB_WALL_DOWN])
+				move_modes.append_array([Enum.MoveMode.CLIMB_WALL_DOWN, Enum.MoveMode.CLIMB_WALL_DOWN, Enum.MoveMode.CLIMB_WALL_DOWN])
 				move_modes.append_array([Enum.MoveMode.CLIMB_WALL_DOWN, Enum.MoveMode.WALK])
 
 	# Final assertions

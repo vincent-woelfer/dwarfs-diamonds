@@ -21,7 +21,7 @@ var _curr_cell: Cell
 var _grid_pos_sample_offset: Vector2
 
 
-func setup(grid_pos_: Vector2i, sample_offset_: Vector2 = Global.VERT_SAMPLE_OFFSET_SMALL) -> void:
+func setup(grid_pos_: Vector2i, sample_offset_: Vector2 = Util.SAMPLE_OFFSET_VERTICAL_EPSILON) -> void:
 	_grid_pos = grid_pos_
 	_grid_pos_prev = grid_pos_
 	_grid_pos_sample_offset = sample_offset_

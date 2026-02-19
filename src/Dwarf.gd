@@ -463,8 +463,8 @@ func _look_into_dir(dir: Vector2) -> void:
 
 ## Called when nav is updated while dwarf is following a path
 func _validate_current_path() -> void:
-	if task_queue.has_current_task() and task_queue.curr_task.is_move_to_task():
-		print_rich("%s validating current path to task %s" % [ self , task_queue.curr_task])
+	if curr_path != null and task_queue.has_current_task() and task_queue.curr_task.is_move_to_task():
+		print_rich("%s validating/updating current path to task %s" % [ self , task_queue.curr_task])
 
 		# Just start movement task again for now
 		_perform_move_to_task(task_queue.curr_task)
@@ -548,25 +548,25 @@ func _perform_move_to_task(task: Task) -> void:
 		return
 
 	# Actual path query
-	var path: Path = Global.level.nav_manager.find_path_to_one_of(grid_pos, target_positions, movement_comp.movement_stats)
-
-	if path == null:
+	var new_path: Path = Global.level.nav_manager.find_path_to_one_of(grid_pos, target_positions, movement_comp.movement_stats)
+	if new_path == null:
 		print_rich("%s failed to find path to target positions %s for task %s, abandoning job" % [ self , target_positions, task])
 		_abort_tasks_enter_idle()
 		return
 
 	# Assign path to movement component
-	if not movement_comp.assign_path(path):
-		print_rich("%s failed to assign path %s for task %s, abandoning job" % [ self , path, task])
+	if not movement_comp.assign_path(new_path):
+		print_rich("%s failed to assign path %s for task %s, abandoning job" % [ self , new_path, task])
 		_abort_tasks_enter_idle()
 		return
 
 	# Success
-	print_rich("%s started moving to target position %s for task %s" % [ self , path._grid_points.back(), task])
-	if curr_path: curr_path.delete()
-	curr_path = path
+	print_rich("%s started moving to target position %s for task %s" % [ self , new_path._grid_points.back(), task])
+	if curr_path:
+		curr_path.delete()
+	curr_path = new_path
 	curr_path.set_debug_draw_color(dwarf_color)
-	curr_path.set_debug_draw_enabled(EventBus.dev_draw_dwarf_info)
+
 	sm.transition_to(State.MOVING)
 
 

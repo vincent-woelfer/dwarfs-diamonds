@@ -47,7 +47,8 @@ func transition_to(next_state: int, ...enter_args: Array) -> void:
         push_error("Invalid state %d!" % next_state)
         return
 
-    if next_state == state:
+    # We still need to re-enter the same state if we have enter arguments
+    if next_state == state and enter_args.is_empty():
         return
 
     if not state_exitable[state]:
