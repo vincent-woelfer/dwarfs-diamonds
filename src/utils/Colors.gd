@@ -67,7 +67,7 @@ static var building_colors := [
 ########################################################################################################################
 # CELL COLORS
 ########################################################################################################################
-static func get_cell_color(type: Enum.CellType, solid: bool) -> Color:
+static func get_cell_color(type: Enum.CellType) -> Color:
 	return CellTypeColor.get(type, FALLBACK_COLOR)
 
 static var CellTypeColor := {

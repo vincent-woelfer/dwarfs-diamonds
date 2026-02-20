@@ -27,7 +27,7 @@ const BUILDING_TYPE_NAMES: Dictionary[Type, String] = {
 @export var type: Type
 
 ## Build time in seconds (without modifiers)
-@export_range(0.0, 360.0, 0.01, "s")
+@export_range(0.0, 20.0, 0.01, "or_greater", "suffix:s")
 var build_time: float = 1.0
 
 ########################################################################################################################

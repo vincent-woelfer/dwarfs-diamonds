@@ -10,6 +10,9 @@ var deco_elements: Array[DecoBase] = []
 var buildings: Array[BuildingBase] = []
 var action_points: Array[ActionPoint] = []
 
+# TODO DEV
+var has_mineral: bool = false
+
 ########################################################################################################################
 # GROUND TRUTH BOOL STATUS FLAGS
 ########################################################################################################################
@@ -204,6 +207,9 @@ func _init(_grid_pos: Vector2i, _type: Enum.CellType, _is_solid: bool) -> void:
 	self.is_marked_for_mining = false
 	self.is_selected = false
 	self.mining_process = 0.0
+
+	#TODO DEV
+	self.has_mineral = (randf() < 0.2) if type != Enum.CellType.SKY else false
 	
 	# mining hardness
 	mining_hardness = Global.CellMiningHardness.get(type, mining_hardness)

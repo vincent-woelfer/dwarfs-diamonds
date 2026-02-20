@@ -1,5 +1,5 @@
 shader_type canvas_item;
-render_mode blend_disabled, unshaded;
+render_mode unshaded;
 
 // Textures
 uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, repeat_disable;
@@ -22,14 +22,10 @@ const vec4 mining_color = vec4(0.4, 0.18, 0.75, 0.8);
 
 const vec4 selection_color = vec4(1.0, 1.0, 0.0, 0.2);
 
-// for debugging
-const vec4 walkable_color = vec4(0.0, 0.0, 1.0, 0.05);
 
-
-// const float is_solid_max_darken_factor = 0.2;
-const float is_solid_max_darken_factor = 0.4;
+const float is_solid_max_darken_factor = 0.5;
 const float is_solid_blur_radius = 350.0;
-const float is_solid_flat_offset = 0.05;
+const float is_solid_flat_offset = 0.10;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -89,8 +85,8 @@ float blur_is_solid(vec2 uv, vec2 screen_pixel_size) {
 
 ////////////////////////////////////////////////////////////////////////////////////////
 void fragment() {
-    // Get UV in world space
-    vec2 uv = UV;  // SCREEN_UV also works the same
+    // Get UV in world space - SCREEN_UV also works the same
+    vec2 uv = UV;
 
     // Sample Textures with correct UV
     vec4 screen_color = texture(SCREEN_TEXTURE, uv);
@@ -160,11 +156,6 @@ void fragment() {
     if (is_selected) {
         COLOR = mix(COLOR, selection_color, selection_color.a);
     }
-
-    // WALKABLE (for debugging)
-    // if (is_walkable) {
-    //     COLOR = mix(COLOR, walkable_color, walkable_color.a);
-    // }
 
 }
 

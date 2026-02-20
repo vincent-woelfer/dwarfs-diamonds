@@ -10,10 +10,10 @@ var unshaded_material: CanvasItemMaterial = preload("res://assets/materials/unsh
 var cell_global_texture_shader: ShaderMaterial = preload("res://assets/materials/cell_global_texture_material.tres")
 var sky_global_texture_shader: ShaderMaterial = preload("res://assets/materials/sky_global_texture_material.tres")
 
+# Polygons
 var background_poly: Polygon2D
 var stencil_poly: Polygon2D
-
-var ladder_sprite: Sprite2D
+var mineral_poly: Polygon2D
 
 # Light / Shadows
 var occluder: LightOccluder2D
@@ -37,7 +37,9 @@ func _ready() -> void:
 
 	poly_points = _get_cell_polygon()
 
-	# Background
+	###################################
+	# Background Polygon
+	###################################
 	background_poly = Polygon2D.new()
 	background_poly.polygon = poly_points
 	background_poly.visibility_layer = Util.LAYER_1
@@ -47,14 +49,36 @@ func _ready() -> void:
 		background_poly.material = cell_global_texture_shader
 	else:
 		background_poly.material = sky_global_texture_shader
-
 	# with shader sky does not get dark at night
 	# if c.type == Enum.CellType.SKY:
 		# background_poly.material = unshaded_material
 		
 	add_child(background_poly)
 
-	# Stencil
+	###################################
+	# Mineral Polygon
+	###################################
+	var mineral_texture: Texture2D = preload("res://assets/sprites/minerals_1.png")
+
+	mineral_poly = Polygon2D.new()
+	mineral_poly.polygon = poly_points
+	mineral_poly.visibility_layer = Util.LAYER_1
+	# mineral_poly.material = unshaded_material # TODO glow material?
+	mineral_poly.texture = mineral_texture
+
+	mineral_poly.texture_scale = Vector2.ONE * 0.85
+	mineral_poly.texture_offset = Vector2.ONE * -20.0
+	# mineral_poly.texture_rotation = randf_range(0.0, 2.0 * PI)
+
+	mineral_poly.modulate = [Color.ORANGE_RED, Color.DARK_VIOLET, Color.DARK_CYAN].pick_random()
+	mineral_poly.modulate *= 2.0
+	
+	# mineral_poly.uv = _get_cell_polygon(mineral_texture.get_size().x) # scale UVs to texture size
+	add_child(mineral_poly)
+
+	###################################
+	# Stencil Polygon
+	###################################
 	stencil_poly = Polygon2D.new()
 	stencil_poly.polygon = poly_points
 	stencil_poly.color = Color(0.0, 0.0, 0.0, 0.0) if Engine.is_editor_hint() else Color(0.0, 0.0, 0.0, 1.0)
@@ -62,7 +86,9 @@ func _ready() -> void:
 	stencil_poly.material = unshaded_material
 	add_child(stencil_poly)
 
+	###################################
 	# Light Occluder
+	###################################
 	occluder_poly = OccluderPolygon2D.new()
 	occluder_poly.polygon = poly_points
 	occluder_poly.closed = true
@@ -92,7 +118,9 @@ func update() -> void:
 	# Change light mask if solid (no light passes through)
 	background_poly.light_mask = 0 if c.is_solid else 1
 
-	background_poly.color = Colors.get_cell_color(c.type, c.is_solid)
+	background_poly.color = Colors.get_cell_color(c.type)
+
+	mineral_poly.visible = c.has_mineral and c.is_solid
 
 	_encode_stencil_buffer()
 
@@ -122,15 +150,16 @@ func get_poly_point(point: Enum.PolyPoint) -> Vector2:
 	return poly_points[point]
 
 
-# Returns a rectangle polygon for cell at grid position (x, y) in world-space RELATIVE TO CELL
-func _get_cell_polygon() -> PackedVector2Array:
-	var base: Vector2 = c.grid_pos * Global.CELL_SIZE
+# Returns a rectangle polygon for cell at grid position (x, y) in world-space RELATIVE TO CELL.
+# Values range is [0, CELL_SIZE] + small random offset
+func _get_cell_polygon(MAX_VAL: float = Global.CELL_SIZE) -> PackedVector2Array:
+	var base: Vector2 = c.grid_pos * MAX_VAL
 
 	# 4 Corners
 	var top_left := Vector2.ZERO
-	var top_right := Vector2(Global.CELL_SIZE, 0)
-	var bot_right := Global.CELL_SIZE_VEC
-	var bot_left := Vector2(0, Global.CELL_SIZE)
+	var top_right := Vector2(MAX_VAL, 0.0)
+	var bot_right := Vector2(MAX_VAL, MAX_VAL)
+	var bot_left := Vector2(0.0, MAX_VAL)
 
 	# 4 Sides
 	var top := (top_left + top_right) * 0.5
@@ -139,8 +168,8 @@ func _get_cell_polygon() -> PackedVector2Array:
 	var left := (bot_left + top_left) * 0.5
 
 	# Deterministic-Random Offset
-	var max_corner_offset := Global.CELL_SIZE * 0.1
-	var max_side_offset := Global.CELL_SIZE * 0.125
+	var max_corner_offset := MAX_VAL * 0.1
+	var max_side_offset := MAX_VAL * 0.125
 
 	top_left += Util.rand_circular_offset(base + top_left, max_corner_offset)
 	top_right += Util.rand_circular_offset(base + top_right, max_corner_offset)
