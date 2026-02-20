@@ -1,8 +1,24 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://drnssi2sgr8v3"]
 
 [ext_resource type="Shader" uid="uid://b18fg7258hpby" path="res://shaders/CellGlobalTexture.gdshader" id="1_kedid"]
+[ext_resource type="Texture2D" uid="uid://d0onve307iuvc" path="res://assets/textures/stone_background_2.jpg" id="2_1owdi"]
 [ext_resource type="Texture2D" uid="uid://c1nasnuff5qk6" path="res://assets/textures/stone_background_1.jpg" id="2_brdep"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_1owdi"]
+noise_type = 0
+frequency = 0.001
+fractal_type = 2
+fractal_weighted_strength = 1.0
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_4wph0"]
+generate_mipmaps = false
+noise = SubResource("FastNoiseLite_1owdi")
+seamless = true
+invert = true
+seamless_blend_skirt = 0.2
 
 [resource]
 shader = ExtResource("1_kedid")
-shader_parameter/bg_texture = ExtResource("2_brdep")
+shader_parameter/bg_texture_main = ExtResource("2_brdep")
+shader_parameter/bg_texture_alt = ExtResource("2_1owdi")
+shader_parameter/noise_tex = SubResource("NoiseTexture2D_4wph0")
