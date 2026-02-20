@@ -36,7 +36,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _ready() -> void:
-	sm = StateMachine.new(self, State, State.NEUTRAL)
+	sm = StateMachine.new(self , State, State.NEUTRAL)
 
 	self.z_index = Enum.ZIndex.UI_MOUSE_POINTER
 
@@ -81,14 +81,11 @@ func _physics_process_neutral(delta: float) -> void:
 ###################################
 # Building Placement State
 ###################################
-# No enter function since we need to call with new building data, instead use this one
-func _transition_to_building_placement(building_data: BuildingDataRes) -> void:
+func _enter_building_placement(building_data: BuildingDataRes) -> void:
 	building_preview.set_building_data(building_data)
-	sm.transition_to(State.BUILDING_PLACEMENT)
 
 func _exit_building_placement() -> void:
 	building_preview.set_building_data(null)
-
 
 func _physics_process_building_placement(delta: float) -> void:
 	# Check for mode change first, if so return
@@ -133,17 +130,18 @@ func _follow_mouse_pointer() -> void:
 	prev_center_cell = curr_center_cell
 	curr_center_cell = Global.level.sample_cell_at_world_pos(self.global_position)
 
+# TODO implement dynamic list of buildings, e.g. wheel to select or something. For now just hotkeys
 func _actions_mode_change() -> bool:
 	if Input.is_action_just_pressed("mouse_neutral"):
 		sm.transition_to(State.NEUTRAL)
 		return true
 
 	elif Input.is_action_just_pressed("mouse_place_building_ladder"):
-		_transition_to_building_placement(BuildingManager.ladder_building_data)
+		sm.transition_to(State.BUILDING_PLACEMENT, BuildingManager.ladder_building_data)
 		return true
 
 	elif Input.is_action_just_pressed("mouse_place_building_outpost"):
-		_transition_to_building_placement(BuildingManager.outpost_building_data)
+		sm.transition_to(State.BUILDING_PLACEMENT, BuildingManager.outpost_building_data)
 		return true
 
 	elif Input.is_action_just_pressed("mouse_building_destroy"):

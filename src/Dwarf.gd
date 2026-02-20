@@ -429,7 +429,7 @@ func _create_own_tasks() -> void:
 		var rubble_aps: Array[ActionPoint] = Global.level.building_manager.get_all_action_points(ActionPoint.ActionType.DISPOSE_RUBBLE)
 
 		if rubble_aps.is_empty():
-			HexLog.throttled(self , "%s is carrying rubble but found no disposal action points, will not create dispose task" % [ self ], HexLog.AP_MISSING_INTERVALL)
+			HexLog.throttled(self , "%s found no disposal AP, not creating dispose task" % [ self ], HexLog.AP_MISSING_INTERVALL)
 			return
 
 		var target_positions: Array[Vector2i] = []
@@ -438,7 +438,7 @@ func _create_own_tasks() -> void:
 
 		var path: Path = Global.level.nav_manager.find_path_to_one_of(curr_cell.grid_pos, target_positions, movement_comp.movement_stats)
 		if not path:
-			HexLog.throttled(self , "%s failed to find path to target positions %s for rubble disposal" % [ self , target_positions], HexLog.NO_PATH_AP_INTERVALL)
+			HexLog.throttled(self , "%s failed to find path to target positions %s" % [ self , target_positions], HexLog.NO_PATH_AP_INTERVALL)
 			return
 
 		# Back-reference path to AP
