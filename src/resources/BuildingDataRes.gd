@@ -6,11 +6,13 @@ extends Resource
 # ENUM DEFINITIONS BUILDING TYPES
 ########################################################################################################################
 enum Type {
+	INVALID,
 	LADDER,
 	OUTPOST,
 }
 
 const BUILDING_TYPE_NAMES: Dictionary[Type, String] = {
+	Type.INVALID: "INVALID",
 	Type.LADDER: "Ladder",
 	Type.OUTPOST: "Outpost",
 }
@@ -168,6 +170,12 @@ func get_all_patterns_with_colors() -> Array[Dictionary]:
 func _validate_property(property: Dictionary) -> void:
 	var prop_name: String = property.name
 	var prop_variant: Variant = self.get(prop_name)
+
+	# Validate that type is set to a valid value
+	if prop_name == "type" and prop_variant is Type:
+		var prop_type: Type = prop_variant
+		if prop_type == Type.INVALID:
+			push_warning("BuildingDataRes: Invalid building type '%s' for building '%s'." % [Enum.to_str(Type, prop_type), name()])
 
 	# Validate GridPatternRes properties
 	if prop_name.begins_with("pattern_") and prop_variant is GridPatternRes:

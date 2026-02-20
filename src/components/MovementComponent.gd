@@ -239,8 +239,6 @@ func _update_on_ground_check() -> bool:
 			# Nothing to do            
 			return false
 		else:
-			print("MovementComponent of %s: Started falling! can_stand_in_curr_cell=%s, is_on_floor=%s, is_climbing=%s, move_mode: %s" % [parent, can_stand_in_curr_cell, is_on_floor, is_climbing, Enum.to_str(Enum.MoveMode, _get_curr_move_mode())])
-			
 			# Enter falling state handles falling logic
 			sm.transition_to(State.FALLING)
 			return true
