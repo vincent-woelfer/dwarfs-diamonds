@@ -27,7 +27,8 @@ const BUILDING_TYPE_NAMES: Dictionary[Type, String] = {
 @export var type: Type
 
 ## Build time in seconds (without modifiers)
-@export var build_time: float
+@export_range(0.0, 360.0, 0.01, "s")
+var build_time: float = 1.0
 
 ########################################################################################################################
 # Grid Patterns
