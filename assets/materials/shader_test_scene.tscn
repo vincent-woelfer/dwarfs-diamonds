@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://c7kv6teps8lhn"]
+
+[ext_resource type="Material" uid="uid://drnssi2sgr8v3" path="res://assets/materials/cell_global_texture_material.tres" id="1_n355l"]
+
+[node name="ShaderTestScene" type="Node2D" unique_id=1963872352]
+
+[node name="Polygon2D" type="Polygon2D" parent="." unique_id=1108606634]
+material = ExtResource("1_n355l")
+polygon = PackedVector2Array(0, 0, 1000, 0, 1000, 1000, 0, 1000)
