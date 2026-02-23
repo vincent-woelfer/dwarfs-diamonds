@@ -254,8 +254,14 @@ func get_debug_info() -> Array:
 	var info: Array[Variant] = []
 	info.resize(3)
 
-	# Job Type
+	# Job Type - default. Overridden for some types below
 	info[0] = Enum.to_str(Job.Type, job_type)
+
+	if job_type == Job.Type.PICKUP:
+		if carryable_item.item_type == Enum.CarryableItemType.RUBBLE:
+			info[0] += "-RUB"
+		elif carryable_item.item_type == Enum.CarryableItemType.GEMSTONE:
+			info[0] += "-GEM"
 
 	if not is_active:
 		info[1] = "ARCHIVED"

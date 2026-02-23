@@ -28,6 +28,9 @@ func destroy_cell(cell: Cell) -> void:
 	# Spawn Rubble
 	Global.level.spawn_rubble(cell.grid_pos)
 
+	if cell.has_mineral:
+		Global.level.spawn_gemstone(cell.grid_pos)
+
 
 func mark_cell_for_mining(cell: Cell, is_marked_for_mining: bool) -> void:
 	var changed := cell.set_marked_for_mining(is_marked_for_mining)
@@ -99,7 +102,8 @@ func remove_building(building: BuildingBase) -> void:
 			covered_cell.remove_building(building)
 
 
-# Just to have add/remove together
+# CURRENTLY UNUSED
+# Just to have add/remove together.
 func add_job(job: Job) -> void:
 	print_action("Adding job %s" % [job])
 

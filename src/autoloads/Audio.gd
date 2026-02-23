@@ -21,6 +21,7 @@ static var sounds: Dictionary[String, AudioStream] = {
 	"dispose_trash": preload("res://assets/audio/dispose_trash.wav"),
 	"dwarf_walk_1_looped": preload("res://assets/audio/dwarf_walk_1_looped.wav"),
 	"building_on_destroy": preload("res://assets/audio/destroy_1.mp3"),
+	"gemstone_drop": preload("res://assets/audio/gemstone_drop.wav"),
 }
 
 # Relative volume adjustments in dB for each sound, assuming 0.0 as default (no modification, original volume from track)

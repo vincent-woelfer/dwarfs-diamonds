@@ -176,7 +176,7 @@ func _filter_workable_jobs_for_dwarf(dwarf: Dwarf) -> Array[Job]:
 
 
 ## Score job - lower is better
-## Unit = world space distance (because path length is the default score)
+## Unit = seconds (because path time is the default score)
 ## Returns null if job should not be considered at all
 func _score_job(job: Job, path: Path, dwarf: Dwarf) -> ScoredJob:
 	var remaining_time := job.estimate_remaining_time()
@@ -189,7 +189,7 @@ func _score_job(job: Job, path: Path, dwarf: Dwarf) -> ScoredJob:
 
 	# Penalize jobs which are already being worked on / are close to being finished
 	if remaining_time < Job.MAX_REMAINING_TIME_ESTIMATE:
-		score += 2 * Global.CELL_SIZE
+		score += 5.0
 
 	# Penalize mining job directly below dwarf (only slightly, prefer horizontally adjacent ones)
 	# This is to avoid dwarfs digging straight down below themselves too often
@@ -197,9 +197,15 @@ func _score_job(job: Job, path: Path, dwarf: Dwarf) -> ScoredJob:
 		if dwarf.grid_pos == job.center_cell.grid_pos - Vector2i(0, 1):
 			score += 1.0
 
-	# Dont prioritize pickup jobs (unless same cell)
-	if job.job_type == Job.Type.PICKUP and dwarf.grid_pos != job.center_cell.grid_pos:
-		score += 2 * Global.CELL_SIZE
+	# PICKUP
+	if job.job_type == Job.Type.PICKUP:
+		# Dont prioritize rubble pickup jobs (unless same cell)
+		if dwarf.grid_pos != job.center_cell.grid_pos:
+			score += 2.0
+
+		# Prioritize gemstones over rubble
+		if job.carryable_item.item_type == Enum.CarryableItemType.GEMSTONE:
+			score *= 0.5
 
 	return ScoredJob.new(job, path, score)
 

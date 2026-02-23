@@ -1,13 +1,14 @@
 class_name Level
 extends Node2D
 
-# var wandering_light_scene := preload('res://scenes/WanderingLight.tscn')
 var dwarf_scene := preload('res://scenes/Dwarf.tscn')
-var rubble_scene := preload('res://scenes/Rubble.tscn')
+var rubble_scene := preload('res://scenes/objects/Rubble.tscn')
+var gemstone_scene := preload('res://scenes/objects/Gemstone.tscn')
 
 var cells: Array[Array] = []
 var dwarfs: Array[Dwarf] = []
 var rubbles: Array[Rubble] = []
+var gemstones: Array[Gemstone] = []
 
 # Managers
 var nav_manager: NavManager
@@ -88,6 +89,16 @@ func spawn_rubble(grid_pos: Vector2i) -> void:
 	new_rubble.setup(grid_pos)
 	add_child(new_rubble)
 	rubbles.append(new_rubble)
+
+func spawn_gemstone(grid_pos: Vector2i) -> void:
+	var cell := get_cell(grid_pos)
+	if cell == null or not cell.is_passable():
+		return
+
+	var new_gemstone: Gemstone = gemstone_scene.instantiate()
+	new_gemstone.setup(grid_pos)
+	add_child(new_gemstone)
+	gemstones.append(new_gemstone)
 
 
 func _generate_grid() -> void:

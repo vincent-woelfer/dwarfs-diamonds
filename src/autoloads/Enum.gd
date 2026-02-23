@@ -38,6 +38,7 @@ enum ZIndex {
 	BUILDINGS = 100,
 	DWARFS = 200,
 	RUBBLE = 250,
+	GEMSTONE = 251,
 	UI_MOUSE_POINTER = 1000,
 }
 
@@ -66,5 +67,5 @@ enum MoveMode {
 
 enum CarryableItemType {
 	RUBBLE,
-	DIAMOND,
+	GEMSTONE,
 }
