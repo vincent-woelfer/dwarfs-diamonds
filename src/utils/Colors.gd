@@ -17,7 +17,7 @@ static func rand_rubble_color() -> Color:
 
 ## Returns a lighter version of the color for printing in console
 static func to_print_color(color: Color) -> Color:
-	return color.lightened(0.5)
+	return color.lightened(0.35)
 
 
 static func with_alpha(color: Color, alpha: float) -> Color:
@@ -120,8 +120,8 @@ static var building_modulate_external_destroy: Color = Color(1.2, 0.0, 0.0, 1.0)
 ########################################################################################################################
 static var JOB_COLOR_ARCHIVED: Color = Color.SLATE_BLUE.lerp(Color.BLUE, 0.5)
 static var JOB_COLOR_BLOCKED: Color = Color.RED.lerp(Color.ORANGE_RED, 0.4)
-static var JOB_COLOR_READY: Color = Color.YELLOW
-static var JOB_COLOR_DOING: Color = Color.GREEN
+static var JOB_COLOR_READY: Color = Color.GREEN_YELLOW
+static var JOB_COLOR_DOING: Color = Color(0.0, 0.8, 0.0)
 
 
 ########################################################################################################################
