@@ -29,6 +29,9 @@ const float is_solid_flat_offset = 0.10;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
+// TODO FOR BLUR LOOK HERE MAYBE: https://www.reddit.com/r/godot/comments/1rcrzwq/how_do_i_create_a_downscaled_copy_of_a/
+
+
 float sample_is_solid(vec2 uv) {
     vec4 stencil_color = texture(STENCIL_TEXTURE, uv);
     int stencil_r8 = int(round(stencil_color.r * 255.0));

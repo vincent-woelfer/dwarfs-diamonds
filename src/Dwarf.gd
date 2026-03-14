@@ -424,7 +424,7 @@ func _create_own_tasks() -> void:
 	var tasks: Array[Task] = []
 
 	# Dispose Rubble
-	if carry_comp.is_carrying_item_of_type(Enum.CarryableItemType.RUBBLE):
+	if carry_comp.is_carrying_item_of_type(Enum.CarryableType.RUBBLE):
 		# Seatch for rubble disposal action points
 		var rubble_aps: Array[ActionPoint] = Global.level.building_manager.get_all_action_points(ActionPoint.ActionType.DISPOSE_RUBBLE)
 

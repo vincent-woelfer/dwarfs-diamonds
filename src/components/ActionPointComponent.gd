@@ -110,11 +110,11 @@ func _dispose_rubble() -> bool:
 	const after_last_time := 0.3
 
 	var carry_comp: CarryComponent = parent.carry_comp
-	var has_rubble := carry_comp.is_carrying_item_of_type(Enum.CarryableItemType.RUBBLE)
+	var has_rubble := carry_comp.is_carrying_item_of_type(Enum.CarryableType.RUBBLE)
 
 	# Check for rubble disposal
 	if has_rubble and Util.has_time_passed(repeated_tick_timestamp, rubble_dispose_time):
-		carry_comp.delete(carry_comp.get_items_of_type(Enum.CarryableItemType.RUBBLE)[-1])
+		carry_comp.delete(carry_comp.get_items_of_type(Enum.CarryableType.RUBBLE)[-1])
 		Audio.play_at_pos("dispose_trash", _curr_action_point.get_global_position())
 		repeated_tick_timestamp = Util.now()
 

@@ -8,6 +8,9 @@ extends Node2D
 var _curr_carried_items: Array[CarryableItemComponent] = []
 var _curr_total_weight: float = 0.0
 
+# placement logic
+var _item_type_group_sizes: Dictionary[Enum.CarryableType, int]
+
 @onready var parent: GridObject2D = get_parent()
 
 ########################################################################################################################
@@ -50,6 +53,7 @@ func pickup(item: CarryableItemComponent) -> bool:
 	# Modify self
 	_curr_carried_items.append(item)
 	_curr_total_weight += item.weight
+	_update_item_type_group_sizes()
 
 	# Modify item
 	item.on_picked_up(self )
@@ -67,6 +71,7 @@ func drop(item: CarryableItemComponent) -> void:
 	# Modify self
 	_curr_carried_items.erase(item)
 	_curr_total_weight -= item.weight
+	_update_item_type_group_sizes()
 
 	# Modify item
 	item.on_dropped()
@@ -94,6 +99,8 @@ func delete(item: CarryableItemComponent) -> void:
 	# Modify self
 	_curr_carried_items.erase(item)
 	_curr_total_weight -= item.weight
+
+	_update_item_type_group_sizes()
 
 	# Delete parent (since item is a component, we assume the whole object should be deleted)
 	item.parent.queue_free()
@@ -137,7 +144,7 @@ func can_carry_ignoring_position(item: CarryableItemComponent) -> bool:
 ###################################
 # Getters
 ###################################
-func is_carrying() -> bool:
+func is_carrying_anything() -> bool:
 	return not _curr_carried_items.is_empty()
 
 func get_carried_total_weight() -> float:
@@ -161,14 +168,14 @@ func get_all_pickupable_items_in_range() -> Array[CarryableItemComponent]:
 	return items
 
 
-func is_carrying_item_of_type(item_type: Enum.CarryableItemType) -> bool:
+func is_carrying_item_of_type(item_type: Enum.CarryableType) -> bool:
 	for item: CarryableItemComponent in _curr_carried_items:
 		if item.item_type == item_type:
 			return true
 	return false
 
 
-func get_items_of_type(item_type: Enum.CarryableItemType) -> Array[CarryableItemComponent]:
+func get_items_of_type(item_type: Enum.CarryableType) -> Array[CarryableItemComponent]:
 	var items_of_type: Array[CarryableItemComponent] = []
 	for item: CarryableItemComponent in _curr_carried_items:
 		if item.item_type == item_type:
@@ -184,10 +191,39 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	# Update positions of carried items
+	if is_carrying_anything():
+		_update_item_placement()
+
+
+func _get_parent_look_dir() -> Vector2:
+	var look_dir: Variant = parent.get("look_dir")
+	if look_dir != null and look_dir is Vector2:
+		@warning_ignore("unsafe_cast")
+		return look_dir as Vector2
+
+	# default look dir if not available
+	return Vector2.RIGHT
+
+########################################################################################################################
+# ITEM PLACEMENT
+########################################################################################################################
+func _update_item_type_group_sizes() -> void:
+	_item_type_group_sizes = {}
+	for item: CarryableItemComponent in _curr_carried_items:
+		if not _item_type_group_sizes.has(item.item_type):
+			_item_type_group_sizes[item.item_type] = 0
+		_item_type_group_sizes[item.item_type] += 1
+
+
+# TODO 
+func _update_item_placement() -> void:
+	var idx_by_type: Dictionary[Enum.CarryableType, int] = {}
+
 	for i in _curr_carried_items.size():
 		var item: CarryableItemComponent = _curr_carried_items[i]
 		var item_parent: GridObject2D = item.parent
+
+
 		var target_pos: Vector2 = _get_carried_item_position(i)
 
 		# Lerp if animation not finished, snap once securely attached
@@ -202,12 +238,14 @@ func _physics_process(delta: float) -> void:
 				item.pick_up_animation_finished = true
 				item_parent.global_position = target_pos
 		
-		# Also update item-parent grid pos to match carrier
+		# Also update item-parent grid pos to match carrier - even though this is probaly not required in most cases.
 		item_parent.update_grid_pos(parent.grid_pos)
-
+	
 
 ## Returns global position
-func _get_carried_item_position(idx: int) -> Vector2:
+func _get_carried_item_position(item_type: Enum.CarryableType, index_in_group: int) -> Vector2:
+	# First compute total size for each group for spacing
+	# TODO
 	# Simple stacking logic
 	# Assumes all objects have their origin at center bottom. -Y is up.
 	var vertical_offset_base: float = Global.CELL_SIZE * 0.3
@@ -221,13 +259,3 @@ func _get_carried_item_position(idx: int) -> Vector2:
 	var offset_y_per_item: Vector2 = Vector2(0.0, Global.CELL_SIZE * 0.15)
 
 	return base_pos + idx * offset_y_per_item
-
-
-func _get_parent_look_dir() -> Vector2:
-	var look_dir: Variant = parent.get("look_dir")
-	if look_dir != null and look_dir is Vector2:
-		@warning_ignore("unsafe_cast")
-		return look_dir as Vector2
-
-	# default look dir if not available
-	return Vector2.RIGHT

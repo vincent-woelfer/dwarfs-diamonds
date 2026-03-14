@@ -20,7 +20,7 @@ func _ready() -> void:
 	movement_comp.movement_stats.can_use_ladders_when_falling = false
 
 	# Set carryable item type
-	carryable_item_comp.item_type = Enum.CarryableItemType.RUBBLE
+	carryable_item_comp.item_type = Enum.CarryableType.RUBBLE
 
 	# Modulate color randomly
 	sprite.modulate = Colors.rand_rubble_color()

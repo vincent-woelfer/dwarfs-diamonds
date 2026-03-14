@@ -16,7 +16,7 @@ var pick_up_animation_finished: bool = false
 # Own parent
 @onready var parent: GridObject2D = get_parent()
 
-var item_type: Enum.CarryableItemType
+var item_type: Enum.CarryableType
 
 
 # Since this is a component the parent can not override this method.

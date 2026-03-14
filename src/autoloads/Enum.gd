@@ -65,7 +65,7 @@ enum MoveMode {
 	WALK_NO_FALLING_SPECIAL, # Used for pathfinding to ignore falling special case when walking (e.g. when already falling or climbing)
 }
 
-enum CarryableItemType {
+enum CarryableType {
 	RUBBLE,
 	GEMSTONE,
 }

@@ -22,7 +22,7 @@ func _ready() -> void:
 	movement_comp.movement_stats.can_use_ladders_when_falling = false
 
 	# Set carryable item type
-	carryable_item_comp.item_type = Enum.CarryableItemType.GEMSTONE
+	carryable_item_comp.item_type = Enum.CarryableType.GEMSTONE
 
 	# Modulate color randomly
 	var color: Color = [Color.HOT_PINK, Color.CYAN, Color.YELLOW_GREEN].pick_random()
