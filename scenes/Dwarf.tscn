@@ -42,6 +42,7 @@ script = ExtResource("5_o7n6f")
 
 [node name="CarryComponent" type="Node2D" parent="." unique_id=935967982]
 script = ExtResource("7_2lrks")
+carry_capacity = 4.0
 metadata/_custom_type_script = "uid://ca0ir7bdht3kr"
 
 [node name="TaskQueueComponent" type="Node2D" parent="." unique_id=1669064102]

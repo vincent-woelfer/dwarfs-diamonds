@@ -65,7 +65,8 @@ enum MoveMode {
 	WALK_NO_FALLING_SPECIAL, # Used for pathfinding to ignore falling special case when walking (e.g. when already falling or climbing)
 }
 
+# Number is used to sort groups in inventory for now (TODO refactor)
 enum CarryableType {
-	RUBBLE,
-	GEMSTONE,
+	RUBBLE = 0,
+	GEMSTONE = 1,
 }

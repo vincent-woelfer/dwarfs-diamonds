@@ -30,6 +30,7 @@ func can_be_picked_up_right_now() -> bool:
 
 	return parent_allow_pickup and (!is_being_carried)
 
+
 ########################################################################################################################
 # Only for additional logic specific to this item. Override in subclasses. 
 # is_being_carried + carrier will be handled by CarryComponent.
