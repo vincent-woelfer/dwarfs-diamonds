@@ -1,8 +1,11 @@
 class_name LevelStatsManager
 extends Node2D
 
-
 var dev_stats_label: RichTextLabel
+
+# STATS
+var total_mined_cells: int = 0
+var gemstones_collected: int = 0
 
 ########################################################################################################################
 # PUBLIC METHODS
@@ -21,8 +24,10 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	# Update label
-	dev_stats_label.text = "Dwarfs: %d\nJobs: %d\nBuildings: %d" % [
+	dev_stats_label.text = "Dwarfs: %d | Jobs: %d | Buildings: %d\nCells mined: [color=red]%d[/color] | Gemstones: [color=pink]%d[/color]" % [
 		Global.level.dwarfs.size(),
 		Global.level.job_manager._jobs.size(),
 		Global.level.building_manager.buildings.size(),
+		total_mined_cells,
+		gemstones_collected,
 	]

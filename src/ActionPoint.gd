@@ -5,7 +5,8 @@ extends GridObject2D
 # ENUM DEFINITIONS
 ###################################
 enum ActionType {
-	DISPOSE_RUBBLE,
+	DROPOFF_RUBBLE,
+	DROPOFF_GEMSTONE,
 }
 
 

@@ -17,6 +17,8 @@ func destroy_cell(cell: Cell) -> void:
 
 	print_action("Destroying cell %s" % [cell])
 
+	Global.level.level_stats_manager.total_mined_cells += 1
+
 	cell.destroy_cell()
 
 	Global.level._update_cell_is_solid(cell.grid_pos)
