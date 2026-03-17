@@ -11,33 +11,13 @@ Diamanten zählen (simpler Highscore)
 Diamanten spawnen in Gestein. 
 
 Entweder lift oder minecard mit laden/entladen und ins pathfinding eingebunden. 
-
-
 ActionPoints aus ActionPointsRes erstellen wenn building completed ist.
-
-
-
-=========================================
-BUG (validate path called after job done):
-Dwarf-0 (BUILDING @(7, 3)) finished task Task(CONSTRUCT @(5, 3))
-TaskQueue:
- - <empty>
-
-Dwarf-0 (BUILDING @(7, 3)) finished last task and has non remaining, returning to IDLE
-Updated 1024 nav-connections in: 25 ms
-Dwarf-0 (IDLE @(7, 3)) validating current path to job Job(BUILD - ARCHIVED @(5, 3)) NOT IMPLEMENTED DOING NOTHING FOR NOW
-Dwarf-0 (IDLE @(7, 3)) found no job, remains idle
-Dwarf-0 (IDLE @(7, 3)) found no job, remains idle
-
 
 
 
 ============ Implement Nice to Have ============
 - VFX-Manager (or particles / effects manager)
 -> global instance (from level i guess) to spwan particle effects like dust uppon destroyed cell
-
-
-- Can build ladder from other ladder (so one can build up)
 
 - Rubble change sprite. oon ground = dirt, carried = bag
 
@@ -65,13 +45,6 @@ Decide: entrance -> board platform or is platform for boarding logic?
 -> Platform has board & load (for stuff other than dwarfs) logic.
 Entrances (if for platform) are only responsible a waiting-for-platform-arrives point or as a deposit (for loading into and after loading out of minecards/platforms).
 Platforms are only boardabile if still and at entrance, exception for maybe minecards.
-
-
-
-
-============ Refactor ============
-- MAYBE split BuildingData into Ressource and instantiated object
-
 
 
 ########################################################################################################################

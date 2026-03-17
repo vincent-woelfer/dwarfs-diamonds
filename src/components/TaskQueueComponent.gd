@@ -154,7 +154,7 @@ func _to_string() -> String:
 	var msg: String = "TaskQueue:"
 
 	if _task_queue.is_empty():
-		msg += " - <empty>\n"
+		msg += " - <empty>"
 		
 	else:
 		msg += "\n"
