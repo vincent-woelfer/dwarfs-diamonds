@@ -118,14 +118,16 @@ func _dropoff_rubble() -> bool:
 	# Check for rubble disposal
 	if has_rubble and Util.has_time_passed(repeated_tick_timestamp, dispose_time):
 		carry_comp.delete(carry_comp.get_items_of_type(Enum.CarryableType.RUBBLE)[-1])
-		Audio.play_at_pos("dispose_trash", _curr_action_point.get_global_position())
 		repeated_tick_timestamp = Util.now()
+
+		Audio.play_at_pos("dispose_trash", _curr_action_point.get_global_position())
 
 	# Check for done - 0.5 after last rubble was deleted
 	if not has_rubble and Util.has_time_passed(repeated_tick_timestamp, after_last_time):
 		return true
 
 	return false
+
 
 func _dropoff_gemstone() -> bool:
 	const dispose_time := 0.35
@@ -137,11 +139,9 @@ func _dropoff_gemstone() -> bool:
 	# Check for gemstone disposal
 	if has_gemstone and Util.has_time_passed(repeated_tick_timestamp, dispose_time):
 		carry_comp.delete(carry_comp.get_items_of_type(Enum.CarryableType.GEMSTONE)[-1])
-		# TODO: improve logic
-		Global.level.level_stats_manager.gemstones_collected += 1
-
-		Audio.play_at_pos("gemstone_dropoff", _curr_action_point.get_global_position())
 		repeated_tick_timestamp = Util.now()
+
+		Global.level.level_stats_manager.update_gemstones_collected(1)
 
 	# Check for done - 0.5 after last rubble was deleted
 	if not has_gemstone and Util.has_time_passed(repeated_tick_timestamp, after_last_time):
