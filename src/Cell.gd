@@ -13,6 +13,11 @@ var action_points: Array[ActionPoint] = []
 # TODO DEV
 var has_mineral: bool = false
 
+# 0  = air / not solid
+# 1  = adjacent to air
+# 2+ = deeper underground, higher means darker
+var light_depth: int = 999
+
 ########################################################################################################################
 # GROUND TRUTH BOOL STATUS FLAGS
 ########################################################################################################################

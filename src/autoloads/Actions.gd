@@ -19,6 +19,8 @@ func destroy_cell(cell: Cell) -> void:
 
 	cell.destroy_cell()
 
+	Global.level._update_cell_is_solid(cell.grid_pos)
+
 	# Signal MiningComponets that mining was completed
 	EventBus.Signal_GlobalCellDestroyed.emit(cell)
 

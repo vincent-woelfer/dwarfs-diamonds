@@ -130,7 +130,8 @@ void fragment() {
     // SOLID -> darken
     if (is_solid) {   
         // ORIGINAL:
-        COLOR.rgb *= is_solid_max_darken_factor;
+        // TODO removed when light_depth was added
+        // COLOR.rgb *= is_solid_max_darken_factor;
 
         // float darkness_factor = blur_is_solid(uv, SCREEN_PIXEL_SIZE);
         // darkness_factor -= is_solid_flat_offset;

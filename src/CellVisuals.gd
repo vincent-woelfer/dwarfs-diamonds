@@ -72,6 +72,7 @@ func _ready() -> void:
 
 	mineral_poly.modulate = [Color.ORANGE_RED, Color.DARK_VIOLET, Color.DARK_CYAN].pick_random()
 	mineral_poly.modulate *= 2.0
+	mineral_poly.modulate.a = 1.0
 	
 	# mineral_poly.uv = _get_cell_polygon(mineral_texture.get_size().x) # scale UVs to texture size
 	add_child(mineral_poly)
@@ -104,11 +105,22 @@ func set_dirty() -> void:
 	dirty = true
 
 
-# dirty flag IS ONLY A PERFOCMANCE OPTIMIZATION -> ignore for now
 func _process(delta: float) -> void:
 	if dirty:
 		dirty = false
 		update()
+
+	# TODO TEMP
+	# 0  = air / not solid
+	# 1  = adjacent to air
+	# 2+ = deeper underground, higher means darker
+	var mod_light_depth: Array[float] = [1.3, 0.4, 0.03, 0.0, 0.0]
+	var light_depth_clamped := mod_light_depth[clamp(c.light_depth, 0, mod_light_depth.size() - 1)]
+
+	background_poly.modulate = Color.WHITE * light_depth_clamped
+	background_poly.modulate.a = 1.0
+
+	mineral_poly.modulate.a = light_depth_clamped
 
 
 func update() -> void:

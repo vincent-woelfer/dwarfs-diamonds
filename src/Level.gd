@@ -29,6 +29,8 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
+	_compute_all_light_depths()
+
 	## Managers
 	nav_manager = NavManager.new()
 	add_child(nav_manager)
@@ -101,6 +103,33 @@ func spawn_gemstone(grid_pos: Vector2i) -> void:
 	gemstones.append(new_gemstone)
 
 
+## Deterministic torch placement
+func should_contain_torch(grid_pos: Vector2i) -> bool:
+	# Simple rule: place torch every 5 cells in x and y, avoid sky area
+	if grid_pos.y <= Global.SKY_HEIGHT + 2:
+		return false
+
+	var percentage_with_torch := 0.95
+	var random_disable := Util.rand_from_coords(grid_pos, 10) > percentage_with_torch
+	if random_disable:
+		return false
+
+	var grid_spacing := Vector2i(3, 1)
+
+	# Random offset, only horizontal and same for entire row. x must be 1 otherwise its on map border
+	var rand_offset := Vector2i.ZERO
+	if Util.rand_from_coords(grid_pos, 11) < 0.2:
+		rand_offset.x = Util.randi_from_coords(Vector2i(1, grid_pos.y), 0, grid_spacing.x, 12)
+
+	var alternating_offset := Vector2i(roundi(grid_pos.y / (grid_spacing.y as float)), 0)
+
+	var sample_pos := grid_pos + rand_offset + alternating_offset
+	if sample_pos.x % grid_spacing.x == 0 and sample_pos.y % grid_spacing.y == 0:
+		return true
+
+	return false
+
+
 func _generate_grid() -> void:
 	HexLog.print_banner_with_text("Generating Grid")
 	cells.clear()
@@ -142,32 +171,83 @@ func _generate_grid() -> void:
 			cells[x][y] = cell
 
 
-## Deterministic torch placement
-func should_contain_torch(grid_pos: Vector2i) -> bool:
-	# Simple rule: place torch every 5 cells in x and y, avoid sky area
-	if grid_pos.y <= Global.SKY_HEIGHT + 2:
-		return false
+########################################################################################################################
+# Light Calculation
+########################################################################################################################
+func _compute_all_light_depths() -> void:
+	var start_time := Time.get_ticks_msec()
 
-	var percentage_with_torch := 0.95
-	var random_disable := Util.rand_from_coords(grid_pos, 10) > percentage_with_torch
-	if random_disable:
-		return false
+	assert(cells.size() > 0 and cells[0].size() > 0)
+	var queue: Array[Vector2i] = []
 
-	var grid_spacing := Vector2i(3, 1)
+	# init
+	for x in Global.LEVEL_WIDTH:
+		for y in Global.LEVEL_HEIGHT:
+			var cell: Cell = cells[x][y]
+			if not cell.is_solid:
+				cell.light_depth = 0
+				queue.append(Vector2i(x, y))
+			else:
+				cell.light_depth = 999
 
-	# Random offset, only horizontal and same for entire row. x must be 1 otherwise its on map border
-	var rand_offset := Vector2i.ZERO
-	if Util.rand_from_coords(grid_pos, 11) < 0.2:
-		rand_offset.x = Util.randi_from_coords(Vector2i(1, grid_pos.y), 0, grid_spacing.x, 12)
+	var head := 0
+	while head < queue.size():
+		var p := queue[head]
+		head += 1
+		var depth: int = cells[p.x][p.y].light_depth
 
-	var alternating_offset := Vector2i(roundi(grid_pos.y / (grid_spacing.y as float)), 0)
+		for dir: Vector2i in Util.neighbours_cardinal:
+			var n: Vector2i = p + dir
+			if not Util.is_grid_pos_valid(n):
+				continue
 
-	var sample_pos := grid_pos + rand_offset + alternating_offset
-	if sample_pos.x % grid_spacing.x == 0 and sample_pos.y % grid_spacing.y == 0:
-		return true
+			var new_depth := depth + 1
+			if new_depth < cells[n.x][n.y].light_depth:
+				cells[n.x][n.y].light_depth = new_depth
+				queue.append(n)
 
-	return false
+	var duration := Time.get_ticks_msec() - start_time
+	HexLog.print("Level => Updated complete light depth map in: %d ms" % [duration], Colors.LIGHT_DEPTH_PRINT_COLOR)
 
+
+## Change one cell to free and update neighbouring cells. Faster than full recomputation
+func _change_cell_to_free(pos: Vector2i) -> void:
+	var start_time := Time.get_ticks_msec()
+
+	assert(cells[pos.x][pos.y].is_solid == false)
+	cells[pos.x][pos.y].light_depth = 0
+	var queue: Array[Vector2i] = [pos]
+	var head := 0
+
+	while head < queue.size():
+		var p := queue[head]
+		head += 1
+		var depth: int = cells[p.x][p.y].light_depth
+		for dir: Vector2i in Util.neighbours_cardinal:
+			var n: Vector2i = p + dir
+			if not Util.is_grid_pos_valid(n):
+				continue
+
+			var new_depth := depth + 1
+			if new_depth < cells[n.x][n.y].light_depth:
+				cells[n.x][n.y].light_depth = new_depth
+				queue.append(n)
+
+	var duration := Time.get_ticks_msec() - start_time
+	HexLog.print("Level => Updated one cell light depth map in: %d ms" % [duration], Colors.LIGHT_DEPTH_PRINT_COLOR)
+
+
+## Called AFTER changing cell.is_solid. Updates light_depth accordingly
+func _update_cell_is_solid(pos: Vector2i) -> void:
+	assert(Util.is_grid_pos_valid(pos))
+	var cell: Cell = cells[pos.x][pos.y]
+
+	if cell.is_solid:
+		# free -> solid => update all
+		_compute_all_light_depths()
+	else:
+		# solid -> free => incremental update possible
+		_change_cell_to_free(pos)
 
 ########################################################################################################################
 # Helper functions
