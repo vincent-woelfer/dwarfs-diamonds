@@ -7,6 +7,7 @@ extends RefCounted
 enum Type {
 	MINE,
 	BUILD,
+	BUILD_PLATFORM,
 	PICKUP,
 }
 
@@ -68,6 +69,10 @@ func generate_tasks() -> Array[Task]:
 			tasks.append(Task.create_move_to_job_task(self ))
 			tasks.append(Task.create_construct_task(center_cell.grid_pos, building))
 
+		Job.Type.BUILD_PLATFORM:
+			tasks.append(Task.create_move_to_job_task(self ))
+			tasks.append(Task.create_construct_platform_task(center_cell.grid_pos))
+
 		Job.Type.PICKUP:
 			tasks.append(Task.create_move_to_job_task(self ))
 			tasks.append(Task.create_pickup_task(center_cell.grid_pos, carryable_item))
@@ -86,8 +91,11 @@ func calculate_capacity() -> int:
 			const big_building_build_time_threshold := 4.0 # seconds
 			if building.building_data.build_time >= big_building_build_time_threshold and building.build_process == 0.0 and workable_from_poses.size() >= 2:
 				return 2
-
 			return 1
+
+		Job.Type.BUILD_PLATFORM:
+			# Up to 2 dwarfs can build platform simultaneously (if enough space)
+			return min(2, workable_from_poses.size())
 
 		Job.Type.PICKUP:
 			return 1
@@ -145,8 +153,8 @@ func update_workable_from_cells() -> void:
 	var can_use_ladders: bool = true
 	workable_from_poses.clear()
 
-	# MINING
-	if job_type == Job.Type.MINE:
+	# MINING / BUILD PLATFORM
+	if job_type in [Job.Type.MINE, Job.Type.BUILD_PLATFORM]:
 		for n_offset: Vector2i in Util.neighbours_cardinal:
 			var n_cell: Cell = center_cell.get_neighbour(n_offset)
 
@@ -171,7 +179,7 @@ func update_workable_from_cells() -> void:
 				workable_from_poses.clear()
 				workable_from_poses.append(building.grid_pos)
 
-	# RUBBLE
+	# PICKUP
 	elif job_type == Job.Type.PICKUP:
 		if carryable_item.can_be_picked_up_right_now():
 			workable_from_poses.append(center_cell.grid_pos)

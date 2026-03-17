@@ -74,7 +74,7 @@ static var CellTypeColor := {
 	Enum.CellType.A: Color8(81, 73, 106), # Deep violet-blue tone
 	Enum.CellType.B: Color8(106, 73, 73), # Muted red-brown tone
 	Enum.CellType.C: Color8(76, 96, 71), # Olive
-	Enum.CellType.BUILDING: Color8(121, 96, 76), # Warm orange-brown
+	Enum.CellType.PLATFORM: Color8(121, 96, 76), # Warm orange-brown
 	Enum.CellType.SKY: Color(0.44, 0.76, 0.96), # Sky blue
 }
 

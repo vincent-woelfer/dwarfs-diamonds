@@ -30,7 +30,7 @@ const CellMiningHardness := {
 	Enum.CellType.A: 1.0,
 	Enum.CellType.B: 2.0,
 	Enum.CellType.C: 3.0,
-	Enum.CellType.BUILDING: 3.0,
+	Enum.CellType.PLATFORM: 3.0,
 }
 
 # Group Names

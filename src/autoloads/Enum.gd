@@ -19,7 +19,7 @@ enum CellType {
 	A,
 	B,
 	C,
-	BUILDING,
+	PLATFORM,
 	SKY
 }
 
