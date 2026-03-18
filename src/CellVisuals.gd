@@ -17,6 +17,7 @@ var mineral_poly: Polygon2D
 
 # TODO DEV
 var shadow_poly: Polygon2D
+var shadow_material: ShaderMaterial = preload("res://assets/materials/CellShadow.tres")
 
 # Light / Shadows
 var occluder: LightOccluder2D
@@ -83,12 +84,10 @@ func _ready() -> void:
 	###################################
 	# Shadow Polygon
 	###################################
-	var shadow_material: ShaderMaterial = preload("res://assets/materials/CellShadow.tres")
-
 	shadow_poly = Polygon2D.new()
 	shadow_poly.polygon = poly_points
 	shadow_poly.visibility_layer = Util.LAYER_1
-	shadow_poly.material = shadow_material
+	shadow_poly.material = shadow_material.duplicate()
 
 	compute_shadow_uv()
 
@@ -169,7 +168,8 @@ func _process(delta: float) -> void:
 
 		shadow_poly.visible = true
 
-	(shadow_poly.material as ShaderMaterial).set_shader_parameter("uvs", shadow_poly.uv)
+	# (shadow_poly.material as ShaderMaterial).set_shader_parameter("uvs", shadow_poly.uv)
+	shadow_poly.set_instance_shader_parameter("uvs", shadow_poly.uv)
 
 	# TODO TEMP
 	# 0  = air / not solid

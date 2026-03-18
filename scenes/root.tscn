@@ -9,14 +9,9 @@
 [ext_resource type="Shader" uid="uid://xfugqc6jg0g2" path="res://shaders/StencilPostProcess.gdshader" id="4_sqa0i"]
 [ext_resource type="Script" uid="uid://diuf7i4psy2dl" path="res://src/utils/DevFpsLabel.gd" id="8_5sfjl"]
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_j287u"]
-viewport_path = NodePath("StencilViewport")
-
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sqa0i"]
 resource_local_to_scene = true
 shader = ExtResource("4_sqa0i")
-shader_parameter/STENCIL_TEXTURE = SubResource("ViewportTexture_j287u")
-shader_parameter/zoom = 1.0
 
 [node name="root" type="Node2D" unique_id=890682335]
 visibility_layer = 3
@@ -42,6 +37,7 @@ size = Vector2i(3840, 2160)
 script = ExtResource("3_lrqlo")
 
 [node name="PostProcessCanvasLayer-1" type="CanvasLayer" parent="." unique_id=2118530863]
+visible = false
 script = ExtResource("4_jh1ax")
 
 [node name="StencilColorRect" type="ColorRect" parent="PostProcessCanvasLayer-1" unique_id=1458842093]
