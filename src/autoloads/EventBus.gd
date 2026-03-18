@@ -25,11 +25,12 @@ var dev_draw_nav: bool = false
 
 # F2
 signal Signal_DevToogleJobsDraw()
-var dev_draw_jobs: bool = true
+var dev_draw_jobs: bool = false
 
 # F3
 signal Signal_DevToogleLight()
-var dev_light_on: bool = true
+#TODO DEV
+var dev_light_on: bool = false
 
 # F4
 signal Signal_DevToogleDrawBuildingPattern()
@@ -37,11 +38,11 @@ var dev_draw_building_patterns: bool = false
 
 # F5
 signal Signal_DevToogleDrawActionPoints()
-var dev_draw_action_points: bool = true
+var dev_draw_action_points: bool = false
 
 # F6
 signal Signal_DevToogleDwarfDrawInfo()
-var dev_draw_dwarf_info: bool = true
+var dev_draw_dwarf_info: bool = false
 
 # F12
 signal Signal_DevToogleSunFastForward()

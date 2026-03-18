@@ -15,6 +15,9 @@ var background_poly: Polygon2D
 var stencil_poly: Polygon2D
 var mineral_poly: Polygon2D
 
+# TODO DEV
+var shadow_poly: Polygon2D
+
 # Light / Shadows
 var occluder: LightOccluder2D
 var occluder_poly: OccluderPolygon2D
@@ -78,6 +81,20 @@ func _ready() -> void:
 	add_child(mineral_poly)
 
 	###################################
+	# Shadow Polygon
+	###################################
+	var shadow_material: ShaderMaterial = preload("res://assets/materials/CellShadow.tres")
+
+	shadow_poly = Polygon2D.new()
+	shadow_poly.polygon = poly_points
+	shadow_poly.visibility_layer = Util.LAYER_1
+	shadow_poly.material = shadow_material
+
+	compute_shadow_uv()
+
+	add_child(shadow_poly)
+
+	###################################
 	# Stencil Polygon
 	###################################
 	stencil_poly = Polygon2D.new()
@@ -101,6 +118,28 @@ func _ready() -> void:
 
 	update()
 
+func compute_shadow_uv() -> void:
+	var min_pos := Vector2.INF
+	var max_pos := -Vector2.INF
+	for p in shadow_poly.polygon:
+		min_pos = min_pos.min(p)
+		max_pos = max_pos.max(p)
+	
+	var size := max_pos - min_pos
+	if size.length() < 0.001:
+		return
+	
+	var uvs: PackedVector2Array = []
+	for p in shadow_poly.polygon:
+		var uv := (p - min_pos) / size
+		uvs.append(uv)
+
+	shadow_poly.uv = uvs
+
+	if c.grid_pos == Vector2i(5, 5):
+		print("UVS:\n", uvs)
+		print("min_pos: ", min_pos, " max_pos: ", max_pos, " size: ", size)
+
 func set_dirty() -> void:
 	dirty = true
 
@@ -110,17 +149,33 @@ func _process(delta: float) -> void:
 		dirty = false
 		update()
 
+	# TODO DEV
+	# 0 = light, 1 = border, 2+ = dark
+	if c.light_depth == 0:
+		background_poly.modulate = Color.WHITE
+		mineral_poly.modulate = Color.WHITE
+		shadow_poly.visible = false
+	elif c.light_depth >= 2:
+		background_poly.modulate = Color.BLACK
+		mineral_poly.modulate = Color.BLACK
+		shadow_poly.visible = false
+	else:
+		# = 1 = border
+		var default_color := Color(1.0, 0.0, 0.5)
+		background_poly.modulate = default_color
+		mineral_poly.modulate = default_color
+
+		shadow_poly.visible = true
+
 	# TODO TEMP
 	# 0  = air / not solid
 	# 1  = adjacent to air
 	# 2+ = deeper underground, higher means darker
-	var mod_light_depth: Array[float] = [1.3, 0.4, 0.03, 0.0, 0.0]
-	var light_depth_clamped := mod_light_depth[clamp(c.light_depth, 0, mod_light_depth.size() - 1)]
-
-	background_poly.modulate = Color.WHITE * light_depth_clamped
-	background_poly.modulate.a = 1.0
-
-	mineral_poly.modulate.a = light_depth_clamped
+	# var mod_light_depth: Array[float] = [1.3, 0.4, 0.03, 0.0, 0.0]
+	# var light_depth_clamped := mod_light_depth[clamp(c.light_depth, 0, mod_light_depth.size() - 1)]
+	# background_poly.modulate = Color.WHITE * light_depth_clamped
+	# background_poly.modulate.a = 1.0
+	# mineral_poly.modulate.a = light_depth_clamped
 
 
 func update() -> void:

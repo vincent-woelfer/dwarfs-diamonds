@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://dl426n5esxfkw"]
+
+[ext_resource type="Material" uid="uid://dpm0vk1gmt4mw" path="res://assets/materials/CellShadow.tres" id="1_errlg"]
+
+[node name="Test" type="Node2D" unique_id=804761853]
+
+[node name="Polygon2D" type="Polygon2D" parent="." unique_id=580060450]
+material = ExtResource("1_errlg")
+color = Color(1, 0.54901963, 1, 1)
+polygon = PackedVector2Array(0, -8, 40, -16, 80, -8, 72, 24, 80, 64, 40, 72, 0, 64, 16, 48)
+uv = PackedVector2Array(36.36568, 25.704777, 40.886967, 24.80052, 45.408257, 25.704777, 44.503998, 29.321808, 45.408257, 33.843094, 40.886967, 34.747353, 36.36568, 33.843094, 38.174194, 32.03458)

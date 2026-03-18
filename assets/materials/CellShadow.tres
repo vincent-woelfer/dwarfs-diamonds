@@ -1,0 +1,6 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://dpm0vk1gmt4mw"]
+
+[ext_resource type="Shader" uid="uid://ci1x44kyko7i7" path="res://shaders/CellShadow.gdshader" id="1_m58vd"]
+
+[resource]
+shader = ExtResource("1_m58vd")
