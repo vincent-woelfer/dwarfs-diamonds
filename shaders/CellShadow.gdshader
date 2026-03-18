@@ -2,14 +2,14 @@ shader_type canvas_item;
 
 #include "debug.gdshaderinc"
 
-instance uniform bool top_left     = true;
-instance uniform bool top          = true;
-instance uniform bool top_right    = true;
-instance uniform bool right        = false;
-instance uniform bool bot_right    = false;
-instance uniform bool bot          = false;
-instance uniform bool bot_left     = false;
-instance uniform bool left         = false;
+uniform bool top_left     = true;
+uniform bool top          = true;
+uniform bool top_right    = true;
+uniform bool right        = false;
+uniform bool bot_right    = false;
+uniform bool bot          = false;
+uniform bool bot_left     = false;
+uniform bool left         = false;
 
 uniform float fade_distance : hint_range(0.0, 1.0) = 0.3;
 
@@ -39,7 +39,7 @@ void fragment() {
 	COLOR.rgb = vec3(1.0, 0.0, 0.5);
     //COLOR.a = 1.0 - min_side_dist;
 
-	Debug dbg = debug_construct(SCREEN_UV);
+	Debug dbg = debug_construct(UV);
 	dbgFloat(dbg, 0.5);
 	debug_finish(COLOR.rgb, dbg);
 }

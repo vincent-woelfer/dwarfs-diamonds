@@ -39,16 +39,14 @@
 	
 
 group_uniforms Debug;
-// Click here to hide code
-
-uniform float dbg_text_scale : hint_range(0.2, 20.0, 0.2) = 20.0;
+uniform float dbg_text_scale : hint_range(0.2, 20.0, 0.2) = 4.0;
 uniform float dbg_text_offset : hint_range(0.0, 0.5, 0.02) = 0.00;
 uniform float dbg_alpha : hint_range(0.0, 1.0, 0.1) = 0.2;
-uniform float dbg_size_x : hint_range(0.0, 1.0, 0.05) = 0.9;
-uniform float dbg_size_y : hint_range(0.0, 1.0, 0.05) = 0.9;
+uniform float dbg_size_x : hint_range(0.0, 1.0, 0.05) = 1.0;
+uniform float dbg_size_y : hint_range(0.0, 1.0, 0.05) = 1.0;
 uniform float dbg_pos_x : hint_range(0.0, 1.0, 0.05) = 0.0;
 uniform float dbg_pos_y : hint_range(0.0, 1.0, 0.05) = 0.0;
-uniform bool dbg_fix_floats = false;
+uniform bool dbg_fix_floats = true;
 struct Debug {
     vec2 uv;
     vec2 pos;

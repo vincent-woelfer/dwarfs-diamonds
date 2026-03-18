@@ -168,8 +168,8 @@ func _process(delta: float) -> void:
 
 		shadow_poly.visible = true
 
-	# (shadow_poly.material as ShaderMaterial).set_shader_parameter("uvs", shadow_poly.uv)
-	shadow_poly.set_instance_shader_parameter("uvs", shadow_poly.uv)
+	(shadow_poly.material as ShaderMaterial).set_shader_parameter("uvs", shadow_poly.uv)
+	# shadow_poly.set_instance_shader_parameter("uvs", shadow_poly.uv)
 
 	# TODO TEMP
 	# 0  = air / not solid
