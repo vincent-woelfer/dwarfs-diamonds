@@ -92,6 +92,8 @@ func _ready() -> void:
 
 	compute_shadow_uv()
 
+	# shadow_material.set_shader_parameter("uvs", shadow_poly.uv)
+
 	add_child(shadow_poly)
 
 	###################################
@@ -166,6 +168,8 @@ func _process(delta: float) -> void:
 		mineral_poly.modulate = default_color
 
 		shadow_poly.visible = true
+
+	(shadow_poly.material as ShaderMaterial).set_shader_parameter("uvs", shadow_poly.uv)
 
 	# TODO TEMP
 	# 0  = air / not solid
