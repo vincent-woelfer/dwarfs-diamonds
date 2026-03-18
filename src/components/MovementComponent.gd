@@ -236,7 +236,8 @@ func _update_on_ground_check() -> bool:
 	# Currently standing on solid ground or ladder or climbing wall
 	if not is_falling():
 		if (can_stand_in_curr_cell and is_on_floor) or is_climbing:
-			# Nothing to do            
+			# Snap position to floor
+			parent.global_position.y = y_cell_floor
 			return false
 		else:
 			# Enter falling state handles falling logic
@@ -248,6 +249,7 @@ func _update_on_ground_check() -> bool:
 		if can_stand_in_curr_cell and is_on_floor:
 			# Snap position to floor
 			parent.global_position.y = y_cell_floor
+			
 			# Exit-falling state handles landing logic
 			sm.transition_to(State.NOT_MOVING)
 			return true
