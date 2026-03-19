@@ -163,27 +163,35 @@ func _process(delta: float) -> void:
 		mineral_poly.modulate = Color.WHITE
 		shadow_poly.visible = true
 
-		# Vertex colors
-		var vert_colors := PackedColorArray()
-		for dir: Vector2i in Util.neighbours_all:
-			var n: Cell = c.get_neighbour(dir)
-			var light_depth := n.light_depth if n != null else 2
-			var col: Color = Color.BLACK # a = 1.0, fully shadowed by default
-			
-			if light_depth == 0:
-				# Light
-				col.a = 0.2
-			else:
-				# Full shadow
-				col.a = 1.0
-			vert_colors.append(col)
+		_update_vertex_colors()
 
-		# Append first vertex again for better interpolation in shader
-		vert_colors.append(vert_colors[0])
-		# Append center point
-		vert_colors.append(Color(0.0, 0.0, 0.0, 1.0)) # Center point is always fully shadowed
-		shadow_poly.vertex_colors = vert_colors
+func _update_vertex_colors() -> void:
+	var vert_colors := PackedColorArray()
 
+	for dir: Vector2i in Util.neighbours_all:
+		var n: Cell = c.get_neighbour(dir)
+		var light_depth := n.light_depth if n != null else 2
+		var col: Color = Color.BLACK # a = 1.0, fully shadowed by default
+		
+		if light_depth == 0:
+			# Light
+			col.a = 0.2
+		else:
+			# Full shadow
+			col.a = 1.0
+		vert_colors.append(col)
+
+	# Post-process to compute corners correctly
+	vert_colors[Enum.PolyPoint.TOP_LEFT].a = min(vert_colors[Enum.PolyPoint.LEFT].a, vert_colors[Enum.PolyPoint.TOP].a)
+	vert_colors[Enum.PolyPoint.TOP_RIGHT].a = min(vert_colors[Enum.PolyPoint.TOP].a, vert_colors[Enum.PolyPoint.RIGHT].a)
+	vert_colors[Enum.PolyPoint.BOT_RIGHT].a = min(vert_colors[Enum.PolyPoint.RIGHT].a, vert_colors[Enum.PolyPoint.BOT].a)
+	vert_colors[Enum.PolyPoint.BOT_LEFT].a = min(vert_colors[Enum.PolyPoint.BOT].a, vert_colors[Enum.PolyPoint.LEFT].a)
+
+	# Append first vertex again for better interpolation in shader
+	vert_colors.append(vert_colors[0])
+	# Append center point
+	vert_colors.append(Color(1.0, 0.0, 0.0, 1.0)) # Center point is always fully shadowed
+	shadow_poly.vertex_colors = vert_colors
 
 func update() -> void:
 	# VISUAL
