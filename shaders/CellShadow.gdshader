@@ -13,6 +13,9 @@ uniform bool left         = false;
 
 uniform float fade_distance : hint_range(0.0, 1.0) = 0.3;
 
+// 0 TL, 1 T, 2 TR, 3 R, 4 BR, 5 B, 6 BL, 7 L
+// uniform vec2 uvs[8];
+
 void fragment() {
 	// vec2 center = vec2(0.5, 0.5);
 	// float center_dist = distance(UV, center);
@@ -36,10 +39,12 @@ void fragment() {
 	// alpha = mix(alpha, fade, step(fade_distance, min_side_dist));
 	
 	// COLOR.a = alpha;
-	COLOR.rgb = vec3(1.0, 0.0, 0.5);
+	// COLOR.rgb = vec3(1.0, 0.0, 0.5);
     //COLOR.a = 1.0 - min_side_dist;
 
-	Debug dbg = debug_construct(UV);
-	dbgFloat(dbg, 0.5);
-	debug_finish(COLOR.rgb, dbg);
+	COLOR.rgb = vec3(UV.x, UV.y, 0.0);
+
+	// Debug dbg = debug_construct(UV);
+	// dbgFloat(dbg, 0.5);
+	// debug_finish(COLOR.rgb, dbg);
 }

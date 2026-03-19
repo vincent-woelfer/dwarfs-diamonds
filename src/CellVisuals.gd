@@ -10,6 +10,8 @@ var unshaded_material: CanvasItemMaterial = preload("res://assets/materials/unsh
 var cell_global_texture_shader: ShaderMaterial = preload("res://assets/materials/cell_global_texture_material.tres")
 var sky_global_texture_shader: ShaderMaterial = preload("res://assets/materials/sky_global_texture_material.tres")
 
+var dummy_1x1_texture: Texture2D = preload("res://assets/textures/dummy_1x1.png")
+
 # Polygons
 var background_poly: Polygon2D
 var stencil_poly: Polygon2D
@@ -88,10 +90,11 @@ func _ready() -> void:
 	shadow_poly.polygon = poly_points
 	shadow_poly.visibility_layer = Util.LAYER_1
 	shadow_poly.material = shadow_material.duplicate()
+	shadow_poly.texture = dummy_1x1_texture
 
 	compute_shadow_uv()
 
-	# shadow_material.set_shader_parameter("uvs", shadow_poly.uv)
+	shadow_material.set_shader_parameter("uvs", shadow_poly.uv)
 
 	add_child(shadow_poly)
 
@@ -119,6 +122,7 @@ func _ready() -> void:
 
 	update()
 
+# Compute normalized UVs
 func compute_shadow_uv() -> void:
 	var min_pos := Vector2.INF
 	var max_pos := -Vector2.INF
@@ -137,9 +141,6 @@ func compute_shadow_uv() -> void:
 
 	shadow_poly.uv = uvs
 
-	if c.grid_pos == Vector2i(5, 5):
-		print("UVS:\n", uvs)
-		print("min_pos: ", min_pos, " max_pos: ", max_pos, " size: ", size)
 
 func set_dirty() -> void:
 	dirty = true
@@ -168,8 +169,6 @@ func _process(delta: float) -> void:
 
 		shadow_poly.visible = true
 
-	(shadow_poly.material as ShaderMaterial).set_shader_parameter("uvs", shadow_poly.uv)
-	# shadow_poly.set_instance_shader_parameter("uvs", shadow_poly.uv)
 
 	# TODO TEMP
 	# 0  = air / not solid
