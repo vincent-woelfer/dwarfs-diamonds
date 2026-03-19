@@ -42,7 +42,7 @@ void fragment() {
 	// COLOR.rgb = vec3(1.0, 0.0, 0.5);
     //COLOR.a = 1.0 - min_side_dist;
 
-	COLOR.rgb = vec3(UV.x, UV.y, 0.0);
+	// COLOR.rgb = vec3(UV.x, UV.y, 0.0);
 
 	// Debug dbg = debug_construct(UV);
 	// dbgFloat(dbg, 0.5);

@@ -27,6 +27,7 @@ var occluder_poly: OccluderPolygon2D
 
 # world-space RELATIVE TO CELL
 var poly_points: PackedVector2Array
+var uv_points: PackedVector2Array
 
 var dirty: bool
 
@@ -42,6 +43,7 @@ func _ready() -> void:
 	self.z_index = Enum.ZIndex.CELL
 
 	poly_points = _get_cell_polygon()
+	uv_points = _compute_uvs()
 
 	###################################
 	# Background Polygon
@@ -68,6 +70,7 @@ func _ready() -> void:
 
 	mineral_poly = Polygon2D.new()
 	mineral_poly.polygon = poly_points
+	mineral_poly.uv = uv_points
 	mineral_poly.visibility_layer = Util.LAYER_1
 	# mineral_poly.material = unshaded_material # TODO glow material?
 	mineral_poly.texture = mineral_texture
@@ -80,21 +83,30 @@ func _ready() -> void:
 	mineral_poly.modulate *= 2.0
 	mineral_poly.modulate.a = 1.0
 	
-	# mineral_poly.uv = _get_cell_polygon(mineral_texture.get_size().x) # scale UVs to texture size
 	add_child(mineral_poly)
 
 	###################################
 	# Shadow Polygon
 	###################################
 	shadow_poly = Polygon2D.new()
-	shadow_poly.polygon = poly_points
 	shadow_poly.visibility_layer = Util.LAYER_1
-	shadow_poly.material = shadow_material.duplicate()
-	shadow_poly.texture = dummy_1x1_texture
 
-	compute_shadow_uv()
+	var shadow_poly_points := poly_points.duplicate()
+	var shadow_uvs := uv_points.duplicate()
 
-	shadow_material.set_shader_parameter("uvs", shadow_poly.uv)
+	shadow_poly_points.append(shadow_poly_points[0]) # Duplicate first point for better interpolation in shader
+	shadow_uvs.append(shadow_uvs[0]) # Duplicate first UV for better interpolation
+
+	shadow_poly_points.append(Vector2(0.5, 0.5) * Global.CELL_SIZE) # Center point for better interpolation in shader
+	shadow_uvs.append(Vector2(0.5, 0.5)) # UV for center point
+	
+	shadow_poly.polygon = shadow_poly_points
+	shadow_poly.uv = shadow_uvs
+
+	# NOT USED for now
+	# shadow_poly.material = shadow_material.duplicate()
+	# shadow_poly.texture = dummy_1x1_texture
+	# shadow_material.set_shader_parameter("uvs", shadow_poly.uv)
 
 	add_child(shadow_poly)
 
@@ -122,25 +134,6 @@ func _ready() -> void:
 
 	update()
 
-# Compute normalized UVs
-func compute_shadow_uv() -> void:
-	var min_pos := Vector2.INF
-	var max_pos := -Vector2.INF
-	for p in shadow_poly.polygon:
-		min_pos = min_pos.min(p)
-		max_pos = max_pos.max(p)
-	
-	var size := max_pos - min_pos
-	if size.length() < 0.001:
-		return
-	
-	var uvs: PackedVector2Array = []
-	for p in shadow_poly.polygon:
-		var uv := (p - min_pos) / size
-		uvs.append(uv)
-
-	shadow_poly.uv = uvs
-
 
 func set_dirty() -> void:
 	dirty = true
@@ -163,22 +156,33 @@ func _process(delta: float) -> void:
 		shadow_poly.visible = false
 	else:
 		# = 1 = border
-		var default_color := Color(1.0, 0.0, 0.5)
-		background_poly.modulate = default_color
-		mineral_poly.modulate = default_color
-
+		# var default_color := Color(1.0, 0.0, 0.5)
+		# background_poly.modulate = default_color
+		# mineral_poly.modulate = default_color
+		background_poly.modulate = Color.WHITE
+		mineral_poly.modulate = Color.WHITE
 		shadow_poly.visible = true
 
+		# Vertex colors
+		var vert_colors := PackedColorArray()
+		for dir: Vector2i in Util.neighbours_all:
+			var n: Cell = c.get_neighbour(dir)
+			var light_depth := n.light_depth if n != null else 2
+			var col: Color = Color.BLACK # a = 1.0, fully shadowed by default
+			
+			if light_depth == 0:
+				# Light
+				col.a = 0.2
+			else:
+				# Full shadow
+				col.a = 1.0
+			vert_colors.append(col)
 
-	# TODO TEMP
-	# 0  = air / not solid
-	# 1  = adjacent to air
-	# 2+ = deeper underground, higher means darker
-	# var mod_light_depth: Array[float] = [1.3, 0.4, 0.03, 0.0, 0.0]
-	# var light_depth_clamped := mod_light_depth[clamp(c.light_depth, 0, mod_light_depth.size() - 1)]
-	# background_poly.modulate = Color.WHITE * light_depth_clamped
-	# background_poly.modulate.a = 1.0
-	# mineral_poly.modulate.a = light_depth_clamped
+		# Append first vertex again for better interpolation in shader
+		vert_colors.append(vert_colors[0])
+		# Append center point
+		vert_colors.append(Color(0.0, 0.0, 0.0, 1.0)) # Center point is always fully shadowed
+		shadow_poly.vertex_colors = vert_colors
 
 
 func update() -> void:
@@ -252,3 +256,18 @@ func _get_cell_polygon(MAX_VAL: float = Global.CELL_SIZE) -> PackedVector2Array:
 
 	# Clockwise, starting from top-left
 	return PackedVector2Array([top_left, top, top_right, right, bot_right, bot, bot_left, left])
+
+# Compute normalized UVs
+func _compute_uvs() -> PackedVector2Array:
+	var min_pos := Vector2.INF
+	var max_pos := -Vector2.INF
+	for p in poly_points:
+		min_pos = min_pos.min(p)
+		max_pos = max_pos.max(p)
+	
+	var size := max_pos - min_pos
+	var uvs: PackedVector2Array = []
+	for p in poly_points:
+		var uv := (p - min_pos) / size
+		uvs.append(uv)
+	return uvs

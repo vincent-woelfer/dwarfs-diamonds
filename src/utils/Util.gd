@@ -93,7 +93,18 @@ static var neighbours_diagonal := [
 	Vector2i(1, -1)
 ]
 
-static var neighbours_all := neighbours_cardinal + neighbours_diagonal
+# These follow the same order as the 8 poly points, so we can easily loop through them together when needed (e.g. for vertex colors)
+# ORDER: top_left, top, top_right, right, bot_right, bot, bot_left, left
+static var neighbours_all := [
+	Vector2i(-1, -1),
+	Vector2i(0, -1),
+	Vector2i(1, -1),
+	Vector2i(1, 0),
+	Vector2i(1, 1),
+	Vector2i(0, 1),
+	Vector2i(-1, 1),
+	Vector2i(-1, 0),
+]
 
 ## Allows for both cardinal and diagonal neighbours
 static func are_neighbours(pos_a: Vector2i, pos_b: Vector2i) -> bool:
