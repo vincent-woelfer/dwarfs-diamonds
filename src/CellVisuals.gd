@@ -97,7 +97,7 @@ func _ready() -> void:
 	# Setup shader. TODO test if duplicate is required? Maybe compare with per instance uniforms
 	shadow_poly.material = shadow_material.duplicate()
 	shadow_poly.texture = dummy_1x1_texture
-	# shadow_material.set_shader_parameter("uvs", shadow_poly.uv)
+	shadow_material.set_shader_parameter("uvs", shadow_poly.uv)
 
 	add_child(shadow_poly)
 
@@ -160,30 +160,30 @@ func _process(delta: float) -> void:
 		# _update_vertex_colors()
 
 
-func _update_vertex_colors() -> void:
-	var vert_colors := PackedColorArray()
+# func _update_vertex_colors() -> void:
+# 	var vert_colors := PackedColorArray()
 
-	for dir: Vector2i in Util.neighbours_all:
-		var n: Cell = c.get_neighbour(dir)
-		var light_depth := n.light_depth if n != null else 2
-		var col: Color = Color.BLACK # a = 1.0, fully shadowed by default
+# 	for dir: Vector2i in Util.neighbours_all:
+# 		var n: Cell = c.get_neighbour(dir)
+# 		var light_depth := n.light_depth if n != null else 2
+# 		var col: Color = Color.BLACK # a = 1.0, fully shadowed by default
 		
-		if light_depth == 0:
-			# Light
-			col.a = 0.2
-		else:
-			# Full shadow
-			col.a = 1.0
-		vert_colors.append(col)
+# 		if light_depth == 0:
+# 			# Light
+# 			col.a = 0.2
+# 		else:
+# 			# Full shadow
+# 			col.a = 1.0
+# 		vert_colors.append(col)
 
-	# Post-process to compute corners correctly
-	vert_colors[Enum.PolyPoint.TOP_LEFT].a = min(vert_colors[Enum.PolyPoint.LEFT].a, vert_colors[Enum.PolyPoint.TOP].a)
-	vert_colors[Enum.PolyPoint.TOP_RIGHT].a = min(vert_colors[Enum.PolyPoint.TOP].a, vert_colors[Enum.PolyPoint.RIGHT].a)
-	vert_colors[Enum.PolyPoint.BOT_RIGHT].a = min(vert_colors[Enum.PolyPoint.RIGHT].a, vert_colors[Enum.PolyPoint.BOT].a)
-	vert_colors[Enum.PolyPoint.BOT_LEFT].a = min(vert_colors[Enum.PolyPoint.BOT].a, vert_colors[Enum.PolyPoint.LEFT].a)
+# 	# Post-process to compute corners correctly
+# 	vert_colors[Enum.PolyPoint.TOP_LEFT].a = min(vert_colors[Enum.PolyPoint.LEFT].a, vert_colors[Enum.PolyPoint.TOP].a)
+# 	vert_colors[Enum.PolyPoint.TOP_RIGHT].a = min(vert_colors[Enum.PolyPoint.TOP].a, vert_colors[Enum.PolyPoint.RIGHT].a)
+# 	vert_colors[Enum.PolyPoint.BOT_RIGHT].a = min(vert_colors[Enum.PolyPoint.RIGHT].a, vert_colors[Enum.PolyPoint.BOT].a)
+# 	vert_colors[Enum.PolyPoint.BOT_LEFT].a = min(vert_colors[Enum.PolyPoint.BOT].a, vert_colors[Enum.PolyPoint.LEFT].a)
 
-	# Apply
-	shadow_poly.vertex_colors = vert_colors
+# 	# Apply
+# 	shadow_poly.vertex_colors = vert_colors
 
 func update() -> void:
 	# VISUAL
