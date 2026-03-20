@@ -20,9 +20,9 @@ uniform vec2 uvs[8];
 // ------------------------------------------------------------------
 // outward normal for edge a->b (points outside the polygon)
 vec2 outward_normal(vec2 a, vec2 b, vec2 center) {
-    vec2  ab  = b - a;
+    vec2 ab = b - a;
 	// left‑hand normal
-    vec2  n   = vec2(-ab.y, ab.x);
+    vec2 n = vec2(-ab.y, ab.x);
     // if n points toward the centre, flip it
     return dot(center - a, n) > 0.0 ? -n : n;
 }
@@ -40,6 +40,8 @@ float distance_to_corner(vec2 p, vec2 c) {
 
 // ------------------------------------------------------------------
 void fragment() {
+	Debug dbg = debug_construct(UV);
+
 	vec2 uv = UV;
     vec2 center = vec2(0.5, 0.5);
     float alpha = 1.0;
@@ -51,6 +53,8 @@ void fragment() {
             float fade = smoothstep(0.0, fade_distance, d);
             alpha *= (1.0 - fade);
         }
+
+		dbgFloat(dbg, d);
     }
     if (!bot) {
         float d = signed_distance_to_edge(uv, uvs[6], uvs[4], center); // bot edge BL‑BR
@@ -75,39 +79,39 @@ void fragment() {
     }
 
     // ----- Corners -----
-    if (!top_left) {
-        float d = distance_to_corner(uv, uvs[0]); // TL corner
-        if (d > 0.0) {
-            float fade = smoothstep(0.0, fade_distance, d);
-            alpha *= (1.0 - fade);
-        }
-    }
-    if (!top_right) {
-        float d = distance_to_corner(uv, uvs[2]); // TR corner
-        if (d > 0.0) {
-            float fade = smoothstep(0.0, fade_distance, d);
-            alpha *= (1.0 - fade);
-        }
-    }
-    if (!bot_left) {
-        float d = distance_to_corner(uv, uvs[6]); // BL corner
-        if (d > 0.0) {
-            float fade = smoothstep(0.0, fade_distance, d);
-            alpha *= (1.0 - fade);
-        }
-    }
-    if (!bot_right) {
-        float d = distance_to_corner(uv, uvs[4]); // BR corner
-        if (d > 0.0) {
-            float fade = smoothstep(0.0, fade_distance, d);
-            alpha *= (1.0 - fade);
-        }
-    }
+    // if (!top_left) {
+    //     float d = distance_to_corner(uv, uvs[0]); // TL corner
+    //     if (d > 0.0) {
+    //         float fade = smoothstep(0.0, fade_distance, d);
+    //         alpha *= (1.0 - fade);
+    //     }
+    // }
+    // if (!top_right) {
+    //     float d = distance_to_corner(uv, uvs[2]); // TR corner
+    //     if (d > 0.0) {
+    //         float fade = smoothstep(0.0, fade_distance, d);
+    //         alpha *= (1.0 - fade);
+    //     }
+    // }
+    // if (!bot_left) {
+    //     float d = distance_to_corner(uv, uvs[6]); // BL corner
+    //     if (d > 0.0) {
+    //         float fade = smoothstep(0.0, fade_distance, d);
+    //         alpha *= (1.0 - fade);
+    //     }
+    // }
+    // if (!bot_right) {
+    //     float d = distance_to_corner(uv, uvs[4]); // BR corner
+    //     if (d > 0.0) {
+    //         float fade = smoothstep(0.0, fade_distance, d);
+    //         alpha *= (1.0 - fade);
+    //     }
+    // }
 
-    // ----- Output -----
+    // ----- Output -----	
     COLOR = vec4(0.0, 0.0, 0.0, alpha);
 
 	// Debug dbg = debug_construct(UV);
-	// dbgFloat(dbg, alpha);
-	// debug_finish(COLOR.rgb, dbg);
+	// dbgFloat(dbg, UV.x);
+	debug_finish(COLOR.rgb, dbg);
 }
