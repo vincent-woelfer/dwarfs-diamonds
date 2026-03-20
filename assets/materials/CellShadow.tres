@@ -4,3 +4,20 @@
 
 [resource]
 shader = ExtResource("1_m58vd")
+shader_parameter/dbg_text_scale = 12.0000001788138
+shader_parameter/dbg_text_offset = 0.1999999955297
+shader_parameter/dbg_alpha = 0.20000000298024
+shader_parameter/dbg_size_x = 1.0
+shader_parameter/dbg_size_y = 1.0
+shader_parameter/dbg_pos_x = 0.0
+shader_parameter/dbg_pos_y = 0.0
+shader_parameter/dbg_fix_floats = true
+shader_parameter/top_left = true
+shader_parameter/top = true
+shader_parameter/top_right = true
+shader_parameter/right = false
+shader_parameter/bot_right = false
+shader_parameter/bot = false
+shader_parameter/bot_left = false
+shader_parameter/left = false
+shader_parameter/fade_distance = 0.3

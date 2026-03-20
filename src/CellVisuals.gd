@@ -12,6 +12,8 @@ var sky_global_texture_shader: ShaderMaterial = preload("res://assets/materials/
 
 var dummy_1x1_texture: Texture2D = preload("res://assets/textures/dummy_1x1.png")
 
+var mineral_texture: Texture2D = preload("res://assets/sprites/minerals_1.png")
+
 # Polygons
 var background_poly: Polygon2D
 var stencil_poly: Polygon2D
@@ -66,8 +68,6 @@ func _ready() -> void:
 	###################################
 	# Mineral Polygon
 	###################################
-	var mineral_texture: Texture2D = preload("res://assets/sprites/minerals_1.png")
-
 	mineral_poly = Polygon2D.new()
 	mineral_poly.polygon = poly_points
 	mineral_poly.uv = uv_points
@@ -90,22 +90,12 @@ func _ready() -> void:
 	###################################
 	shadow_poly = Polygon2D.new()
 	shadow_poly.visibility_layer = Util.LAYER_1
+	shadow_poly.polygon = poly_points
+	shadow_poly.uv = uv_points
 
-	var shadow_poly_points := poly_points.duplicate()
-	var shadow_uvs := uv_points.duplicate()
-
-	shadow_poly_points.append(shadow_poly_points[0]) # Duplicate first point for better interpolation in shader
-	shadow_uvs.append(shadow_uvs[0]) # Duplicate first UV for better interpolation
-
-	shadow_poly_points.append(Vector2(0.5, 0.5) * Global.CELL_SIZE) # Center point for better interpolation in shader
-	shadow_uvs.append(Vector2(0.5, 0.5)) # UV for center point
-	
-	shadow_poly.polygon = shadow_poly_points
-	shadow_poly.uv = shadow_uvs
-
-	# NOT USED for now
-	# shadow_poly.material = shadow_material.duplicate()
-	# shadow_poly.texture = dummy_1x1_texture
+	# Setup shader. TODO test if duplicate is required? Maybe compare with per instance uniforms
+	shadow_poly.material = shadow_material.duplicate()
+	shadow_poly.texture = dummy_1x1_texture
 	# shadow_material.set_shader_parameter("uvs", shadow_poly.uv)
 
 	add_child(shadow_poly)

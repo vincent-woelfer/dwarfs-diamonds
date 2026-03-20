@@ -39,14 +39,16 @@
 	
 
 group_uniforms Debug;
-uniform float dbg_text_scale : hint_range(0.2, 20.0, 0.2) = 4.0;
-uniform float dbg_text_offset : hint_range(0.0, 0.5, 0.02) = 0.00;
+uniform float dbg_text_scale : hint_range(0.2, 20.0, 0.2) = 12.0;
+uniform float dbg_text_offset : hint_range(0.0, 0.5, 0.02) = 0.2;
 uniform float dbg_alpha : hint_range(0.0, 1.0, 0.1) = 0.2;
 uniform float dbg_size_x : hint_range(0.0, 1.0, 0.05) = 1.0;
 uniform float dbg_size_y : hint_range(0.0, 1.0, 0.05) = 1.0;
 uniform float dbg_pos_x : hint_range(0.0, 1.0, 0.05) = 0.0;
 uniform float dbg_pos_y : hint_range(0.0, 1.0, 0.05) = 0.0;
 uniform bool dbg_fix_floats = true;
+group_uniforms;
+
 struct Debug {
     vec2 uv;
     vec2 pos;
@@ -62,6 +64,32 @@ const int cell_mask[20] = int[20](1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2
 const int min_mask = 1792;
 const int dot_mask = 2;
 const int remap_digits[7] = int[7](0,0,1,0,2,3,4);
+
+void debug_finish( inout vec3 set, inout Debug dbg ) {
+    if (dbg.onUV) {
+        vec3 col = vec3(0.01);
+        col.r = dbg.result;
+        float m = dbg_alpha;
+        m = -pow(2.0, -10.0 * dbg_alpha) + 1.0;
+        set = mix(set,col,m);
+    }
+}
+Debug debug_construct( in vec2 screen_uv ) {
+    Debug dbg;
+    dbg.uv = screen_uv;
+    dbg.uv.x -= (1.0-dbg_size_x)*dbg_pos_x;
+    dbg.uv.y -= (1.0-dbg_size_y)*dbg_pos_y;
+    dbg.uv /= vec2(dbg_size_x,dbg_size_y);
+    dbg.pos = vec2(dbg_text_offset);
+    dbg.result = 0.0;
+    dbg.scale = dbg_text_scale;
+    dbg.addY = dbg_text_scale / 80.0;
+    dbg.onUV = false;
+    if (dbg.uv.x > 0.0 && dbg.uv.x < 1.0 && dbg.uv.y > 0.0 && dbg.uv.y < 1.0) {
+        dbg.onUV = true;
+    }
+    return dbg;
+}
 
 int getDigit(float fnum, int place) {
     float num = clamp(abs(fnum), 0.0001, 99.999);
@@ -158,35 +186,6 @@ void dbgMat4(inout Debug dbg, in mat4 mat) {
 void dbgSpacer(inout Debug dbg) {
     dbg.pos.y += dbg.addY;
 }
-
-
-
-void debug_finish( inout vec3 set, inout Debug dbg ) {
-    if (dbg.onUV) {
-        vec3 col = vec3(0.01);
-        col.b = dbg.result;
-        float m = dbg_alpha;
-        m = -pow(2.0, -10.0 * dbg_alpha) + 1.0;
-        set = mix(set,col,m);
-    }
-}
-Debug debug_construct( in vec2 screen_uv ) {
-    Debug dbg;
-    dbg.uv = screen_uv;
-    dbg.uv.x -= (1.0-dbg_size_x)*dbg_pos_x;
-    dbg.uv.y -= (1.0-dbg_size_y)*dbg_pos_y;
-    dbg.uv /= vec2(dbg_size_x,dbg_size_y);
-    dbg.pos = vec2(dbg_text_offset);
-    dbg.result = 0.0;
-    dbg.scale = dbg_text_scale;
-    dbg.addY = dbg_text_scale / 80.0;
-    dbg.onUV = false;
-    if (dbg.uv.x > 0.0 && dbg.uv.x < 1.0 && dbg.uv.y > 0.0 && dbg.uv.y < 1.0) {
-        dbg.onUV = true;
-    }
-    return dbg;
-}
-	
 
 void draw_canvas( inout vec3 set, in vec2 uv, in float s, in float c ) {
 	float v = 0.8;

@@ -1,6 +1,6 @@
 shader_type canvas_item;
 
-#include "debug.gdshaderinc"
+#include "res://shaders/debug.gdshaderinc"
 
 uniform bool top_left     = true;
 uniform bool top          = true;
@@ -42,9 +42,9 @@ void fragment() {
 	// COLOR.rgb = vec3(1.0, 0.0, 0.5);
     //COLOR.a = 1.0 - min_side_dist;
 
-	// COLOR.rgb = vec3(UV.x, UV.y, 0.0);
+	COLOR.rgb = vec3(UV.x, UV.y, sin(TIME*3.0) * 0.5 + 0.5);
 
-	// Debug dbg = debug_construct(UV);
-	// dbgFloat(dbg, 0.5);
-	// debug_finish(COLOR.rgb, dbg);
+	Debug dbg = debug_construct(UV);
+	dbgFloat(dbg, TIME);
+	debug_finish(COLOR.rgb, dbg);
 }
