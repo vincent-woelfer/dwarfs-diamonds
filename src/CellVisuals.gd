@@ -165,6 +165,7 @@ func _process(delta: float) -> void:
 
 		_update_vertex_colors()
 
+
 func _update_vertex_colors() -> void:
 	var vert_colors := PackedColorArray()
 
