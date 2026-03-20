@@ -52,6 +52,7 @@ func _ready() -> void:
 	###################################
 	background_poly = Polygon2D.new()
 	background_poly.polygon = poly_points
+	background_poly.uv = uv_points # needed?
 	background_poly.visibility_layer = Util.LAYER_1
 
 	# Add material
@@ -122,6 +123,9 @@ func _ready() -> void:
 	occluder.occluder = occluder_poly
 	add_child(occluder)
 
+	###################################
+	# Finalize
+	###################################
 	update()
 
 
@@ -153,7 +157,7 @@ func _process(delta: float) -> void:
 		mineral_poly.modulate = Color.WHITE
 		shadow_poly.visible = true
 
-		_update_vertex_colors()
+		# _update_vertex_colors()
 
 
 func _update_vertex_colors() -> void:
@@ -178,10 +182,7 @@ func _update_vertex_colors() -> void:
 	vert_colors[Enum.PolyPoint.BOT_RIGHT].a = min(vert_colors[Enum.PolyPoint.RIGHT].a, vert_colors[Enum.PolyPoint.BOT].a)
 	vert_colors[Enum.PolyPoint.BOT_LEFT].a = min(vert_colors[Enum.PolyPoint.BOT].a, vert_colors[Enum.PolyPoint.LEFT].a)
 
-	# Append first vertex again for better interpolation in shader
-	vert_colors.append(vert_colors[0])
-	# Append center point
-	vert_colors.append(Color(1.0, 0.0, 0.0, 1.0)) # Center point is always fully shadowed
+	# Apply
 	shadow_poly.vertex_colors = vert_colors
 
 func update() -> void:
