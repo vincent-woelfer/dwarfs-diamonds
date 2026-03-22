@@ -2,6 +2,49 @@
 # TODO
 ########################################################################################################################
 
+
+
+
+########################################################################################################################
+# IDEEN FUTURE
+########################################################################################################################
+Idle animationen aktivitäten
+- Grillen
+- Schlafen
+- Rauchen
+- Miteinander reden, sprechblasen mit "Runen" und sounds
+
+Management-Game aber Cozy, bissl albern bissl lustig, bisschen wie Minions.
+
+Mehrere Level, erst nur geringe Tiefe weil wenig Upgrades, später besser -> tiefer. 
+Nach erster Quest kommt man in neues Level/Map/Berg. Da schaltet man Dinge frei und kommt später in erste map (welche gespeichert wird) wieder zurückmund kommt weiter.
+Ein bisschen Metroid-vaina mäßig.
+
+Es gibt Gegner, die knocken aber zwerge nur aus. Es gibt Sani-Zwerge die die wieder beleben.
+
+Man kann zwergen jobs zuweisen (z.b. sani-zelt), Lift-Arbeiter usw.
+
+Keine King-Figur, du machst nur management.
+
+Es gibt eine World-Map 2d von schräg oben wo man level auswählt.
+
+Zwerge haben Voice-Identität (und leicht andere Visuals).
+
+Gefahren je tiefer, z.B: Gas/Sporen, Lava, Gegner, harte Steine.
+
+Brauchen essen trinken ausruhen, das muss man auch bauen/organizen.
+eventuell Sachen dafür anbauen damit auch Oberfläche nen Sinn hat.
+
+Platformen und simple statik ist vorhanden/wichtig.
+
+Für große Gebäude Materialien ranholen.
+
+
+
+
+
+########################################################################################################################
+
 ============ Implement Important ============
 Bis einschl. 1.2. ALPHA-0.1
 
@@ -12,6 +55,11 @@ Diamanten spawnen in Gestein.
 
 Entweder lift oder minecard mit laden/entladen und ins pathfinding eingebunden. 
 ActionPoints aus ActionPointsRes erstellen wenn building completed ist.
+
+
+
+SOUND ON GEMSTONE MINE -> Amelie
+
 
 
 
