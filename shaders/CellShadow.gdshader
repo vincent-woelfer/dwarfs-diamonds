@@ -17,7 +17,6 @@ uniform float fade_distance : hint_range(0.0, 1.0) = 0.3;
 // UVs in ORDER: 0 TL, 1 T, 2 TR, 3 R, 4 BR, 5 B, 6 BL, 7 L
 uniform vec2 uvs[8];
 
-<<<<<<< Updated upstream
 // ------------------------------------------------------------------
 // outward normal for edge a->b (points outside the polygon)
 vec2 outward_normal(vec2 a, vec2 b, vec2 center) {
@@ -115,38 +114,4 @@ void fragment() {
 	// Debug dbg = debug_construct(UV);
 	// dbgFloat(dbg, UV.x);
 	debug_finish(COLOR.rgb, dbg);
-=======
-void fragment() {
-	// TODO Test background color gradient
-	//COLOR.rgb = vec3(UV.x, UV.y, sin(TIME*3.0) * 0.5 + 0.5);
-	////////////////////////////////////////////////////////
-
-	vec2 center = vec2(0.5, 0.5);
-	float center_dist = distance(UV, center);	
-	float min_side_dist = 1.0;
-	
-	// Sides
-	if (left) min_side_dist = min(min_side_dist, UV.x);
-	if (right) min_side_dist = min(min_side_dist, 1.0 - UV.x);
-	if (top) min_side_dist = min(min_side_dist, UV.y);
-	if (bot) min_side_dist = min(min_side_dist, 1.0 - UV.y);
-		
-	// Corners
-	if (top_left) min_side_dist = min(min_side_dist, min(UV.x, UV.y));
-	if (top_right) min_side_dist = min(min_side_dist, min(1.0 - UV.x, UV.y));
-	if (bot_left) min_side_dist = min(min_side_dist, min(UV.x, 1.0 - UV.y));
-	if (bot_right) min_side_dist = min(min_side_dist, min(1.0 - UV.x, 1.0 - UV.y));
-	
-	float fade = 1.0 - smoothstep(0.0, fade_distance, min_side_dist);
-	float alpha = 1.0 - center_dist;
-	alpha = mix(alpha, fade, step(fade_distance, min_side_dist));
-	
-	COLOR.rgb = vec3(0.0);
-	COLOR.r = UV.x;
-	//COLOR.a *= alpha;
-
-	//Debug dbg = debug_construct(UV);
-	// dbgFloat(dbg, TIME);
-	//debug_finish(COLOR.rgb, dbg);
->>>>>>> Stashed changes
 }
