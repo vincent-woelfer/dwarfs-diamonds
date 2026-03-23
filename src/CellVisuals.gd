@@ -97,11 +97,10 @@ func _ready() -> void:
 
 	# Setup shader. TODO test if duplicate is required? Maybe compare with per instance uniforms
 	shadow_material = shadow_material_scene.duplicate()
+	shadow_material.set_shader_parameter("uvs", shadow_poly.uv)
 	shadow_poly.material = shadow_material
 	shadow_poly.texture = dummy_1x1_texture
-
-	shadow_material.set_shader_parameter("uvs", shadow_poly.uv)
-
+	
 	add_child(shadow_poly)
 
 	###################################
@@ -266,8 +265,8 @@ func _get_cell_polygon() -> PackedVector2Array:
 	var left := (bot_left + top_left) * 0.5
 
 	# Deterministic-Random Offset
-	var max_corner_offset := SIDE_LENGTH * 0.1 * 0.0
-	var max_side_offset := SIDE_LENGTH * 0.125 * 0.0
+	var max_corner_offset := SIDE_LENGTH * 0.1
+	var max_side_offset := SIDE_LENGTH * 0.125
 
 	top_left += Util.rand_circular_offset(base + top_left, max_corner_offset)
 	top_right += Util.rand_circular_offset(base + top_right, max_corner_offset)
