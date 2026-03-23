@@ -11,18 +11,17 @@ var cell_global_texture_shader: ShaderMaterial = preload("res://assets/materials
 var sky_global_texture_shader: ShaderMaterial = preload("res://assets/materials/sky_global_texture_material.tres")
 
 var dummy_1x1_texture: Texture2D = preload("res://assets/textures/dummy_1x1.png")
-
 var mineral_texture: Texture2D = preload("res://assets/sprites/minerals_1.png")
+
+# Shadow Material
+var shadow_material_scene: ShaderMaterial = preload("res://assets/materials/CellShadow.tres")
+var shadow_material: ShaderMaterial
 
 # Polygons
 var background_poly: Polygon2D
 var stencil_poly: Polygon2D
 var mineral_poly: Polygon2D
-
-# TODO DEV
 var shadow_poly: Polygon2D
-var shadow_material_scene: ShaderMaterial = preload("res://assets/materials/CellShadow.tres")
-var shadow_material: ShaderMaterial
 
 # Light / Shadows
 var occluder: LightOccluder2D
@@ -157,7 +156,6 @@ func _process(delta: float) -> void:
 		shadow_poly.visible = true
 
 		_update_corner_lights()
-		# _update_vertex_colors()
 
 func _update_corner_lights() -> void:
 	# True = lit = apply fade, False = Shadow = no fade, black till border
@@ -181,31 +179,6 @@ func _update_corner_lights() -> void:
 	shadow_material.set_shader_parameter("bot_left", neighbour_lit[Enum.PolyPoint.BOT_LEFT])
 	shadow_material.set_shader_parameter("left", neighbour_lit[Enum.PolyPoint.LEFT])
 
-
-# func _update_vertex_colors() -> void:
-# 	var vert_colors := PackedColorArray()
-
-# 	for dir: Vector2i in Util.neighbours_all:
-# 		var n: Cell = c.get_neighbour(dir)
-# 		var light_depth := n.light_depth if n != null else 2
-# 		var col: Color = Color.BLACK # a = 1.0, fully shadowed by default
-		
-# 		if light_depth == 0:
-# 			# Light
-# 			col.a = 0.2
-# 		else:
-# 			# Full shadow
-# 			col.a = 1.0
-# 		vert_colors.append(col)
-
-# 	# Post-process to compute corners correctly
-# 	vert_colors[Enum.PolyPoint.TOP_LEFT].a = min(vert_colors[Enum.PolyPoint.LEFT].a, vert_colors[Enum.PolyPoint.TOP].a)
-# 	vert_colors[Enum.PolyPoint.TOP_RIGHT].a = min(vert_colors[Enum.PolyPoint.TOP].a, vert_colors[Enum.PolyPoint.RIGHT].a)
-# 	vert_colors[Enum.PolyPoint.BOT_RIGHT].a = min(vert_colors[Enum.PolyPoint.RIGHT].a, vert_colors[Enum.PolyPoint.BOT].a)
-# 	vert_colors[Enum.PolyPoint.BOT_LEFT].a = min(vert_colors[Enum.PolyPoint.BOT].a, vert_colors[Enum.PolyPoint.LEFT].a)
-
-# 	# Apply
-# 	shadow_poly.vertex_colors = vert_colors
 
 func update() -> void:
 	# VISUAL
@@ -250,7 +223,6 @@ func get_poly_point(point: Enum.PolyPoint) -> Vector2:
 # Values range is [0, CELL_SIZE] + small random offset
 func _get_cell_polygon() -> PackedVector2Array:
 	const SIDE_LENGTH: float = Global.CELL_SIZE
-	var base: Vector2 = c.grid_pos * SIDE_LENGTH
 
 	# 4 Corners
 	var top_left := Vector2.ZERO
@@ -268,6 +240,7 @@ func _get_cell_polygon() -> PackedVector2Array:
 	var max_corner_offset := SIDE_LENGTH * 0.1
 	var max_side_offset := SIDE_LENGTH * 0.125 * 2.0
 
+	var base: Vector2 = c.grid_pos * SIDE_LENGTH
 	top_left += Util.rand_circular_offset(base + top_left, max_corner_offset)
 	top_right += Util.rand_circular_offset(base + top_right, max_corner_offset)
 	bot_right += Util.rand_circular_offset(base + bot_right, max_corner_offset)
@@ -280,17 +253,10 @@ func _get_cell_polygon() -> PackedVector2Array:
 	# Clockwise, starting from top-left
 	return PackedVector2Array([top_left, top, top_right, right, bot_right, bot, bot_left, left])
 
-# Compute normalized UVs
+# Compute normalized UVs by simply scaling down polygon by SIDE_LENGTH
 func _compute_uvs() -> PackedVector2Array:
-	var min_pos := Vector2.INF
-	var max_pos := -Vector2.INF
-	for p in poly_points:
-		min_pos = min_pos.min(p)
-		max_pos = max_pos.max(p)
-	
-	var size := max_pos - min_pos
+	const SIDE_LENGTH: float = Global.CELL_SIZE
 	var uvs: PackedVector2Array = []
 	for p in poly_points:
-		var uv := (p - min_pos) / size
-		uvs.append(uv)
+		uvs.append(p / SIDE_LENGTH)
 	return uvs

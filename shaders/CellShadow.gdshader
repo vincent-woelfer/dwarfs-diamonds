@@ -79,8 +79,8 @@ void fragment() {
 		s1_enabled = left;
 		c_enabled = top_left && !s0_enabled && !s1_enabled;
 
-		s0_dist = two_seg_dist(uvs[0], uvs[1], uvs[2], uv);  // top edge
-		s1_dist = two_seg_dist(uvs[0], uvs[7], uvs[6], uv);  // left edge
+		s0_dist = two_seg_dist(uvs[0], uvs[1], uvs[2], uv);
+		s1_dist = two_seg_dist(uvs[0], uvs[7], uvs[6], uv);
         c_dist = corner_dist(uvs[0], uv);
 
 	} else if (right_half && !bottom_half) {
@@ -89,8 +89,8 @@ void fragment() {
 		s1_enabled = right;
 		c_enabled  = top_right && !s0_enabled && !s1_enabled;
 
-		s0_dist = two_seg_dist(uvs[2], uvs[1], uvs[0], uv);  // top edge
-		s1_dist = two_seg_dist(uvs[2], uvs[3], uvs[4], uv);  // right edge
+		s0_dist = two_seg_dist(uvs[2], uvs[1], uvs[0], uv);
+		s1_dist = two_seg_dist(uvs[2], uvs[3], uvs[4], uv);
 		c_dist = corner_dist(uvs[2], uv);
 
 	} else if (right_half && bottom_half) {
@@ -99,8 +99,8 @@ void fragment() {
 		s1_enabled = right;
 		c_enabled  = bot_right && !s0_enabled && !s1_enabled;
 
-		s0_dist = two_seg_dist(uvs[4], uvs[5], uvs[6], uv);  // bot edge
-		s1_dist = two_seg_dist(uvs[4], uvs[3], uvs[2], uv);  // right edge
+		s0_dist = two_seg_dist(uvs[4], uvs[5], uvs[6], uv);
+		s1_dist = two_seg_dist(uvs[4], uvs[3], uvs[2], uv);
 		c_dist = corner_dist(uvs[4], uv);
 
 	} else {
@@ -109,8 +109,8 @@ void fragment() {
 		s1_enabled = left;
 		c_enabled  = bot_left && !s0_enabled && !s1_enabled;
 
-		s0_dist = two_seg_dist(uvs[6], uvs[5], uvs[4], uv);  // bot edge
-		s1_dist = two_seg_dist(uvs[6], uvs[7], uvs[0], uv);  // left edge
+		s0_dist = two_seg_dist(uvs[6], uvs[5], uvs[4], uv);
+		s1_dist = two_seg_dist(uvs[6], uvs[7], uvs[0], uv);
 		c_dist = corner_dist(uvs[6], uv);
 	}
 
