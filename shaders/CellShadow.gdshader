@@ -53,6 +53,9 @@ void fragment() {
 		s1_enabled = left;
 		c_enabled = top_left && !s0_enabled && !s1_enabled;
 
+		// t = 0 at center, 1 at border
+		// The formular ist (dist to center) / (max-length = center to border)
+		// Todo maybe better idea would be 1 - (dist to border / max length).
 		s0_t = (center.y - uv.y) / (center.y - uvs[1].y);               // top
 		s1_t = (center.x - uv.x) / (center.x - uvs[7].x);               // left
         c_t = 1.0 - length(uv - uvs[0]) / length(uvs[0] - center);      // top_left

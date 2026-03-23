@@ -187,17 +187,20 @@ func get_floor_point() -> Vector2:
 
 ## Returns floor point at given world-space x, interpolated over BOT_LEFT -> BOT -> BOT_RIGHT
 func get_floor_point_at_world_x(world_x: float) -> Vector2:
-	var p_l: Vector2 = get_poly_point(Enum.PolyPoint.BOT_LEFT)
-	var p_m: Vector2 = get_poly_point(Enum.PolyPoint.BOT)
-	var p_r: Vector2 = get_poly_point(Enum.PolyPoint.BOT_RIGHT)
+	var left: Vector2 = get_poly_point(Enum.PolyPoint.BOT_LEFT)
+	var mid: Vector2 = get_poly_point(Enum.PolyPoint.BOT)
+	var right: Vector2 = get_poly_point(Enum.PolyPoint.BOT_RIGHT)
 
 	# Even if outside cell, code below correctly clamps to edges of cell floor
-	if world_x <= p_m.x:
-		var t: float = inverse_lerp(p_l.x, p_m.x, world_x)
-		return p_l.lerp(p_m, clampf(t, 0.0, 1.0))
+	if world_x <= mid.x:
+		var t: float = inverse_lerp(left.x, mid.x, world_x)
+		t = clampf(t, 0.0, 1.0)
+		return lerp(left, mid, t)
 	else:
-		var t: float = inverse_lerp(p_m.x, p_r.x, world_x)
-		return p_m.lerp(p_r, clampf(t, 0.0, 1.0))
+		var t: float = inverse_lerp(mid.x, right.x, world_x)
+		t = clampf(t, 0.0, 1.0)
+		return lerp(mid, right, t)
+
 
 ########################################################################################################################
 # PRIVATE METHODS
