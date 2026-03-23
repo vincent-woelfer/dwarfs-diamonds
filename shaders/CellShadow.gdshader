@@ -31,12 +31,25 @@ float dir_fade(float t, bool enabled) {
 	return 1.0 - f;
 }
 
+float inv_lerp(float from, float to, float value){
+	float t = (value - from) / (to - from);
+	// t = clamp(t, 0.0, 1.0);
+	return t;
+}
+
+float cross2d(vec2 a, vec2 b) {
+	return a.x * b.y - a.y * b.x;
+}
+
 void fragment() {
 	vec2 uv = UV;
-	vec2 center = vec2(0.5, 0.5); // todo center uv auch als uniform und auf UV-basis ???
+	
+	// We want uniform shadow depth, NOT scaled by actual distance edge to center
+	float max_dist = 0.5; 
 
-	bool right_half = uv.x >= center.x;
-	bool bottom_half = uv.y >= center.y;
+	// Determine quadrant
+	bool right_half = cross2d(uvs[5] - uvs[1], uv - uvs[1]) <= 0.0;
+	bool bottom_half = cross2d(uvs[3] - uvs[7], uv - uvs[7]) >= 0.0;
 
     // Enabled: true = lit / apply fade | false = Shadow / no fade, black till border
     // only enable corner if both sides are disabled
@@ -48,46 +61,74 @@ void fragment() {
 	float c_t;
 
 	if (!right_half && !bottom_half) {
-		// top‑left: top, left, top_left
+		// top‑left: top(1), left(7), top_left(0)
 		s0_enabled = top;
 		s1_enabled = left;
 		c_enabled = top_left && !s0_enabled && !s1_enabled;
 
 		// t = 0 at center, 1 at border
-		// The formular ist (dist to center) / (max-length = center to border)
-		// Todo maybe better idea would be 1 - (dist to border / max length).
-		s0_t = (center.y - uv.y) / (center.y - uvs[1].y);               // top
-		s1_t = (center.x - uv.x) / (center.x - uvs[7].x);               // left
-        c_t = 1.0 - length(uv - uvs[0]) / length(uvs[0] - center);      // top_left
+		// Inverse lerp t goes fro 0 at center/side-point to 1 at corner
+		float s0_proj_t = inv_lerp(uvs[1].x, uvs[0].x, uv.x);               // top
+		float s1_proj_t = inv_lerp(uvs[7].y, uvs[0].y, uv.y);               // left
+
+		float s0_y = mix(uvs[1].y, uvs[0].y, s0_proj_t);               // top
+		float s1_x = mix(uvs[7].x, uvs[0].x, s1_proj_t);               // left
+
+		// No perform original s_t calculation but use the projected point on the line to the corner as reference for t.
+		// The formular ist (dist uv to border) / (max-dist = center to border)
+		s0_t = 1.0 - abs((s0_y - uv.y) / max_dist);               // top
+		s1_t = 1.0 - abs((s1_x - uv.x) / max_dist);               // left
+
+		// Corner is simply 1 - (dist to corner) / (max dist = center to corner)
+        c_t = 1.0 - abs(length(uvs[0] - uv) / max_dist);      // top_left
 
 	} else if (right_half && !bottom_half) {
-		// top‑right: top, right, top_right
+		// top-right: top(1), right(3), corner TR(2)
 		s0_enabled = top;
 		s1_enabled = right;
-		c_enabled = top_right && !s0_enabled && !s1_enabled;
+		c_enabled  = top_right && !s0_enabled && !s1_enabled;
 
-		s0_t = (center.y - uv.y) / (center.y - uvs[1].y);               // top
-		s1_t = (uv.x - center.x) / (uvs[3].x - center.x);               // right
-        c_t = 1.0 - length(uv - uvs[2]) / length(uvs[2] - center);      // top_right
+		float s0_proj_t = inv_lerp(uvs[1].x, uvs[2].x, uv.x);
+		float s1_proj_t = inv_lerp(uvs[3].y, uvs[2].y, uv.y);
+
+		float s0_y = mix(uvs[1].y, uvs[2].y, s0_proj_t);
+		float s1_x = mix(uvs[3].x, uvs[2].x, s1_proj_t);
+
+		s0_t = 1.0 - abs((s0_y - uv.y) / max_dist);
+		s1_t = 1.0 - abs((s1_x - uv.x) / max_dist);
+		c_t  = 1.0 - abs(length(uvs[2] - uv) / max_dist);
 
 	} else if (right_half && bottom_half) {
-		// bottom‑right: bot, right, bot_right
+		// bottom-right: bot(5), right(3), corner BR(4)
 		s0_enabled = bot;
 		s1_enabled = right;
-		c_enabled = bot_right && !s0_enabled && !s1_enabled;
+		c_enabled  = bot_right && !s0_enabled && !s1_enabled;
 
-		s0_t = (uv.y - center.y) / (uvs[5].y - center.y);               // bot
-		s1_t = (uv.x - center.x) / (uvs[3].x - center.x);               // right
-        c_t = 1.0 - length(uv - uvs[4]) / length(uvs[4] - center);      // bot_right
+		float s0_proj_t = inv_lerp(uvs[5].x, uvs[4].x, uv.x);
+		float s1_proj_t = inv_lerp(uvs[3].y, uvs[4].y, uv.y);
+
+		float s0_y = mix(uvs[5].y, uvs[4].y, s0_proj_t);
+		float s1_x = mix(uvs[3].x, uvs[4].x, s1_proj_t);
+
+		s0_t = 1.0 - abs((s0_y - uv.y) / max_dist);
+		s1_t = 1.0 - abs((s1_x - uv.x) / max_dist);
+		c_t  = 1.0 - abs(length(uvs[4] - uv) / max_dist);
+
 	} else {
-		// bottom‑left: bot, left, bot_left
+		// bottom-left: bot(5), left(7), corner BL(6)
 		s0_enabled = bot;
 		s1_enabled = left;
-		c_enabled = bot_left && !s0_enabled && !s1_enabled;
+		c_enabled  = bot_left && !s0_enabled && !s1_enabled;
 
-		s0_t = (uv.y - center.y) / (uvs[5].y - center.y);               // bot
-		s1_t = (center.x - uv.x) / (center.x - uvs[7].x);               // left
-        c_t = 1.0 - length(uv - uvs[6]) / length(uvs[6] - center);      // bot_left
+		float s0_proj_t = inv_lerp(uvs[5].x, uvs[6].x, uv.x);
+		float s1_proj_t = inv_lerp(uvs[7].y, uvs[6].y, uv.y);
+
+		float s0_y = mix(uvs[5].y, uvs[6].y, s0_proj_t);
+		float s1_x = mix(uvs[7].x, uvs[6].x, s1_proj_t);
+
+		s0_t = 1.0 - abs((s0_y - uv.y) / max_dist);
+		s1_t = 1.0 - abs((s1_x - uv.x) / max_dist);
+		c_t  = 1.0 - abs(length(uvs[6] - uv) / max_dist);
 	}
 
 	s0_t = clamp(s0_t, 0.0, 1.0);
