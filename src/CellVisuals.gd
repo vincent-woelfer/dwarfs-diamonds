@@ -248,14 +248,15 @@ func get_poly_point(point: Enum.PolyPoint) -> Vector2:
 
 # Returns a rectangle polygon for cell at grid position (x, y) in world-space RELATIVE TO CELL.
 # Values range is [0, CELL_SIZE] + small random offset
-func _get_cell_polygon(MAX_VAL: float = Global.CELL_SIZE) -> PackedVector2Array:
-	var base: Vector2 = c.grid_pos * MAX_VAL
+func _get_cell_polygon() -> PackedVector2Array:
+	const SIDE_LENGTH: float = Global.CELL_SIZE
+	var base: Vector2 = c.grid_pos * SIDE_LENGTH
 
 	# 4 Corners
 	var top_left := Vector2.ZERO
-	var top_right := Vector2(MAX_VAL, 0.0)
-	var bot_right := Vector2(MAX_VAL, MAX_VAL)
-	var bot_left := Vector2(0.0, MAX_VAL)
+	var top_right := Vector2(SIDE_LENGTH, 0.0)
+	var bot_right := Vector2(SIDE_LENGTH, SIDE_LENGTH)
+	var bot_left := Vector2(0.0, SIDE_LENGTH)
 
 	# 4 Sides
 	var top := (top_left + top_right) * 0.5
@@ -264,8 +265,8 @@ func _get_cell_polygon(MAX_VAL: float = Global.CELL_SIZE) -> PackedVector2Array:
 	var left := (bot_left + top_left) * 0.5
 
 	# Deterministic-Random Offset
-	var max_corner_offset := MAX_VAL * 0.1
-	var max_side_offset := MAX_VAL * 0.125
+	var max_corner_offset := SIDE_LENGTH * 0.1 * 0.0
+	var max_side_offset := SIDE_LENGTH * 0.125 * 0.0
 
 	top_left += Util.rand_circular_offset(base + top_left, max_corner_offset)
 	top_right += Util.rand_circular_offset(base + top_right, max_corner_offset)
