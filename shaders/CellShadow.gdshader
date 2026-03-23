@@ -25,16 +25,11 @@ uniform vec4 border_color  : source_color = vec4(0.0, 0.0, 0.0, 0.3);
 
 // ------------------------------------------------------------------
 // This t = distance from polygon edge/corner. 0 = on poly-edge, 1 = mid of polygon
-float dir_fade(float dist, bool enabled) {
-	if (!enabled) return 1.0;
+float dir_fade(float dist) {
 	float f = smoothstep(1.0 - fade_distance, 1.0, 1.0 - dist);
 
 	// This 1 - f is required because return value is alpha blend value
 	return 1.0 - f;
-}
-
-float cross2d(vec2 a, vec2 b) {
-	return a.x * b.y - a.y * b.x;
 }
 
 // ------------------------------------------------------------------
@@ -57,72 +52,21 @@ float corner_dist(vec2 corner, vec2 p) {
 // ------------------------------------------------------------------
 void fragment() {
 	vec2 uv = UV;
-	
-	// Determine quadrant
-	bool right_half = cross2d(uvs[5] - uvs[1], uv - uvs[1]) <= 0.0;
-	bool bottom_half = cross2d(uvs[3] - uvs[7], uv - uvs[7]) >= 0.0;
+	float min_dist = 100.0;
 
-    // Enabled: true = lit / apply fade | false = Shadow / no fade, black till border
-    // only enable corner if both sides are disabled
-	bool s0_enabled;
-	bool s1_enabled;
-	bool c_enabled;
+	// Sides
+	if (top) min_dist = min(min_dist, two_seg_dist(uvs[0], uvs[1], uvs[2], uv));
+	if (right) min_dist = min(min_dist, two_seg_dist(uvs[2], uvs[3], uvs[4], uv));
+	if (bot) min_dist = min(min_dist, two_seg_dist(uvs[4], uvs[5], uvs[6], uv));
+	if (left) min_dist = min(min_dist, two_seg_dist(uvs[6], uvs[7], uvs[0], uv));
 
-	// Distance from polygon edge/corner. 0 = on poly-edge, 1 = mid of polygon
-	float s0_dist;
-	float s1_dist;
-	float c_dist;
+	// Corners
+	if (top_left) min_dist = min(min_dist, corner_dist(uvs[0], uv));
+	if (top_right) min_dist = min(min_dist, corner_dist(uvs[2], uv));
+	if (bot_right) min_dist = min(min_dist, corner_dist(uvs[4], uv));
+	if (bot_left) min_dist = min(min_dist, corner_dist(uvs[6], uv));
 
-	if (!right_half && !bottom_half) {
-		// top‑left: top(1), left(7), top_left(0)
-		s0_enabled = top;
-		s1_enabled = left;
-		c_enabled = top_left && !s0_enabled && !s1_enabled;
-
-		s0_dist = two_seg_dist(uvs[0], uvs[1], uvs[2], uv);
-		s1_dist = two_seg_dist(uvs[0], uvs[7], uvs[6], uv);
-        c_dist = corner_dist(uvs[0], uv);
-
-	} else if (right_half && !bottom_half) {
-		// top-right: top(1), right(3), corner TR(2)
-		s0_enabled = top;
-		s1_enabled = right;
-		c_enabled  = top_right && !s0_enabled && !s1_enabled;
-
-		s0_dist = two_seg_dist(uvs[2], uvs[1], uvs[0], uv);
-		s1_dist = two_seg_dist(uvs[2], uvs[3], uvs[4], uv);
-		c_dist = corner_dist(uvs[2], uv);
-
-	} else if (right_half && bottom_half) {
-		// bottom-right: bot(5), right(3), corner BR(4)
-		s0_enabled = bot;
-		s1_enabled = right;
-		c_enabled  = bot_right && !s0_enabled && !s1_enabled;
-
-		s0_dist = two_seg_dist(uvs[4], uvs[5], uvs[6], uv);
-		s1_dist = two_seg_dist(uvs[4], uvs[3], uvs[2], uv);
-		c_dist = corner_dist(uvs[4], uv);
-
-	} else {
-		// bottom-left: bot(5), left(7), corner BL(6)
-		s0_enabled = bot;
-		s1_enabled = left;
-		c_enabled  = bot_left && !s0_enabled && !s1_enabled;
-
-		s0_dist = two_seg_dist(uvs[6], uvs[5], uvs[4], uv);
-		s1_dist = two_seg_dist(uvs[6], uvs[7], uvs[0], uv);
-		c_dist = corner_dist(uvs[6], uv);
-	}
-
-	// s0_dist = clamp(s0_dist, 0.0, 1.0);
-	// s1_dist = clamp(s1_dist, 0.0, 1.0);
-	// c_dist  = clamp(c_dist, 0.0, 1.0);
-
-	float f0 = dir_fade(s0_dist, s0_enabled);
-	float f1 = dir_fade(s1_dist, s1_enabled);
-	float fc = dir_fade(c_dist,  c_enabled);
-
-	float alpha = 1.0 * f0 * f1 * fc;
+	float alpha = dir_fade(min_dist);
 
 	// interpolate between shadow_color (alpha=1) and border_color (alpha=0.9) using previous alpha
 	vec4 color = mix(border_color, shadow_color, alpha);

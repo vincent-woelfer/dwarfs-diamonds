@@ -237,8 +237,8 @@ func _get_cell_polygon() -> PackedVector2Array:
 	var left := (bot_left + top_left) * 0.5
 
 	# Deterministic-Random Offset
-	var max_corner_offset := SIDE_LENGTH * 0.1
-	var max_side_offset := SIDE_LENGTH * 0.125 * 2.0
+	var max_corner_offset := SIDE_LENGTH * 0.115
+	var max_side_offset := SIDE_LENGTH * 0.135
 
 	var base: Vector2 = c.grid_pos * SIDE_LENGTH
 	top_left += Util.rand_circular_offset(base + top_left, max_corner_offset)
