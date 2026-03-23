@@ -13,10 +13,14 @@ uniform bool bot          = false;
 uniform bool bot_left     = false;
 uniform bool left         = false;
 
-uniform float fade_distance : hint_range(0.0, 1.0) = 0.3;
+uniform float fade_distance : hint_range(0.0, 1.0) = 0.25;
 
 // UVs in ORDER: 0 TL, 1 T, 2 TR, 3 R, 4 BR, 5 B, 6 BL, 7 L
 uniform vec2 uvs[8];
+
+uniform vec4 shadow_color  : source_color = vec4(0.0, 0.0, 0.0, 1.0);
+uniform vec4 border_color  : source_color = vec4(0.5, 0.0, 0.0, 0.1);
+
 
 // ------------------------------------------------------------------
 // radial fade helper: center→1, border→0, based on scalar t in [0,1]
@@ -94,5 +98,8 @@ void fragment() {
 
 	alpha *= f0 * f1 * fc;
 
-	COLOR = vec4(0.0, 0.0, 0.0, alpha);
+	// interpolate between shadow_color (alpha=1) and border_color (alpha=0.9) using previous alpha
+	vec4 color = mix(border_color, shadow_color, alpha);
+
+	COLOR = color;
 }
