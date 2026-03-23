@@ -44,9 +44,6 @@ float cross2d(vec2 a, vec2 b) {
 void fragment() {
 	vec2 uv = UV;
 	
-	// We want uniform shadow depth, NOT scaled by actual distance edge to center
-	float max_dist = 0.5; 
-
 	// Determine quadrant
 	bool right_half = cross2d(uvs[5] - uvs[1], uv - uvs[1]) <= 0.0;
 	bool bottom_half = cross2d(uvs[3] - uvs[7], uv - uvs[7]) >= 0.0;
@@ -76,11 +73,11 @@ void fragment() {
 
 		// No perform original s_t calculation but use the projected point on the line to the corner as reference for t.
 		// The formular ist (dist uv to border) / (max-dist = center to border)
-		s0_t = 1.0 - abs((s0_y - uv.y) / max_dist);               // top
-		s1_t = 1.0 - abs((s1_x - uv.x) / max_dist);               // left
+		s0_t = 1.0 - abs(s0_y - uv.y);               // top
+		s1_t = 1.0 - abs(s1_x - uv.x);               // left
 
 		// Corner is simply 1 - (dist to corner) / (max dist = center to corner)
-        c_t = 1.0 - abs(length(uvs[0] - uv) / max_dist);      // top_left
+        c_t = 1.0 - abs(length(uvs[0] - uv));      // top_left
 
 	} else if (right_half && !bottom_half) {
 		// top-right: top(1), right(3), corner TR(2)
@@ -94,9 +91,9 @@ void fragment() {
 		float s0_y = mix(uvs[1].y, uvs[2].y, s0_proj_t);
 		float s1_x = mix(uvs[3].x, uvs[2].x, s1_proj_t);
 
-		s0_t = 1.0 - abs((s0_y - uv.y) / max_dist);
-		s1_t = 1.0 - abs((s1_x - uv.x) / max_dist);
-		c_t  = 1.0 - abs(length(uvs[2] - uv) / max_dist);
+		s0_t = 1.0 - abs(s0_y - uv.y);
+		s1_t = 1.0 - abs(s1_x - uv.x);
+		c_t  = 1.0 - abs(length(uvs[2] - uv));
 
 	} else if (right_half && bottom_half) {
 		// bottom-right: bot(5), right(3), corner BR(4)
@@ -110,9 +107,9 @@ void fragment() {
 		float s0_y = mix(uvs[5].y, uvs[4].y, s0_proj_t);
 		float s1_x = mix(uvs[3].x, uvs[4].x, s1_proj_t);
 
-		s0_t = 1.0 - abs((s0_y - uv.y) / max_dist);
-		s1_t = 1.0 - abs((s1_x - uv.x) / max_dist);
-		c_t  = 1.0 - abs(length(uvs[4] - uv) / max_dist);
+		s0_t = 1.0 - abs(s0_y - uv.y);
+		s1_t = 1.0 - abs(s1_x - uv.x);
+		c_t  = 1.0 - abs(length(uvs[4] - uv));
 
 	} else {
 		// bottom-left: bot(5), left(7), corner BL(6)
@@ -126,9 +123,9 @@ void fragment() {
 		float s0_y = mix(uvs[5].y, uvs[6].y, s0_proj_t);
 		float s1_x = mix(uvs[7].x, uvs[6].x, s1_proj_t);
 
-		s0_t = 1.0 - abs((s0_y - uv.y) / max_dist);
-		s1_t = 1.0 - abs((s1_x - uv.x) / max_dist);
-		c_t  = 1.0 - abs(length(uvs[6] - uv) / max_dist);
+		s0_t = 1.0 - abs(s0_y - uv.y);
+		s1_t = 1.0 - abs(s1_x - uv.x);
+		c_t  = 1.0 - abs(length(uvs[6] - uv));
 	}
 
 	s0_t = clamp(s0_t, 0.0, 1.0);
