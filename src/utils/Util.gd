@@ -121,9 +121,11 @@ static func are_diagonal_neighbours(pos_a: Vector2i, pos_b: Vector2i) -> bool:
 	return pos_a.distance_squared_to(pos_b) == 2
 
 
+## Compare vertically and get the lower cell (higher y)
 static func get_lower_cell(a: Cell, b: Cell) -> Cell:
 	return a if a.grid_pos.y > b.grid_pos.y else b
 
+## Compare vertically and get the upper cell (lower y)
 static func get_upper_cell(a: Cell, b: Cell) -> Cell:
 	return a if a.grid_pos.y < b.grid_pos.y else b
 

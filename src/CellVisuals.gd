@@ -147,12 +147,12 @@ func _process(delta: float) -> void:
 		background_poly.modulate = Color.WHITE
 		mineral_poly.modulate = Color.WHITE
 		shadow_poly.visible = false
-	elif c.light_depth >= 2:
+	elif c.light_depth > 2:
 		background_poly.modulate = Color.BLACK
 		mineral_poly.modulate = Color.BLACK
 		shadow_poly.visible = false
 	else:
-		# = 1 = border
+		# = 1 = border. 2 = corner may be visible, we cant distinguish between corner or 2-depth in a line
 		background_poly.modulate = Color.WHITE
 		mineral_poly.modulate = Color.WHITE
 		shadow_poly.visible = true
@@ -161,15 +161,16 @@ func _process(delta: float) -> void:
 		# _update_vertex_colors()
 
 func _update_corner_lights() -> void:
+	# True = lit = apply fade, False = Shadow = no fade, black till border
 	var neighbour_lit: Array[bool] = []
 	
 	for dir: Vector2i in Util.neighbours_all:
 		var n: Cell = c.get_neighbour(dir)
 		if n != null:
-			neighbour_lit.append(n.light_depth != 0)
+			neighbour_lit.append(n.light_depth == 0)
 		else:
 			# Treat map border as solid
-			neighbour_lit.append(true)
+			neighbour_lit.append(false)
 
 	# Assign to shader
 	shadow_material.set_shader_parameter("top_left", neighbour_lit[Enum.PolyPoint.TOP_LEFT])
