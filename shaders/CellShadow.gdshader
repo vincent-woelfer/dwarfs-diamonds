@@ -24,7 +24,7 @@ uniform vec4 border_color  : source_color = vec4(0.5, 0.0, 0.0, 0.1);
 
 
 // ------------------------------------------------------------------
-// radial fade helper: center→1, border→0, based on scalar t in [0,1]
+// 1 = point directly at border, 0 = point at center
 float dir_fade(float t, bool enabled) {
 	if (!enabled) return 1.0;
 	float f = smoothstep(1.0 - fade_distance, 1.0, t);
@@ -54,12 +54,18 @@ void fragment() {
 		c_enabled  = top_left && !s0_enabled && !s1_enabled; // only enable corner if both sides are disabled
 
         // Sides
+        // / center.x = 0.5 since this is the max-len of this side if ignoring UVs
+        // 1 = point directly at border, 0 = point at center
 		s0_t = (center.y - uv.y) / center.y;                    // top
 		s1_t = (center.x - uv.x) / center.x;                    // left
 
         // Corner
-		float max_len = length(center - uvs[0]);
-		c_t  = length(uv - center) / max_len;                   // top_left
+		//float max_len = length(center - uvs[0]);
+		//c_t  = length(uv - center) / max_len;                   // top_left
+
+        // TODO
+        c_t = 1.0 - length(uv - vec2(0.0, 0.0)) / 0.5; 
+
 	} else if (right_half && !bottom_half) {
 		// top‑right: top, right, top_right
 		s0_enabled = top;
@@ -71,8 +77,10 @@ void fragment() {
 		s1_t = (uv.x - center.x) / (1.0 - center.x);            // right
 
         // Corner
-        float max_len = length(center - uvs[2]);
-		c_t  = length(uv - center) / max_len;                   // top_right
+        // float max_len = length(center - uvs[2]);
+		// c_t  = length(uv - center) / max_len;                   // top_right
+        c_t = 1.0 - length(uv - vec2(1.0, 0.0)) / 0.5; 
+
 	} else if (right_half && bottom_half) {
 		// bottom‑right: bot, right, bot_right
 		s0_enabled = bot;
@@ -84,8 +92,9 @@ void fragment() {
 		s1_t = (uv.x - center.x) / (1.0 - center.x);            // right
 
         // Corner
-		float max_len = length(center - uvs[4]);
-		c_t  = length(uv - center) / max_len;                   // bot_right
+		// float max_len = length(center - uvs[4]);
+		// c_t  = length(uv - center) / max_len;                   // bot_right
+        c_t = 1.0 - length(uv - vec2(1.0, 1.0)) / 0.5; 
 	} else {
 		// bottom‑left: bot, left, bot_left
 		s0_enabled = bot;
@@ -97,8 +106,9 @@ void fragment() {
 		s1_t = (center.x - uv.x) / center.x;                    // left
 
         // Corner
-		float max_len = length(center - uvs[6]);
-		c_t  = length(uv - center) / max_len;                   // bot_left
+		// float max_len = length(center - uvs[6]);
+		// c_t  = length(uv - center) / max_len;                   // bot_left
+        c_t = 1.0 - length(uv - vec2(0.0, 1.0)) / 0.5; 
 	}
 
 	s0_t = clamp(s0_t, 0.0, 1.0);
