@@ -18,7 +18,6 @@ uniform float fade_distance : hint_range(0.0, 1.0) = 0.4;
 
 // UVs in ORDER: 0 TL, 1 T, 2 TR, 3 R, 4 BR, 5 B, 6 BL, 7 L
 uniform vec2 uvs[8];
-// UVs in poly setzen aber hier in shader nicht berücksichtigen funktionier nicht, diskontinuietät
 
 uniform vec4 shadow_color  : source_color = vec4(0.0, 0.0, 0.0, 1.0);
 uniform vec4 border_color  : source_color = vec4(0.0, 0.0, 0.0, 0.3);
@@ -54,9 +53,9 @@ void fragment() {
 		s1_enabled = left;
 		c_enabled = top_left && !s0_enabled && !s1_enabled;
 
-		s0_t = (center.y - uv.y) / (center.y - uvs[1].y);                    // top
-		s1_t = (center.x - uv.x) / (center.x - uvs[7].x);                    // left
-        c_t = 1.0 - length(uv - uvs[0]) / length(uvs[0] - center);          // top_left
+		s0_t = (center.y - uv.y) / (center.y - uvs[1].y);               // top
+		s1_t = (center.x - uv.x) / (center.x - uvs[7].x);               // left
+        c_t = 1.0 - length(uv - uvs[0]) / length(uvs[0] - center);      // top_left
 
 	} else if (right_half && !bottom_half) {
 		// top‑right: top, right, top_right
@@ -64,9 +63,9 @@ void fragment() {
 		s1_enabled = right;
 		c_enabled = top_right && !s0_enabled && !s1_enabled;
 
-		s0_t = (center.y - uv.y) / (center.y - uvs[1].y);            // top
-		s1_t = (uv.x - center.x) / (uvs[3].x - center.x);            // right
-        c_t = 1.0 - length(uv - uvs[2]) / length(uvs[2] - center); // top_right
+		s0_t = (center.y - uv.y) / (center.y - uvs[1].y);               // top
+		s1_t = (uv.x - center.x) / (uvs[3].x - center.x);               // right
+        c_t = 1.0 - length(uv - uvs[2]) / length(uvs[2] - center);      // top_right
 
 	} else if (right_half && bottom_half) {
 		// bottom‑right: bot, right, bot_right
@@ -74,18 +73,18 @@ void fragment() {
 		s1_enabled = right;
 		c_enabled = bot_right && !s0_enabled && !s1_enabled;
 
-		s0_t = (uv.y - center.y) / (uvs[5].y - center.y);            // bot
-		s1_t = (uv.x - center.x) / (uvs[3].x - center.x);            // right
-        c_t = 1.0 - length(uv - uvs[4]) / length(uvs[4] - center); // bot_right
+		s0_t = (uv.y - center.y) / (uvs[5].y - center.y);               // bot
+		s1_t = (uv.x - center.x) / (uvs[3].x - center.x);               // right
+        c_t = 1.0 - length(uv - uvs[4]) / length(uvs[4] - center);      // bot_right
 	} else {
 		// bottom‑left: bot, left, bot_left
 		s0_enabled = bot;
 		s1_enabled = left;
 		c_enabled = bot_left && !s0_enabled && !s1_enabled;
 
-		s0_t = (uv.y - center.y) / (uvs[5].y - center.y);            // bot
-		s1_t = (center.x - uv.x) / (center.x - uvs[7].x);            // left
-        c_t = 1.0 - length(uv - uvs[6]) / length(uvs[6] - center); // bot_left
+		s0_t = (uv.y - center.y) / (uvs[5].y - center.y);               // bot
+		s1_t = (center.x - uv.x) / (center.x - uvs[7].x);               // left
+        c_t = 1.0 - length(uv - uvs[6]) / length(uvs[6] - center);      // bot_left
 	}
 
 	s0_t = clamp(s0_t, 0.0, 1.0);
