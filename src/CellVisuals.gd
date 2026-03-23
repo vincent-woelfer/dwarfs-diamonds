@@ -21,7 +21,8 @@ var mineral_poly: Polygon2D
 
 # TODO DEV
 var shadow_poly: Polygon2D
-var shadow_material: ShaderMaterial = preload("res://assets/materials/CellShadow.tres")
+var shadow_material_scene: ShaderMaterial = preload("res://assets/materials/CellShadow.tres")
+var shadow_material: ShaderMaterial
 
 # Light / Shadows
 var occluder: LightOccluder2D
@@ -95,8 +96,10 @@ func _ready() -> void:
 	shadow_poly.uv = uv_points
 
 	# Setup shader. TODO test if duplicate is required? Maybe compare with per instance uniforms
-	shadow_poly.material = shadow_material.duplicate()
+	shadow_material = shadow_material_scene.duplicate()
+	shadow_poly.material = shadow_material
 	shadow_poly.texture = dummy_1x1_texture
+
 	shadow_material.set_shader_parameter("uvs", shadow_poly.uv)
 
 	add_child(shadow_poly)
@@ -150,14 +153,33 @@ func _process(delta: float) -> void:
 		shadow_poly.visible = false
 	else:
 		# = 1 = border
-		# var default_color := Color(1.0, 0.0, 0.5)
-		# background_poly.modulate = default_color
-		# mineral_poly.modulate = default_color
 		background_poly.modulate = Color.WHITE
 		mineral_poly.modulate = Color.WHITE
 		shadow_poly.visible = true
 
+		_update_corner_lights()
 		# _update_vertex_colors()
+
+func _update_corner_lights() -> void:
+	var neighbour_lit: Array[bool] = []
+	
+	for dir: Vector2i in Util.neighbours_all:
+		var n: Cell = c.get_neighbour(dir)
+		if n != null:
+			neighbour_lit.append(n.light_depth != 0)
+		else:
+			# Treat map border as solid
+			neighbour_lit.append(true)
+
+	# Assign to shader
+	shadow_material.set_shader_parameter("top_left", neighbour_lit[Enum.PolyPoint.TOP_LEFT])
+	shadow_material.set_shader_parameter("top", neighbour_lit[Enum.PolyPoint.TOP])
+	shadow_material.set_shader_parameter("top_right", neighbour_lit[Enum.PolyPoint.TOP_RIGHT])
+	shadow_material.set_shader_parameter("right", neighbour_lit[Enum.PolyPoint.RIGHT])
+	shadow_material.set_shader_parameter("bot_right", neighbour_lit[Enum.PolyPoint.BOT_RIGHT])
+	shadow_material.set_shader_parameter("bot", neighbour_lit[Enum.PolyPoint.BOT])
+	shadow_material.set_shader_parameter("bot_left", neighbour_lit[Enum.PolyPoint.BOT_LEFT])
+	shadow_material.set_shader_parameter("left", neighbour_lit[Enum.PolyPoint.LEFT])
 
 
 # func _update_vertex_colors() -> void:

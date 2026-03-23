@@ -159,7 +159,7 @@ func _generate_grid() -> void:
 			var type: Enum.CellType = [Enum.CellType.A, Enum.CellType.B, Enum.CellType.C].pick_random()
 
 			# Is Solid			
-			var threshold_above_is_solid := 0.35
+			var threshold_above_is_solid := 0.25
 			var is_solid: bool = image.get_pixel(roundi(x * noise_scale), roundi(y * noise_scale)).r > threshold_above_is_solid
 			if y <= Global.SKY_HEIGHT:
 				is_solid = false

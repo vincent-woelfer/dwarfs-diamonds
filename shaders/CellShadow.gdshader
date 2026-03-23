@@ -3,14 +3,15 @@ shader_type canvas_item;
 #include "res://shaders/debug.gdshaderinc"
 
 // ---------- uniforms ----------
-uniform bool top_left     = true;
-uniform bool top          = true;
+// true = Shadow, false = With light fade-out
+uniform bool top_left     = false;
+uniform bool top          = false;
 uniform bool top_right    = false;
-uniform bool right        = true;
+uniform bool right        = false;
 uniform bool bot_right    = false;
-uniform bool bot          = true;
+uniform bool bot          = false;
 uniform bool bot_left     = false;
-uniform bool left         = true;
+uniform bool left         = false;
 
 uniform float fade_distance : hint_range(0.0, 1.0) = 0.3;
 
@@ -18,100 +19,80 @@ uniform float fade_distance : hint_range(0.0, 1.0) = 0.3;
 uniform vec2 uvs[8];
 
 // ------------------------------------------------------------------
-// outward normal for edge a->b (points outside the polygon)
-vec2 outward_normal(vec2 a, vec2 b, vec2 center) {
-    vec2 ab = b - a;
-	// left‑hand normal
-    vec2 n = vec2(-ab.y, ab.x);
-    // if n points toward the centre, flip it
-    return dot(center - a, n) > 0.0 ? -n : n;
+// radial fade helper: center→1, border→0, based on scalar t in [0,1]
+float dir_fade(float t, bool enabled) {
+	if (enabled) return 1.0;
+	float f = smoothstep(1.0 - fade_distance, 1.0, t);
+	return 1.0 - f;
 }
 
-// signed distance to edge a->b (positive = outside)
-float signed_distance_to_edge(vec2 p, vec2 a, vec2 b, vec2 center) {
-    vec2 n = outward_normal(a, b, center);
-    return dot(p - a, n);
-}
-
-// distance to a corner point
-float distance_to_corner(vec2 p, vec2 c) {
-    return length(p - c);
-}
-
-// ------------------------------------------------------------------
 void fragment() {
-	Debug dbg = debug_construct(UV);
-
 	vec2 uv = UV;
-    vec2 center = vec2(0.5, 0.5);
-    float alpha = 1.0;
+	vec2 center = vec2(0.5, 0.5);
+	vec2 d = uv - center;
+	float alpha = 1.0;
 
-    // ----- Sides -----
-    if (!top) {
-        float d = signed_distance_to_edge(uv, uvs[0], uvs[2], center); // top edge TL‑TR
-        if (d > 0.0) {
-            float fade = smoothstep(0.0, fade_distance, d);
-            alpha *= (1.0 - fade);
-        }
+	bool right_half = uv.x >= 0.5;
+	bool bottom_half = uv.y >= 0.5;
 
-		dbgFloat(dbg, d);
-    }
-    if (!bot) {
-        float d = signed_distance_to_edge(uv, uvs[6], uvs[4], center); // bot edge BL‑BR
-        if (d > 0.0) {
-            float fade = smoothstep(0.0, fade_distance, d);
-            alpha *= (1.0 - fade);
-        }
-    }
-    if (!left) {
-        float d = signed_distance_to_edge(uv, uvs[0], uvs[6], center); // left edge TL‑BL
-        if (d > 0.0) {
-            float fade = smoothstep(0.0, fade_distance, d);
-            alpha *= (1.0 - fade);
-        }
-    }
-    if (!right) {
-        float d = signed_distance_to_edge(uv, uvs[2], uvs[4], center); // right edge TR‑BR
-        if (d > 0.0) {
-            float fade = smoothstep(0.0, fade_distance, d);
-            alpha *= (1.0 - fade);
-        }
-    }
+	bool s0_enabled;
+	bool s1_enabled;
+	bool c_enabled;
+	float s0_t;
+	float s1_t;
+	float c_t;
 
-    // ----- Corners -----
-    // if (!top_left) {
-    //     float d = distance_to_corner(uv, uvs[0]); // TL corner
-    //     if (d > 0.0) {
-    //         float fade = smoothstep(0.0, fade_distance, d);
-    //         alpha *= (1.0 - fade);
-    //     }
-    // }
-    // if (!top_right) {
-    //     float d = distance_to_corner(uv, uvs[2]); // TR corner
-    //     if (d > 0.0) {
-    //         float fade = smoothstep(0.0, fade_distance, d);
-    //         alpha *= (1.0 - fade);
-    //     }
-    // }
-    // if (!bot_left) {
-    //     float d = distance_to_corner(uv, uvs[6]); // BL corner
-    //     if (d > 0.0) {
-    //         float fade = smoothstep(0.0, fade_distance, d);
-    //         alpha *= (1.0 - fade);
-    //     }
-    // }
-    // if (!bot_right) {
-    //     float d = distance_to_corner(uv, uvs[4]); // BR corner
-    //     if (d > 0.0) {
-    //         float fade = smoothstep(0.0, fade_distance, d);
-    //         alpha *= (1.0 - fade);
-    //     }
-    // }
+	if (!right_half && !bottom_half) {
+		// top‑left: top, left, top_left
+		s0_enabled = top;
+		s1_enabled = left;
+		c_enabled  = top_left;
 
-    // ----- Output -----	
-    COLOR = vec4(0.0, 0.0, 0.0, alpha);
+		s0_t = (center.y - uv.y) / center.y;                    // top
+		s1_t = (center.x - uv.x) / center.x;                    // left
+		float max_len = length(center - uvs[0]);
+		c_t  = length(uv - center) / max_len;                   // top_left
+	} else if (right_half && !bottom_half) {
+		// top‑right: top, right, top_right
+		s0_enabled = top;
+		s1_enabled = right;
+		c_enabled  = top_right;
 
-	// Debug dbg = debug_construct(UV);
-	// dbgFloat(dbg, UV.x);
-	debug_finish(COLOR.rgb, dbg);
+		s0_t = (center.y - uv.y) / center.y;                    // top
+		s1_t = (uv.x - center.x) / (1.0 - center.x);            // right
+		float max_len = length(center - uvs[2]);
+		c_t  = length(uv - center) / max_len;                   // top_right
+	} else if (right_half && bottom_half) {
+		// bottom‑right: bot, right, bot_right
+		s0_enabled = bot;
+		s1_enabled = right;
+		c_enabled  = bot_right;
+
+		s0_t = (uv.y - center.y) / (1.0 - center.y);            // bot
+		s1_t = (uv.x - center.x) / (1.0 - center.x);            // right
+		float max_len = length(center - uvs[4]);
+		c_t  = length(uv - center) / max_len;                   // bot_right
+	} else {
+		// bottom‑left: bot, left, bot_left
+		s0_enabled = bot;
+		s1_enabled = left;
+		c_enabled  = bot_left;
+
+		s0_t = (uv.y - center.y) / (1.0 - center.y);            // bot
+		s1_t = (center.x - uv.x) / center.x;                    // left
+		float max_len = length(center - uvs[6]);
+		c_t  = length(uv - center) / max_len;                   // bot_left
+	}
+
+	s0_t = clamp(s0_t, 0.0, 1.0);
+	s1_t = clamp(s1_t, 0.0, 1.0);
+	c_t  = clamp(c_t, 0.0, 1.0);
+
+	float f0 = dir_fade(s0_t, s0_enabled);
+	float f1 = dir_fade(s1_t, s1_enabled);
+	float fc = dir_fade(c_t,  c_enabled);
+
+	alpha *= f0 * f1 * fc;
+
+	COLOR = vec4(0.0, 0.0, 0.0, alpha);
 }
