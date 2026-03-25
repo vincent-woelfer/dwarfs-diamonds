@@ -1,6 +1,6 @@
 shader_type canvas_item;
 
-render_mode blend_mix;
+render_mode blend_mix, unshaded;
 
 // #include "res://shaders/debug.gdshaderinc"
 
@@ -11,18 +11,19 @@ uniform float total_penetration_distance : hint_range(0.0, 1.0) = 0.3;
 // Colors go from lit_color -> fade_color -> unlit_color.
 // fade_threshold [0,1] determines where the transition happens.
 // Colors are set in Godot Code in Colors
-uniform float fade_threshold : hint_range(0.0, 1.0) = 0.8;
+uniform float fade_threshold : hint_range(0.0, 1.0) = 0.3;
 uniform vec4 lit_color : source_color;
 uniform vec4 fade_color : source_color;
 uniform vec4 unlit_color : source_color;
 
 // ---------- instance uniforms ----------
 group_uniforms InstanceParameters;	
+// 0 = fully lit, dont write anything, 1 = apply fade based on neighbour_lit_bits, 2+ = fully dark
+instance uniform uint light_depth;
+
 // Points in ORDER: 0 TL, 1 T, 2 TR, 3 R, 4 BR, 5 B, 6 BL, 7 L
 // true = lit / apply fade | false = Shadow / no fade, black till border
 instance uniform uint neighbour_lit_bits;
-
-instance uniform uint light_depth; // 0 = fully lit, dont write anything, 1 = apply fade based on neighbour_lit_bits, 2+ = fully dark
 
 // UVs for poly points
 instance uniform vec2 uvs_0;
@@ -63,11 +64,10 @@ float corner_dist(vec2 corner, vec2 p) {
 
 // ------------------------------------------------------------------
 void fragment() {
-	// if (light_depth == 0u) {
-	// 	COLOR = vec4(0, 0, 0, 0); // fully transparent, no need to write anything
-	// } else if (light_depth > 2u) {
-	// 	COLOR = unlit_color;
-	// } else {
+	if (light_depth > 2u) {
+		// Directly white unlit color
+		COLOR = unlit_color;
+	} else {
 
 		vec2 uv = UV;
 		float min_dist = 100.0;
@@ -95,7 +95,7 @@ void fragment() {
 		}
 
 		// This is a modulate color because the shader is its own material applied on top of the cell color.
-		COLOR.rgb *= color.rgb;
-		COLOR.a *= color.a;
-	// }
+		// This overwrites the FINAL color of the shadow poly. Since alpha is present, this will still show the cell color + lightning underneath
+		COLOR = color;
+	}
 }

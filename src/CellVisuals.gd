@@ -105,9 +105,8 @@ func _ready() -> void:
 	# Set global colors
 	shadow_material.set_shader_parameter("lit_color", Colors.LIT_CELL_COLOR)
 	shadow_material.set_shader_parameter("fade_color", Colors.FADE_CELL_COLOR)
-	# include canvas modulate here because shader sets the final value
-	# shadow_material.set_shader_parameter("unlit_color", Colors.UNLIT_CELL_COLOR * Colors.LEVEL_DARKNESS_COLOR)
-	shadow_material.set_shader_parameter("unlit_color", Colors.UNLIT_CELL_COLOR * Colors.LEVEL_DARKNESS_COLOR)
+	# Would need to include canvas modulate here because shader sets the final value excluding canvas modulate.
+	shadow_material.set_shader_parameter("unlit_color", Colors.UNLIT_CELL_COLOR)
 
 	shadow_poly.material = shadow_material
 
@@ -163,40 +162,26 @@ func _update() -> void:
 	background_poly.light_mask = 0 if c.is_solid else 1
 	background_poly.color = Colors.get_cell_color(c.type)
 
-	mineral_poly.visible = c.has_mineral and c.is_solid and c.light_depth <= 1
+	# TODO change this for is solid AND especially change background texture (in cellGlobalTexture shader)
+	if c.is_solid:
+		background_poly.color *= Color(1.0, 1.0, 1.0, 1.0)
+
+	# background_poly.modulate = Color(1, 1, 1, 1) if not c.is_solid else Color(0.1, 0.1, 0.4, 1.0)
+
+	mineral_poly.visible = c.has_mineral and c.is_solid # and c.light_depth <= 1
 
 	_encode_stencil_buffer()
 	_update_light_depth_visuals()
 
 
 func _update_light_depth_visuals() -> void:
-	# var color_light: Color = Color.WHITE # no modulation
-	# var color_dark: Color = Colors.UNLIT_CELL_COLOR
-	# var color_no_modulate: Color = Color.WHITE # Color is changed in shader
-
-	# shadow_poly.set_instance_shader_parameter("light_depth", c.light_depth)
+	shadow_poly.set_instance_shader_parameter("light_depth", c.light_depth)
 
 	# 0 = light, 1 = border, 2+ = dark
 	if c.light_depth == 0:
-		# White = No modulate
-		# background_poly.modulate = color_light
-		# mineral_poly.modulate = color_light
-		# shadow_poly.visible = false
-		shadow_poly.material = null
-		shadow_poly.color = Color.TRANSPARENT
-	elif c.light_depth > 2:
-		# background_poly.modulate = color_dark
-		# mineral_poly.modulate = color_dark
-		# shadow_poly.visible = false
-		shadow_poly.color = Colors.UNLIT_CELL_COLOR # only unlit, canvas_modulate is still applied on top
-		shadow_poly.material = null
+		shadow_poly.visible = false
 	else:
-		# = 1 = border. 2 = corner may be visible, we cant distinguish between corner or 2-depth in a line
-		# background_poly.modulate = color_no_modulate
-		# mineral_poly.modulate = color_no_modulate
-		# shadow_poly.visible = true
-		shadow_poly.color = Color.WHITE
-		shadow_poly.material = shadow_material
+		shadow_poly.visible = true
 
 		# Update light_depths array into shader as bitfield
 		# True = lit = apply fade, False = Shadow = no fade, black till border
