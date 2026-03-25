@@ -63,11 +63,11 @@ float corner_dist(vec2 corner, vec2 p) {
 
 // ------------------------------------------------------------------
 void fragment() {
-	if (light_depth == 0u) {
-		COLOR = vec4(0, 0, 0, 0); // fully transparent, no need to write anything
-	} else if (light_depth > 2u) {
-		COLOR = unlit_color;
-	} else {
+	// if (light_depth == 0u) {
+	// 	COLOR = vec4(0, 0, 0, 0); // fully transparent, no need to write anything
+	// } else if (light_depth > 2u) {
+	// 	COLOR = unlit_color;
+	// } else {
 
 		vec2 uv = UV;
 		float min_dist = 100.0;
@@ -95,6 +95,7 @@ void fragment() {
 		}
 
 		// This is a modulate color because the shader is its own material applied on top of the cell color.
-		COLOR = color;
-	}
+		COLOR.rgb *= color.rgb;
+		COLOR.a *= color.a;
+	// }
 }

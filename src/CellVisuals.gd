@@ -105,7 +105,9 @@ func _ready() -> void:
 	# Set global colors
 	shadow_material.set_shader_parameter("lit_color", Colors.LIT_CELL_COLOR)
 	shadow_material.set_shader_parameter("fade_color", Colors.FADE_CELL_COLOR)
-	shadow_material.set_shader_parameter("unlit_color", Colors.UNLIT_CELL_COLOR)
+	# include canvas modulate here because shader sets the final value
+	# shadow_material.set_shader_parameter("unlit_color", Colors.UNLIT_CELL_COLOR * Colors.LEVEL_DARKNESS_COLOR)
+	shadow_material.set_shader_parameter("unlit_color", Colors.UNLIT_CELL_COLOR * Colors.LEVEL_DARKNESS_COLOR)
 
 	shadow_poly.material = shadow_material
 
@@ -168,29 +170,33 @@ func _update() -> void:
 
 
 func _update_light_depth_visuals() -> void:
-	var color_light: Color = Color.WHITE # no modulation
-	var color_dark: Color = Colors.UNLIT_CELL_COLOR
-	var color_no_modulate: Color = Color.WHITE # Color is changed in shader
+	# var color_light: Color = Color.WHITE # no modulation
+	# var color_dark: Color = Colors.UNLIT_CELL_COLOR
+	# var color_no_modulate: Color = Color.WHITE # Color is changed in shader
 
-	shadow_poly.set_instance_shader_parameter("light_depth", c.light_depth)
+	# shadow_poly.set_instance_shader_parameter("light_depth", c.light_depth)
 
 	# 0 = light, 1 = border, 2+ = dark
 	if c.light_depth == 0:
-		pass
 		# White = No modulate
 		# background_poly.modulate = color_light
 		# mineral_poly.modulate = color_light
 		# shadow_poly.visible = false
+		shadow_poly.material = null
+		shadow_poly.color = Color.TRANSPARENT
 	elif c.light_depth > 2:
-		pass
 		# background_poly.modulate = color_dark
 		# mineral_poly.modulate = color_dark
 		# shadow_poly.visible = false
+		shadow_poly.color = Colors.UNLIT_CELL_COLOR # only unlit, canvas_modulate is still applied on top
+		shadow_poly.material = null
 	else:
 		# = 1 = border. 2 = corner may be visible, we cant distinguish between corner or 2-depth in a line
 		# background_poly.modulate = color_no_modulate
 		# mineral_poly.modulate = color_no_modulate
 		# shadow_poly.visible = true
+		shadow_poly.color = Color.WHITE
+		shadow_poly.material = shadow_material
 
 		# Update light_depths array into shader as bitfield
 		# True = lit = apply fade, False = Shadow = no fade, black till border

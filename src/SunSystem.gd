@@ -5,7 +5,6 @@ extends Node2D
 # Darkness
 ###################################
 var darkness: CanvasModulate
-var darkness_factor: float = 0.4
 
 ###################################
 # Sunlight
@@ -41,7 +40,7 @@ func _ready() -> void:
 
 	# Darkness
 	darkness = CanvasModulate.new()
-	darkness.color = Color(darkness_factor, darkness_factor, darkness_factor, 1.0)
+	darkness.color = Colors.LEVEL_DARKNESS_COLOR
 	add_child(darkness)
 
 	# start early morning
