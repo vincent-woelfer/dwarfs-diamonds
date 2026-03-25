@@ -35,6 +35,7 @@ void fragment() {
 
 	vec4 multiplier = mix(tex_main, tex_alt, blend_value);
 
+	// Mulitply because the background poly still has its own color (and mopdulate)
 	COLOR *= multiplier;
 }
 

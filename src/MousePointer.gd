@@ -63,7 +63,7 @@ func _exit_neutral() -> void:
 
 	# Deselect all cells
 	for cell in curr_selected_cells:
-		cell.set_is_selected(false)
+		cell.set_is_highlighted(false)
 
 	prev_selected_cells.clear()
 	curr_selected_cells.clear()
@@ -226,11 +226,11 @@ func _update_selected_cells() -> void:
 	# Deselect previous
 	for cell in prev_selected_cells:
 		if cell not in curr_selected_cells:
-			cell.set_is_selected(false)
+			cell.set_is_highlighted(false)
 
 	# Select current
 	for cell in curr_selected_cells:
-		cell.set_is_selected(true)
+		cell.set_is_highlighted(true)
 
 	# Mark cells for mining
 	# Single click

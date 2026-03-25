@@ -14,8 +14,7 @@ var dummy_1x1_texture: Texture2D = preload("res://assets/textures/dummy_1x1.png"
 var mineral_texture: Texture2D = preload("res://assets/sprites/minerals_1.png")
 
 # Shadow Material
-var shadow_material_scene: ShaderMaterial = preload("res://assets/materials/CellShadow.tres")
-var shadow_material: ShaderMaterial
+var shadow_material: ShaderMaterial = preload("res://assets/materials/CellShadow.tres")
 
 # Polygons
 var background_poly: Polygon2D
@@ -44,6 +43,8 @@ func _ready() -> void:
 	self.visibility_layer = Util.LAYER_1 | Util.LAYER_2
 	self.z_index = Enum.ZIndex.CELL
 
+	EventBus.Signal_LightDepthUpdated.connect(set_dirty)
+
 	poly_points = _compute_cell_polygon()
 	uv_points = _compute_cell_uvs()
 
@@ -51,6 +52,8 @@ func _ready() -> void:
 	# Background Polygon
 	###################################
 	background_poly = Polygon2D.new()
+	background_poly.z_as_relative = true
+	background_poly.z_index = 0
 	background_poly.polygon = poly_points
 	background_poly.uv = uv_points
 	background_poly.visibility_layer = Util.LAYER_1
@@ -70,6 +73,8 @@ func _ready() -> void:
 	# Mineral Polygon
 	###################################
 	mineral_poly = Polygon2D.new()
+	mineral_poly.z_as_relative = true
+	mineral_poly.z_index = 1
 	mineral_poly.polygon = poly_points
 	mineral_poly.uv = uv_points
 	mineral_poly.visibility_layer = Util.LAYER_1
@@ -90,15 +95,23 @@ func _ready() -> void:
 	# Shadow Polygon
 	###################################
 	shadow_poly = Polygon2D.new()
+	shadow_poly.z_as_relative = true
+	shadow_poly.z_index = 2
 	shadow_poly.visibility_layer = Util.LAYER_1
 	shadow_poly.polygon = poly_points
 	shadow_poly.uv = uv_points
-
-	# Setup shader. TODO test if duplicate is required? Maybe compare with per instance uniforms
-	shadow_material = shadow_material_scene.duplicate()
-	shadow_material.set_shader_parameter("uvs", shadow_poly.uv)
-	shadow_poly.material = shadow_material
 	shadow_poly.texture = dummy_1x1_texture
+
+	# Set global colors
+	shadow_material.set_shader_parameter("lit_color", Colors.LIT_CELL_COLOR)
+	shadow_material.set_shader_parameter("fade_color", Colors.FADE_CELL_COLOR)
+	shadow_material.set_shader_parameter("unlit_color", Colors.UNLIT_CELL_COLOR)
+
+	shadow_poly.material = shadow_material
+
+	for i in range(8):
+		shadow_poly.set_instance_shader_parameter("uvs_%d" % i, uv_points[i])
+
 	
 	add_child(shadow_poly)
 
@@ -127,8 +140,7 @@ func _ready() -> void:
 	###################################
 	# Finalize
 	###################################
-	update()
-
+	_update()
 
 func set_dirty() -> void:
 	dirty = true
@@ -137,61 +149,62 @@ func set_dirty() -> void:
 func _process(delta: float) -> void:
 	if dirty:
 		dirty = false
-		update()
-
-	# TODO DEV
-	# 0 = light, 1 = border, 2+ = dark
-	if c.light_depth == 0:
-		background_poly.modulate = Color.WHITE
-		mineral_poly.modulate = Color.WHITE
-		shadow_poly.visible = false
-	elif c.light_depth > 2:
-		background_poly.modulate = Color.BLACK
-		mineral_poly.modulate = Color.BLACK
-		shadow_poly.visible = false
-	else:
-		# = 1 = border. 2 = corner may be visible, we cant distinguish between corner or 2-depth in a line
-		background_poly.modulate = Color.WHITE
-		mineral_poly.modulate = Color.WHITE
-		shadow_poly.visible = true
-
-		_update_corner_lights()
-
-func _update_corner_lights() -> void:
-	# True = lit = apply fade, False = Shadow = no fade, black till border
-	var neighbour_lit: Array[bool] = []
-	
-	for dir: Vector2i in Util.neighbours_all:
-		var n: Cell = c.get_neighbour(dir)
-		if n != null:
-			neighbour_lit.append(n.light_depth == 0)
-		else:
-			# Treat map border as solid
-			neighbour_lit.append(false)
-
-	# Assign to shader
-	shadow_material.set_shader_parameter("top_left", neighbour_lit[Enum.PolyPoint.TOP_LEFT])
-	shadow_material.set_shader_parameter("top", neighbour_lit[Enum.PolyPoint.TOP])
-	shadow_material.set_shader_parameter("top_right", neighbour_lit[Enum.PolyPoint.TOP_RIGHT])
-	shadow_material.set_shader_parameter("right", neighbour_lit[Enum.PolyPoint.RIGHT])
-	shadow_material.set_shader_parameter("bot_right", neighbour_lit[Enum.PolyPoint.BOT_RIGHT])
-	shadow_material.set_shader_parameter("bot", neighbour_lit[Enum.PolyPoint.BOT])
-	shadow_material.set_shader_parameter("bot_left", neighbour_lit[Enum.PolyPoint.BOT_LEFT])
-	shadow_material.set_shader_parameter("left", neighbour_lit[Enum.PolyPoint.LEFT])
+		_update()
+		_update_light_depth_visuals()
 
 
-func update() -> void:
+func _update() -> void:
 	# VISUAL
 	occluder.visible = c.is_solid
 
 	# Change light mask if solid (no light passes through)
 	background_poly.light_mask = 0 if c.is_solid else 1
-
 	background_poly.color = Colors.get_cell_color(c.type)
 
-	mineral_poly.visible = c.has_mineral and c.is_solid
+	mineral_poly.visible = c.has_mineral and c.is_solid and c.light_depth <= 1
 
 	_encode_stencil_buffer()
+	_update_light_depth_visuals()
+
+
+func _update_light_depth_visuals() -> void:
+	var color_light: Color = Color.WHITE # no modulation
+	var color_dark: Color = Colors.UNLIT_CELL_COLOR
+	var color_no_modulate: Color = Color.WHITE # Color is changed in shader
+
+	shadow_poly.set_instance_shader_parameter("light_depth", c.light_depth)
+
+	# 0 = light, 1 = border, 2+ = dark
+	if c.light_depth == 0:
+		pass
+		# White = No modulate
+		# background_poly.modulate = color_light
+		# mineral_poly.modulate = color_light
+		# shadow_poly.visible = false
+	elif c.light_depth > 2:
+		pass
+		# background_poly.modulate = color_dark
+		# mineral_poly.modulate = color_dark
+		# shadow_poly.visible = false
+	else:
+		# = 1 = border. 2 = corner may be visible, we cant distinguish between corner or 2-depth in a line
+		# background_poly.modulate = color_no_modulate
+		# mineral_poly.modulate = color_no_modulate
+		# shadow_poly.visible = true
+
+		# Update light_depths array into shader as bitfield
+		# True = lit = apply fade, False = Shadow = no fade, black till border
+		var neighbour_lit_bits: int = 0
+		var idx: int = 0
+		for dir: Vector2i in Util.neighbours_all:
+			var n: Cell = c.get_neighbour(dir)
+			var n_lit: bool = n != null and n.light_depth == 0
+			if n_lit:
+				neighbour_lit_bits |= (1 << idx)
+			idx += 1
+
+		# Assign to shader		
+		shadow_poly.set_instance_shader_parameter("neighbour_lit_bits", neighbour_lit_bits)
 
 
 # Set Stencil Colors. Dont write to alpha, this is done only once to show/hide stencil in editor vs game
@@ -200,7 +213,7 @@ func _encode_stencil_buffer() -> void:
 	stencil_poly.color.r8 = 0
 	stencil_poly.color.r8 |= (1 << 0) if c.is_marked_for_mining else 0
 	stencil_poly.color.r8 |= (1 << 1) if c.is_solid else 0
-	stencil_poly.color.r8 |= (1 << 2) if c.is_selected else 0
+	stencil_poly.color.r8 |= (1 << 2) if c.is_highlighted else 0
 
 	# Encode numbers in GREEN channel
 	stencil_poly.color.g8 = 0
@@ -209,7 +222,6 @@ func _encode_stencil_buffer() -> void:
 
 	# BLUE channel - used for debugging
 	stencil_poly.color.b8 = 0
-	stencil_poly.color.b8 |= (1 << 6) if c.is_standable() else 0
 
 
 ## Returns a single poly point in world-space RELATIVE TO CELL

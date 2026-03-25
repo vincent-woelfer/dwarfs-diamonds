@@ -16,22 +16,15 @@ const float stripe_bias = 1.75;
 const float speed = 0.012;
 const float angle = 0.7854; // radians
 
-
 // STATIC COLORS
 const vec4 mining_color = vec4(0.4, 0.18, 0.75, 0.8);
-
-const vec4 selection_color = vec4(1.0, 1.0, 0.0, 0.2);
-
+const vec4 highlight_color = vec4(1.0, 1.0, 0.0, 0.2);
 
 const float is_solid_max_darken_factor = 0.5;
-const float is_solid_blur_radius = 350.0;
 const float is_solid_flat_offset = 0.10;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
-// TODO FOR BLUR LOOK HERE MAYBE: https://www.reddit.com/r/godot/comments/1rcrzwq/how_do_i_create_a_downscaled_copy_of_a/
-
-
 float sample_is_solid(vec2 uv) {
     vec4 stencil_color = texture(STENCIL_TEXTURE, uv);
     int stencil_r8 = int(round(stencil_color.r * 255.0));
@@ -39,52 +32,7 @@ float sample_is_solid(vec2 uv) {
 
     // soild = dark = 0.0, not solid = bright = 1.0
     return is_solid ? 0.0 : 1.0;
-}
-
-
-// HORIZONTAL GAUSSIAN BLUR
-float blur_is_solid_horizontal(vec2 uv, vec2 screen_pixel_size) {
-    float sigma = is_solid_blur_radius * 0.25; // controls blur softness
-    int radius = int(ceil(sigma * 2.0)); // how many pixels out to sample
-
-    float sum = 0.0;
-    float weight_sum = 0.0;
-
-    for (int i = -radius; i <= radius; i++) {
-        float w = exp(-0.5 * pow(float(i) / sigma, 2.0)); // Gaussian weight
-        vec2 offset = vec2(screen_pixel_size.x * float(i) * zoom, 0.0);
-        sum += sample_is_solid(uv + offset) * w;
-        weight_sum += w;
-    }
-
-    return sum / weight_sum;
-}
-
-// VERTICAL GAUSSIAN BLUR
-float blur_is_solid_vertical(vec2 uv, vec2 screen_pixel_size) {
-    float sigma = is_solid_blur_radius * 0.25;
-    int radius = int(ceil(sigma * 2.0));
-
-    float sum = 0.0;
-    float weight_sum = 0.0;
-
-    for (int i = -radius; i <= radius; i++) {
-        float w = exp(-0.5 * pow(float(i) / sigma, 2.0));
-        vec2 offset = vec2(0.0, screen_pixel_size.y * float(i) * zoom);
-        sum += sample_is_solid(uv + offset) * w;
-        weight_sum += w;
-    }
-
-    return sum / weight_sum;
-}
-
-float blur_is_solid(vec2 uv, vec2 screen_pixel_size) {
-    float horiz = blur_is_solid_horizontal(uv, screen_pixel_size);
-    float vert = blur_is_solid_vertical(uv, screen_pixel_size);
-    float blurred = (horiz + vert) * 0.5;
-    return blurred;
-}
-    
+}    
 
 ////////////////////////////////////////////////////////////////////////////////////////
 void fragment() {
@@ -103,7 +51,7 @@ void fragment() {
     // --- RED channel flags ---
     bool is_marked_for_mining = (stencil_r8 & (1 << 0)) != 0;
     bool is_solid             = (stencil_r8 & (1 << 1)) != 0;
-    bool is_selected          = (stencil_r8 & (1 << 2)) != 0;
+    bool is_highlighted       = (stencil_r8 & (1 << 2)) != 0;
 
     // --- GREEN channel fields ---
     // Extract 3-bit field starting at bit 0, then normalize to [0.0, 1.0]
@@ -113,7 +61,6 @@ void fragment() {
 
     // --- BLUE channel fields ---
     // used for debugging
-    bool is_walkable    = (stencil_b8 & (1 << 6)) != 0;
 
     // Correct UV for aspect ratio for strip generation only
     float aspect = SCREEN_PIXEL_SIZE.x / SCREEN_PIXEL_SIZE.y;
@@ -127,7 +74,7 @@ void fragment() {
     // Start with screen color
     COLOR = screen_color;
 
-    // SOLID -> darken
+    // IS_SOLID -> darken
     if (is_solid) {   
         // ORIGINAL:
         // TODO removed when light_depth was added
@@ -140,7 +87,7 @@ void fragment() {
         // COLOR.rgb *= darkness_factor;
     }
 
-    // MINING
+    // MINING PROGRESS
     if (mining_process > 0.0) {
         vec3 mining_overlay = mix(screen_color.rgb, mining_color.rgb, mining_color.a);
         COLOR.rgb = mix(COLOR.rgb, mining_overlay, mining_process);
@@ -156,9 +103,9 @@ void fragment() {
         COLOR = marked_for_mining_color;
     }
 
-    // IS SELECTED (highlighted when hovered over)
-    if (is_selected) {
-        COLOR = mix(COLOR, selection_color, selection_color.a);
+    // IS HIGHLIGHTED (when hovered over)
+    if (is_highlighted) {
+        COLOR = mix(COLOR, highlight_color, highlight_color.a);
     }
 
 }

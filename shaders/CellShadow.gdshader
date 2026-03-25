@@ -1,38 +1,50 @@
 shader_type canvas_item;
 
-#include "res://shaders/debug.gdshaderinc"
+render_mode blend_mix;
+
+// #include "res://shaders/debug.gdshaderinc"
 
 // ---------- uniforms ----------
+group_uniforms GlobalParameters;	
+uniform float total_penetration_distance : hint_range(0.0, 1.0) = 0.3;
+
+// Colors go from lit_color -> fade_color -> unlit_color.
+// fade_threshold [0,1] determines where the transition happens.
+// Colors are set in Godot Code in Colors
+uniform float fade_threshold : hint_range(0.0, 1.0) = 0.8;
+uniform vec4 lit_color : source_color;
+uniform vec4 fade_color : source_color;
+uniform vec4 unlit_color : source_color;
+
+// ---------- instance uniforms ----------
+group_uniforms InstanceParameters;	
+// Points in ORDER: 0 TL, 1 T, 2 TR, 3 R, 4 BR, 5 B, 6 BL, 7 L
 // true = lit / apply fade | false = Shadow / no fade, black till border
-uniform bool top_left     = false;
-uniform bool top          = false;
-uniform bool top_right    = false;
-uniform bool right        = false;
-uniform bool bot_right    = false;
-uniform bool bot          = false;
-uniform bool bot_left     = false;
-uniform bool left         = false;
+instance uniform uint neighbour_lit_bits;
 
-// 
-uniform float fade_distance : hint_range(0.0, 1.0) = 0.4;
+instance uniform uint light_depth; // 0 = fully lit, dont write anything, 1 = apply fade based on neighbour_lit_bits, 2+ = fully dark
 
-// UVs in ORDER: 0 TL, 1 T, 2 TR, 3 R, 4 BR, 5 B, 6 BL, 7 L
-uniform vec2 uvs[8];
-
-uniform vec4 shadow_color  : source_color = vec4(0.0, 0.0, 0.0, 1.0);
-uniform vec4 border_color  : source_color = vec4(0.0, 0.0, 0.0, 0.3);
-
+// UVs for poly points
+instance uniform vec2 uvs_0;
+instance uniform vec2 uvs_1;
+instance uniform vec2 uvs_2;
+instance uniform vec2 uvs_3;
+instance uniform vec2 uvs_4;
+instance uniform vec2 uvs_5;
+instance uniform vec2 uvs_6;
+instance uniform vec2 uvs_7;
 
 // ------------------------------------------------------------------
 // This t = distance from polygon edge/corner. 0 = on poly-edge, 1 = mid of polygon
 float dir_fade(float dist) {
-	float f = smoothstep(1.0 - fade_distance, 1.0, 1.0 - dist);
-
-	// This 1 - f is required because return value is alpha blend value
-	return 1.0 - f;
+	float f = smoothstep(1.0 - total_penetration_distance, 1.0, 1.0 - dist);
+	return clamp(1.0 - f, 0.0, 1.0);
 }
 
-// ------------------------------------------------------------------
+bool get_neighbour_lit(int idx) {
+	return bool((neighbour_lit_bits >> uint(idx)) & 1u);
+}
+
 float seg_dist(vec2 a, vec2 b, vec2 p) {
 	vec2 ab = b - a;
 	vec2 ap = p - a;
@@ -51,25 +63,38 @@ float corner_dist(vec2 corner, vec2 p) {
 
 // ------------------------------------------------------------------
 void fragment() {
-	vec2 uv = UV;
-	float min_dist = 100.0;
+	if (light_depth == 0u) {
+		COLOR = vec4(0, 0, 0, 0); // fully transparent, no need to write anything
+	} else if (light_depth > 2u) {
+		COLOR = unlit_color;
+	} else {
 
-	// Sides
-	if (top) min_dist = min(min_dist, two_seg_dist(uvs[0], uvs[1], uvs[2], uv));
-	if (right) min_dist = min(min_dist, two_seg_dist(uvs[2], uvs[3], uvs[4], uv));
-	if (bot) min_dist = min(min_dist, two_seg_dist(uvs[4], uvs[5], uvs[6], uv));
-	if (left) min_dist = min(min_dist, two_seg_dist(uvs[6], uvs[7], uvs[0], uv));
+		vec2 uv = UV;
+		float min_dist = 100.0;
 
-	// Corners
-	if (top_left) min_dist = min(min_dist, corner_dist(uvs[0], uv));
-	if (top_right) min_dist = min(min_dist, corner_dist(uvs[2], uv));
-	if (bot_right) min_dist = min(min_dist, corner_dist(uvs[4], uv));
-	if (bot_left) min_dist = min(min_dist, corner_dist(uvs[6], uv));
+		// Sides
+		if (get_neighbour_lit(1)) min_dist = min(min_dist, two_seg_dist(uvs_0, uvs_1, uvs_2, uv));
+		if (get_neighbour_lit(3)) min_dist = min(min_dist, two_seg_dist(uvs_2, uvs_3, uvs_4, uv));
+		if (get_neighbour_lit(5)) min_dist = min(min_dist, two_seg_dist(uvs_4, uvs_5, uvs_6, uv));
+		if (get_neighbour_lit(7)) min_dist = min(min_dist, two_seg_dist(uvs_6, uvs_7, uvs_0, uv));
 
-	float alpha = dir_fade(min_dist);
+		// Corners
+		if (get_neighbour_lit(0)) min_dist = min(min_dist, corner_dist(uvs_0, uv));
+		if (get_neighbour_lit(2)) min_dist = min(min_dist, corner_dist(uvs_2, uv));
+		if (get_neighbour_lit(4)) min_dist = min(min_dist, corner_dist(uvs_4, uv));
+		if (get_neighbour_lit(6)) min_dist = min(min_dist, corner_dist(uvs_6, uv));
 
-	// interpolate between shadow_color (alpha=1) and border_color (alpha=0.9) using previous alpha
-	vec4 color = mix(border_color, shadow_color, alpha);
+		float color_progress_t = dir_fade(min_dist);
 
-	COLOR = color;
+		// interpolate between lit_color (t=0) -> face_color(t=threshold) unlit_color (t=1)
+		vec4 color;
+		if (color_progress_t < fade_threshold) {
+			color = mix(lit_color, fade_color, color_progress_t / fade_threshold);
+		} else {
+			color = mix(fade_color, unlit_color, (color_progress_t - fade_threshold) / (1.0 - fade_threshold));
+		}
+
+		// This is a modulate color because the shader is its own material applied on top of the cell color.
+		COLOR = color;
+	}
 }

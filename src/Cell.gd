@@ -10,7 +10,6 @@ var deco_elements: Array[DecoBase] = []
 var buildings: Array[BuildingBase] = []
 var action_points: Array[ActionPoint] = []
 
-# TODO DEV
 var has_mineral: bool = false
 
 # 0  = air / not solid
@@ -63,7 +62,7 @@ func has_ladder() -> bool:
 var is_marked_for_mining: bool = false
 
 # Yellow overlay, used for selection
-var is_selected: bool = false
+var is_highlighted: bool = false
 
 # Always between 0.0 and 1.0
 var mining_process: float = 0.0
@@ -82,8 +81,8 @@ func queue_nav_update() -> void:
 		Global.level.nav_manager.queue_update_cell(n_grid_pos)
 
 
-func set_is_selected(selected: bool) -> void:
-	is_selected = selected
+func set_is_highlighted(highlighted: bool) -> void:
+	is_highlighted = highlighted
 	visual.set_dirty()
 
 
@@ -213,7 +212,7 @@ func _init(_grid_pos: Vector2i, _type: Enum.CellType, _is_solid: bool) -> void:
 	self.is_solid = _is_solid
 
 	self.is_marked_for_mining = false
-	self.is_selected = false
+	self.is_highlighted = false
 	self.mining_process = 0.0
 
 	#TODO DEV
