@@ -44,15 +44,15 @@ func _ready() -> void:
 	self.visibility_layer = Util.LAYER_1 | Util.LAYER_2
 	self.z_index = Enum.ZIndex.CELL
 
-	poly_points = _get_cell_polygon()
-	uv_points = _compute_uvs()
+	poly_points = _compute_cell_polygon()
+	uv_points = _compute_cell_uvs()
 
 	###################################
 	# Background Polygon
 	###################################
 	background_poly = Polygon2D.new()
 	background_poly.polygon = poly_points
-	background_poly.uv = uv_points # needed?
+	background_poly.uv = uv_points
 	background_poly.visibility_layer = Util.LAYER_1
 
 	# Add material
@@ -221,7 +221,7 @@ func get_poly_point(point: Enum.PolyPoint) -> Vector2:
 
 # Returns a rectangle polygon for cell at grid position (x, y) in world-space RELATIVE TO CELL.
 # Values range is [0, CELL_SIZE] + small random offset
-func _get_cell_polygon() -> PackedVector2Array:
+func _compute_cell_polygon() -> PackedVector2Array:
 	const SIDE_LENGTH: float = Global.CELL_SIZE
 
 	# 4 Corners
@@ -254,7 +254,7 @@ func _get_cell_polygon() -> PackedVector2Array:
 	return PackedVector2Array([top_left, top, top_right, right, bot_right, bot, bot_left, left])
 
 # Compute normalized UVs by simply scaling down polygon by SIDE_LENGTH
-func _compute_uvs() -> PackedVector2Array:
+func _compute_cell_uvs() -> PackedVector2Array:
 	const SIDE_LENGTH: float = Global.CELL_SIZE
 	var uvs: PackedVector2Array = []
 	for p in poly_points:

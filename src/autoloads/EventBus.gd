@@ -6,7 +6,11 @@ extends Node
 ########################################################################################################################
 signal Signal_DebugPathSetStartCell(pos: Vector2i)
 
-signal Signal_NavUpdated() # Emitted when the nav grid has been updated
+## Emitted by NavManager when the nav grid has been updated
+signal Signal_NavUpdated()
+
+## Emitted by Level when the light caluclation was updated
+signal Signal_LightDepthUpdated()
 
 # This is only for the one "central" cell
 signal Signal_MouseHoveredCellChanged(hovered_cell: Cell)
@@ -88,11 +92,18 @@ func _input(event: InputEvent) -> void:
 		dev_sun_fast_forward = not dev_sun_fast_forward
 		Signal_DevToogleSunFastForward.emit()
 
+
+########################################################################################################################
+# READY
+########################################################################################################################
+
 ########################################################################################################################
 # READY
 ########################################################################################################################
 func _ready() -> void:
-	pass
+	self.process_priority = Enum.ProcessPriority.EVENT_BUS
+	
+	
 	# Actual signal connection is done in the code catching the signal like this:
 	# EventBus.Signal_XXX.connect(_on_Signal_XXX)
 

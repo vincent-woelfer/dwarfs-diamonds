@@ -27,7 +27,10 @@ enum ProcessPriority {
 	DEFAULT = 0,
 	NAV = 1,
 	JOBS = 2,
-	CELL = 10,
+	CELL = 5,
+	# Process accumulated signals
+	EVENT_BUS = 10,
+	# Last Phase: Visuals
 	CELL_VISUAL = 11
 }
 

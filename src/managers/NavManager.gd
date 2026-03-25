@@ -85,21 +85,20 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	_update_cell_connections()
+	if not _cell_connections_to_update.is_empty():
+		_update_cell_connections()
 	
 
 # Disabled = currently not walkable
 # Connections might still be there for disabled cells (might changein future)
+# Happens at most once per frame
 func _update_cell_connections() -> void:
-	if _cell_connections_to_update.is_empty():
-		return
-
 	var start_time := Time.get_ticks_msec()
 	var cell_connections := _cell_connections_to_update.size()
 	
 	while not _cell_connections_to_update.is_empty():
 		# Guaranteed that pair is valid positions and not null
-		var cell_pair: CellPairQueue.Pair = _cell_connections_to_update.pop_front()
+		var cell_pair: CellPairQueue.Pair = _cell_connections_to_update.pop_back()
 
 		# Update individual cells -> This is called way to often per cell per frame but whatever for now
 		_update_cell_individually(cell_pair.grid_pos_from)
@@ -112,13 +111,8 @@ func _update_cell_connections() -> void:
 	_debug_draw_proxy_relative.queue_redraw()
 
 	var duration := Time.get_ticks_msec() - start_time
-	var important: bool = duration > 1
-
-	if important:
-		HexLog.print("Nav => Updated %d nav-connections in: %d ms" % [cell_connections, duration], Colors.NAV_IMPORTANT_PRINT_COLOR)
-	else:
-		pass
-		# HexLog.print("Nav => Updated %d nav-connections in: %d ms" % [cell_connections, duration], Colors.NAV_UNIMPORTANT_PRINT_COLOR)
+	if duration > 1:
+		HexLog.print("Nav   => Updated %d nav-connections in: %d ms" % [cell_connections, duration], Colors.NAV_IMPORTANT_PRINT_COLOR)
 
 	EventBus.Signal_NavUpdated.emit()
 

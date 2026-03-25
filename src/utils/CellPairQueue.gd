@@ -38,16 +38,13 @@ func append_unidirectional(grid_pos_from: Vector2i, grid_pos_to: Vector2i) -> vo
 		return
 
 	# Dont check for duplicates, just add.
-	# This is faster and duplicates are not a big problem
-
+	# This is faster and duplicates are not a problem since updates are idempotent (setting a connection multiple times is not a problem)
 	var new_pair := Pair.new(grid_pos_from, grid_pos_to)
 	_pairs.append(new_pair)
 
 	
-func pop_front() -> Pair:
-	if _pairs.is_empty():
-		return null
-	return _pairs.pop_front()
+func pop_back() -> Pair:
+	return _pairs.pop_back()
 
 
 func size() -> int:

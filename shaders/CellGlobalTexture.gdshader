@@ -6,13 +6,12 @@ uniform sampler2D bg_texture_alt : source_color, filter_nearest, repeat_enable;
 uniform sampler2D noise_tex : source_color, filter_nearest, repeat_enable;
 
 const float tex_scale = 0.005;
-
 const float tex_scale_noise = 0.001;
 
 varying vec2 world_pos;
 
 void vertex() {
-	// Pass through vertex shader
+	// Compute world_pos and pass to fragment shader
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 0.0, 1.0)).xy;
 }
 
