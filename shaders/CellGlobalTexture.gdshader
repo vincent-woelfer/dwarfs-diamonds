@@ -2,8 +2,8 @@ shader_type canvas_item;
 
 uniform sampler2D bg_texture_main : source_color, filter_nearest, repeat_enable;
 uniform sampler2D bg_texture_alt : source_color, filter_nearest, repeat_enable;
-
 uniform sampler2D noise_tex : source_color, filter_nearest, repeat_enable;
+uniform sampler2D normal_map_tex : hint_normal, filter_nearest, repeat_enable;
 
 const float tex_scale = 0.005;
 const float tex_scale_noise = 0.001;
@@ -30,14 +30,13 @@ void fragment() {
 	vec4 tex_main = texture(bg_texture_main, uv_final);
 	vec4 tex_alt = texture(bg_texture_alt, uv_final);
 
-	float noise_value = texture(noise_tex, uv_noise).r;  // 0-1 blend factor
+	float noise_value = texture(noise_tex, uv_noise).r;
 	float blend_value = ease_inout(noise_value, -4.0);
 
 	vec4 multiplier = mix(tex_main, tex_alt, blend_value);
 
 	// Mulitply because the background poly still has its own color (and mopdulate)
 	COLOR *= multiplier;
+
+	NORMAL_MAP = texture(normal_map_tex, uv_final).rgb;
 }
-
-
-
