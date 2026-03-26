@@ -59,10 +59,12 @@ func _ready() -> void:
 	background_poly.visibility_layer = Util.LAYER_1
 
 	# Add material
-	if c.type != Enum.CellType.SKY:
-		background_poly.material = cell_global_texture_shader
+	if c.type == Enum.CellType.SKY:
+		background_poly.material = sky_global_texture_shader		
 	else:
-		background_poly.material = sky_global_texture_shader
+		background_poly.material = cell_global_texture_shader
+		background_poly.set_instance_shader_parameter("is_solid", c.is_solid)
+		
 	# with shader sky does not get dark at night
 	# if c.type == Enum.CellType.SKY:
 		# background_poly.material = unshaded_material
