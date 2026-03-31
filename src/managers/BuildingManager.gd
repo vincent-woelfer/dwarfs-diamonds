@@ -29,14 +29,20 @@ func register_building(building: BuildingBase) -> void:
 
 
 ## Called by BuildingBase to unregister itself when removed
-func remove_building(building: BuildingBase) -> void:
+func unregister_building(building: BuildingBase) -> void:
 	if not building in buildings:
 		push_error("BuildingManager: Trying to remove building that is not registered: %s" % building)
 		return
 
 	_unregister_action_points(building)
-
 	buildings.erase(building)
+	
+
+## Called by building itself to finally be removes from scene
+func remove_building(building: BuildingBase) -> void:
+	if building == null:
+		return
+		
 	remove_child(building)
 	building.queue_free()
 
@@ -87,7 +93,7 @@ func get_all_action_points(type: ActionPoint.ActionType) -> Array[ActionPoint]:
 ########################################################################################################################
 # PRIVATE METHODS
 ########################################################################################################################
-## Only called from remove_building()
+## Only called from unregister_building()
 func _unregister_action_points(building: BuildingBase) -> void:
 	for ap: ActionPoint in building.action_points:
 		if ap not in action_points:

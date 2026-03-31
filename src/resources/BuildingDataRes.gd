@@ -64,8 +64,9 @@ var pattern_solid_ground_color: Color = Color(0.3, 0.15, 0.1) # Dark brown
 func is_placeable_at(grid_pos: Vector2i) -> bool:
 	# Check if all building pattern cells exist, are free and have solid ground if required
 	assert(pattern_building != null)
-	var pattern_building_world := GridPatternRes.new(self.pattern_building.cells, grid_pos)
 
+	# Check building pattern cells
+	var pattern_building_world := GridPatternRes.init_from_pattern(self.pattern_building, grid_pos)
 	for pos in pattern_building_world.get_world_positions():
 		var cell: Cell = Global.level.get_cell(pos)
 		if cell == null:
@@ -81,15 +82,23 @@ func is_placeable_at(grid_pos: Vector2i) -> bool:
 			return false
 				
 	# Check solid ground requirement
-	if pattern_solid_ground != null:
-		var pattern_solid_ground_world := GridPatternRes.new(self.pattern_solid_ground.cells, grid_pos)
+	if not has_solid_ground_at(grid_pos):
+		return false
 
-		for pos in pattern_solid_ground_world.get_world_positions():
-			var cell: Cell = Global.level.get_cell(pos)
-			if cell == null or not cell.is_solid:
-				return false
+	# Build from does not need validation, player is required to place it correctly
 
-	# TODO Maybe check if pattern_build_from are free?
+	return true
+
+
+func has_solid_ground_at(grid_pos: Vector2i) -> bool:
+	assert(pattern_building != null)
+	var pattern_solid_ground_world := GridPatternRes.init_from_pattern(self.pattern_solid_ground, grid_pos)
+
+	# Check solid ground requirement
+	for pos in pattern_solid_ground_world.get_world_positions():
+		var cell: Cell = Global.level.get_cell(pos)
+		if cell == null or not cell.is_solid:
+			return false
 
 	return true
 
@@ -144,9 +153,7 @@ func instantiate_building_data(grid_pos: Vector2i) -> BuildingDataRes:
 func _instantiate_pattern_at(pattern: GridPatternRes, grid_pos: Vector2i, var_name: String) -> GridPatternRes:
 	if pattern == null:
 		push_error("BuildingDataRes %s has no '%s' defined." % [ self.name(), var_name])
-		return GridPatternRes.new([], grid_pos)
-
-	return GridPatternRes.new(pattern.cells, grid_pos)
+	return GridPatternRes.init_from_pattern(pattern, grid_pos)
 
 
 ## Returns an array of dictionaries with keys "pattern" (GridPatternRes) and "color" (Color), scanned dynamically from this BuildingDataRes.

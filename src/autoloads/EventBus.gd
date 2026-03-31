@@ -4,19 +4,18 @@ extends Node
 ########################################################################################################################
 # GAMEPLAY SIGNALS
 ########################################################################################################################
-signal Signal_DebugPathSetStartCell(pos: Vector2i)
-
 ## Emitted by NavManager when the nav grid has been updated
+## Includes is_solid changes + ladders
 signal Signal_NavUpdated()
 
-## Emitted by Level when the light caluclation was updated
+## Emitted by Level when the light caluclation was updated (as result of is_solid changes)
 signal Signal_LightDepthUpdated()
+
+## Emitted in Actions.destroy_cell after cell is destroyed
+signal Signal_CellDestroyed(destroyed_cell: Cell)
 
 # This is only for the one "central" cell
 signal Signal_MouseHoveredCellChanged(hovered_cell: Cell)
-
-## Emitted in Actions.destroy_cell after cell is destroyed
-signal Signal_GlobalCellDestroyed(destroyed_cell: Cell)
 
 
 ########################################################################################################################
@@ -33,7 +32,6 @@ var dev_draw_jobs: bool = false
 
 # F3
 signal Signal_DevToogleLight()
-#TODO DEV
 var dev_light_on: bool = false
 
 # F4
@@ -51,6 +49,8 @@ var dev_draw_dwarf_info: bool = false
 # F12
 signal Signal_DevToogleSunFastForward()
 var dev_sun_fast_forward: bool = false
+
+signal Signal_DebugPathSetStartCell(pos: Vector2i)
 
 
 ########################################################################################################################

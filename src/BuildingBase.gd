@@ -27,6 +27,7 @@ var building_color: Color
 ########################################################################################################################
 # SETUP
 ########################################################################################################################
+# Called from Actions.place_building
 func setup_building_as_uncompleted(grid_pos_: Vector2i, building_data_: BuildingDataRes) -> void:
 	super.setup(grid_pos_, Vector2.ZERO)
 
@@ -42,8 +43,8 @@ func setup_building_as_uncompleted(grid_pos_: Vector2i, building_data_: Building
 	# Initial Position
 	global_position = Global.level.get_cell(grid_pos).global_position + Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
 
-
-func setup_action_points() -> void:
+# Called internally when building is completed
+func _setup_action_points() -> void:
 	action_points.clear()
 
 	for ap_res: ActionPointRes in building_data.action_points:
@@ -54,10 +55,13 @@ func setup_action_points() -> void:
 
 
 func _ready() -> void:
-	# Add pickup job
+	# Add build job
 	build_job = Job.new(Job.Type.BUILD, curr_cell)
 	build_job.building = self
 	Global.level.job_manager.add_job(build_job)
+
+	# Signals
+	EventBus.Signal_CellDestroyed.connect(_check_solid_ground)
 
 ########################################################################################################################
 # Public API
@@ -73,9 +77,17 @@ func update_build_process(building_speed_with_delta: float) -> void:
 		_complete_construction()
 
 
-func destroy_building() -> void:
-	if build_job != null:
-		Actions.archive_job(build_job, false)
+# Called from Actions.remove_building which handles most logic
+func on_destroy() -> void:
+	Actions.archive_job(build_job, false)
+
+	# Flash & audio effect
+	var effect_duration := 0.25 * 3
+	_flash(Color(3, 0, 0), effect_duration)
+	Audio.play_at_pos("building_on_destroy", global_position)
+
+	await Util.await_time(effect_duration)
+	Global.level.building_manager.remove_building(self)
 
 
 func _set_modulate_internal(color: Color) -> void:
@@ -94,8 +106,8 @@ func _complete_construction() -> void:
 	if is_complete:
 		return
 
-	print_rich("%s completed" % [ self ])
 	is_complete = true
+	print_rich("%s completed" % [ self ])
 
 	# Complete build job and delete reference
 	Actions.archive_job(build_job, true)
@@ -116,8 +128,13 @@ func _complete_construction() -> void:
 			cell.queue_nav_update()
 
 	# Action Points setup
-	setup_action_points()
+	_setup_action_points()
 	Global.level.building_manager.register_action_points(self )
+
+
+func _check_solid_ground(destroyed_cell: Cell) -> void:
+	if not building_data.has_solid_ground_at(grid_pos):
+		Actions.remove_building(self)
 
 
 func _flash(color: Color, duration: float) -> void:

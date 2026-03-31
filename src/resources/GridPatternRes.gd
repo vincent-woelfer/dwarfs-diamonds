@@ -8,9 +8,15 @@ extends Resource
 var _world_offset: Vector2i = Vector2i.ZERO
 
 
-func _init(pattern_: Array[Vector2i] = [], world_offset_: Vector2i = Vector2i.ZERO) -> void:
-    assert(pattern_ != null)
-    cells = _remove_duplicates(pattern_)
+static func init_from_pattern(other_pattern_: GridPatternRes, world_offset_: Vector2i = Vector2i.ZERO) -> GridPatternRes:
+    if other_pattern_ == null:
+        return GridPatternRes.new([], world_offset_)
+    else:
+        return GridPatternRes.new(other_pattern_.cells, world_offset_)
+
+func _init(cells_: Array[Vector2i] = [], world_offset_: Vector2i = Vector2i.ZERO) -> void:
+    assert(cells_ != null)
+    cells = _remove_duplicates(cells_)
     _world_offset = world_offset_
 
 
