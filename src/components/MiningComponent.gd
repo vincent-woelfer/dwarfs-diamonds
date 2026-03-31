@@ -70,7 +70,7 @@ func can_mine_at_all(cell: Cell) -> bool:
 ########################################################################################################################
 func _ready() -> void:
 	# SIGNALS
-	EventBus.Signal_GlobalCellDestroyed.connect(_on_global_any_cell_mining_completed)
+	EventBus.Signal_CellDestroyed.connect(_on_global_any_cell_mining_completed)
 
 
 ## Called by Signal_CellMiningCompleted for EVERY mined cell in the game

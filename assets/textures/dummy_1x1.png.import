@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://icyj4ckpn37f"
-path="res://.godot/imported/stone_background_different.jpg-5cc2f936c00ab77f7b030a99dad0dde1.ctex"
+uid="uid://dc16750e5y1w7"
+path="res://.godot/imported/dummy_1x1.png-4260b51fe317c9da961f3a50672251cd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/stone_background_different.jpg"
-dest_files=["res://.godot/imported/stone_background_different.jpg-5cc2f936c00ab77f7b030a99dad0dde1.ctex"]
+source_file="res://assets/textures/dummy_1x1.png"
+dest_files=["res://.godot/imported/dummy_1x1.png-4260b51fe317c9da961f3a50672251cd.ctex"]
 
 [params]
 

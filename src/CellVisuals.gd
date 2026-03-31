@@ -10,10 +10,17 @@ var unshaded_material: CanvasItemMaterial = preload("res://assets/materials/unsh
 var cell_global_texture_shader: ShaderMaterial = preload("res://assets/materials/cell_global_texture_material.tres")
 var sky_global_texture_shader: ShaderMaterial = preload("res://assets/materials/sky_global_texture_material.tres")
 
+var dummy_1x1_texture: Texture2D = preload("res://assets/textures/dummy_1x1.png")
+var mineral_texture: Texture2D = preload("res://assets/sprites/minerals_1.png")
+
+# Shadow Material
+var shadow_material: ShaderMaterial = preload("res://assets/materials/CellShadow.tres")
+
 # Polygons
 var background_poly: Polygon2D
 var stencil_poly: Polygon2D
 var mineral_poly: Polygon2D
+var shadow_poly: Polygon2D
 
 # Light / Shadows
 var occluder: LightOccluder2D
@@ -21,6 +28,7 @@ var occluder_poly: OccluderPolygon2D
 
 # world-space RELATIVE TO CELL
 var poly_points: PackedVector2Array
+var uv_points: PackedVector2Array
 
 var dirty: bool
 
@@ -35,20 +43,28 @@ func _ready() -> void:
 	self.visibility_layer = Util.LAYER_1 | Util.LAYER_2
 	self.z_index = Enum.ZIndex.CELL
 
-	poly_points = _get_cell_polygon()
+	EventBus.Signal_LightDepthUpdated.connect(set_dirty)
+
+	poly_points = _compute_cell_polygon()
+	uv_points = _compute_cell_uvs()
 
 	###################################
 	# Background Polygon
 	###################################
 	background_poly = Polygon2D.new()
+	background_poly.z_as_relative = true
+	background_poly.z_index = 0
 	background_poly.polygon = poly_points
+	background_poly.uv = uv_points
 	background_poly.visibility_layer = Util.LAYER_1
 
 	# Add material
-	if c.type != Enum.CellType.SKY:
-		background_poly.material = cell_global_texture_shader
+	if c.type == Enum.CellType.SKY:
+		background_poly.material = sky_global_texture_shader		
 	else:
-		background_poly.material = sky_global_texture_shader
+		background_poly.material = cell_global_texture_shader
+		background_poly.set_instance_shader_parameter("is_solid", c.is_solid)
+		
 	# with shader sky does not get dark at night
 	# if c.type == Enum.CellType.SKY:
 		# background_poly.material = unshaded_material
@@ -58,10 +74,11 @@ func _ready() -> void:
 	###################################
 	# Mineral Polygon
 	###################################
-	var mineral_texture: Texture2D = preload("res://assets/sprites/minerals_1.png")
-
 	mineral_poly = Polygon2D.new()
+	mineral_poly.z_as_relative = true
+	mineral_poly.z_index = 1
 	mineral_poly.polygon = poly_points
+	mineral_poly.uv = uv_points
 	mineral_poly.visibility_layer = Util.LAYER_1
 	# mineral_poly.material = unshaded_material # TODO glow material?
 	mineral_poly.texture = mineral_texture
@@ -74,8 +91,32 @@ func _ready() -> void:
 	mineral_poly.modulate *= 2.0
 	mineral_poly.modulate.a = 1.0
 	
-	# mineral_poly.uv = _get_cell_polygon(mineral_texture.get_size().x) # scale UVs to texture size
 	add_child(mineral_poly)
+
+	###################################
+	# Shadow Polygon
+	###################################
+	shadow_poly = Polygon2D.new()
+	shadow_poly.z_as_relative = true
+	shadow_poly.z_index = 2
+	shadow_poly.visibility_layer = Util.LAYER_1
+	shadow_poly.polygon = poly_points
+	shadow_poly.uv = uv_points
+	shadow_poly.texture = dummy_1x1_texture
+
+	# Set global colors
+	shadow_material.set_shader_parameter("lit_color", Colors.LIT_CELL_COLOR)
+	shadow_material.set_shader_parameter("fade_color", Colors.FADE_CELL_COLOR)
+	# Would need to include canvas modulate here because shader sets the final value excluding canvas modulate.
+	shadow_material.set_shader_parameter("unlit_color", Colors.UNLIT_CELL_COLOR)
+
+	shadow_poly.material = shadow_material
+
+	for i in range(8):
+		shadow_poly.set_instance_shader_parameter("uvs_%d" % i, uv_points[i])
+
+	
+	add_child(shadow_poly)
 
 	###################################
 	# Stencil Polygon
@@ -99,7 +140,10 @@ func _ready() -> void:
 	occluder.occluder = occluder_poly
 	add_child(occluder)
 
-	update()
+	###################################
+	# Finalize
+	###################################
+	_update()
 
 func set_dirty() -> void:
 	dirty = true
@@ -108,33 +152,52 @@ func set_dirty() -> void:
 func _process(delta: float) -> void:
 	if dirty:
 		dirty = false
-		update()
-
-	# TODO TEMP
-	# 0  = air / not solid
-	# 1  = adjacent to air
-	# 2+ = deeper underground, higher means darker
-	var mod_light_depth: Array[float] = [1.3, 0.4, 0.03, 0.0, 0.0]
-	var light_depth_clamped := mod_light_depth[clamp(c.light_depth, 0, mod_light_depth.size() - 1)]
-
-	background_poly.modulate = Color.WHITE * light_depth_clamped
-	background_poly.modulate.a = 1.0
-
-	mineral_poly.modulate.a = light_depth_clamped
+		_update()
+		_update_light_depth_visuals()
 
 
-func update() -> void:
+func _update() -> void:
 	# VISUAL
 	occluder.visible = c.is_solid
 
 	# Change light mask if solid (no light passes through)
 	background_poly.light_mask = 0 if c.is_solid else 1
-
 	background_poly.color = Colors.get_cell_color(c.type)
 
-	mineral_poly.visible = c.has_mineral and c.is_solid
+	# TODO change this for is solid AND especially change background texture (in cellGlobalTexture shader)
+	if c.is_solid:
+		background_poly.color *= Color(1.0, 1.0, 1.0, 1.0)
+
+	# background_poly.modulate = Color(1, 1, 1, 1) if not c.is_solid else Color(0.1, 0.1, 0.4, 1.0)
+
+	mineral_poly.visible = c.has_mineral and c.is_solid # and c.light_depth <= 1
 
 	_encode_stencil_buffer()
+	_update_light_depth_visuals()
+
+
+func _update_light_depth_visuals() -> void:
+	shadow_poly.set_instance_shader_parameter("light_depth", c.light_depth)
+
+	# 0 = light, 1 = border, 2+ = dark
+	if c.light_depth == 0:
+		shadow_poly.visible = false
+	else:
+		shadow_poly.visible = true
+
+		# Update light_depths array into shader as bitfield
+		# True = lit = apply fade, False = Shadow = no fade, black till border
+		var neighbour_lit_bits: int = 0
+		var idx: int = 0
+		for dir: Vector2i in Util.neighbours_all:
+			var n: Cell = c.get_neighbour(dir)
+			var n_lit: bool = n != null and n.light_depth == 0
+			if n_lit:
+				neighbour_lit_bits |= (1 << idx)
+			idx += 1
+
+		# Assign to shader		
+		shadow_poly.set_instance_shader_parameter("neighbour_lit_bits", neighbour_lit_bits)
 
 
 # Set Stencil Colors. Dont write to alpha, this is done only once to show/hide stencil in editor vs game
@@ -143,7 +206,7 @@ func _encode_stencil_buffer() -> void:
 	stencil_poly.color.r8 = 0
 	stencil_poly.color.r8 |= (1 << 0) if c.is_marked_for_mining else 0
 	stencil_poly.color.r8 |= (1 << 1) if c.is_solid else 0
-	stencil_poly.color.r8 |= (1 << 2) if c.is_selected else 0
+	stencil_poly.color.r8 |= (1 << 2) if c.is_highlighted else 0
 
 	# Encode numbers in GREEN channel
 	stencil_poly.color.g8 = 0
@@ -152,7 +215,6 @@ func _encode_stencil_buffer() -> void:
 
 	# BLUE channel - used for debugging
 	stencil_poly.color.b8 = 0
-	stencil_poly.color.b8 |= (1 << 6) if c.is_standable() else 0
 
 
 ## Returns a single poly point in world-space RELATIVE TO CELL
@@ -164,14 +226,14 @@ func get_poly_point(point: Enum.PolyPoint) -> Vector2:
 
 # Returns a rectangle polygon for cell at grid position (x, y) in world-space RELATIVE TO CELL.
 # Values range is [0, CELL_SIZE] + small random offset
-func _get_cell_polygon(MAX_VAL: float = Global.CELL_SIZE) -> PackedVector2Array:
-	var base: Vector2 = c.grid_pos * MAX_VAL
+func _compute_cell_polygon() -> PackedVector2Array:
+	const SIDE_LENGTH: float = Global.CELL_SIZE
 
 	# 4 Corners
 	var top_left := Vector2.ZERO
-	var top_right := Vector2(MAX_VAL, 0.0)
-	var bot_right := Vector2(MAX_VAL, MAX_VAL)
-	var bot_left := Vector2(0.0, MAX_VAL)
+	var top_right := Vector2(SIDE_LENGTH, 0.0)
+	var bot_right := Vector2(SIDE_LENGTH, SIDE_LENGTH)
+	var bot_left := Vector2(0.0, SIDE_LENGTH)
 
 	# 4 Sides
 	var top := (top_left + top_right) * 0.5
@@ -180,9 +242,10 @@ func _get_cell_polygon(MAX_VAL: float = Global.CELL_SIZE) -> PackedVector2Array:
 	var left := (bot_left + top_left) * 0.5
 
 	# Deterministic-Random Offset
-	var max_corner_offset := MAX_VAL * 0.1
-	var max_side_offset := MAX_VAL * 0.125
+	var max_corner_offset := SIDE_LENGTH * 0.115
+	var max_side_offset := SIDE_LENGTH * 0.135
 
+	var base: Vector2 = c.grid_pos * SIDE_LENGTH
 	top_left += Util.rand_circular_offset(base + top_left, max_corner_offset)
 	top_right += Util.rand_circular_offset(base + top_right, max_corner_offset)
 	bot_right += Util.rand_circular_offset(base + bot_right, max_corner_offset)
@@ -194,3 +257,11 @@ func _get_cell_polygon(MAX_VAL: float = Global.CELL_SIZE) -> PackedVector2Array:
 
 	# Clockwise, starting from top-left
 	return PackedVector2Array([top_left, top, top_right, right, bot_right, bot, bot_left, left])
+
+# Compute normalized UVs by simply scaling down polygon by SIDE_LENGTH
+func _compute_cell_uvs() -> PackedVector2Array:
+	const SIDE_LENGTH: float = Global.CELL_SIZE
+	var uvs: PackedVector2Array = []
+	for p in poly_points:
+		uvs.append(p / SIDE_LENGTH)
+	return uvs

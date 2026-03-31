@@ -423,37 +423,45 @@ func _find_new_job() -> bool:
 func _create_own_tasks() -> void:
 	var tasks: Array[Task] = []
 
+	# Dispose Gemstone
+	if carry_comp.is_carrying_item_of_type(Enum.CarryableType.GEMSTONE):
+		_create_action_point_tasks_for_type(ActionPoint.ActionType.DROPOFF_GEMSTONE)
+
 	# Dispose Rubble
-	if carry_comp.is_carrying_item_of_type(Enum.CarryableType.RUBBLE):
-		# Seatch for rubble disposal action points
-		var rubble_aps: Array[ActionPoint] = Global.level.building_manager.get_all_action_points(ActionPoint.ActionType.DISPOSE_RUBBLE)
-
-		if rubble_aps.is_empty():
-			HexLog.throttled(self , "%s found no disposal AP, not creating dispose task" % [ self ], HexLog.AP_MISSING_INTERVALL)
-			return
-
-		var target_positions: Array[Vector2i] = []
-		for ap in rubble_aps:
-			target_positions.append(ap.grid_pos)
-
-		var path: Path = Global.level.nav_manager.find_path_to_one_of(curr_cell.grid_pos, target_positions, movement_comp.movement_stats)
-		if not path:
-			HexLog.throttled(self , "%s failed to find path to target positions %s" % [ self , target_positions], HexLog.NO_PATH_AP_INTERVALL)
-			return
-
-		# Back-reference path to AP
-		var target_ap: ActionPoint = null
-		for ap in rubble_aps:
-			if ap.grid_pos == path._grid_points.back():
-				target_ap = ap
-				break
-
-		# Actually create tasks
-		tasks.append(Task.create_move_to_cell_task(target_ap.grid_pos))
-		tasks.append(Task.create_action_point_task(target_ap.grid_pos, target_ap))
-		task_queue.add_tasks(tasks)
+	elif carry_comp.is_carrying_item_of_type(Enum.CarryableType.RUBBLE):
+		_create_action_point_tasks_for_type(ActionPoint.ActionType.DROPOFF_RUBBLE)
 
 
+func _create_action_point_tasks_for_type(ap_type: ActionPoint.ActionType) -> void:
+	var aps: Array[ActionPoint] = Global.level.building_manager.get_all_action_points(ap_type)
+
+	if aps.is_empty():
+		HexLog.throttled(self , "%s found no AP of type %s, not creating action point task" % [ self , Enum.to_str(ActionPoint.ActionType, ap_type)], HexLog.AP_MISSING_INTERVALL)
+		return
+
+	var target_positions: Array[Vector2i] = []
+	for ap in aps:
+		target_positions.append(ap.grid_pos)
+
+	var path: Path = Global.level.nav_manager.find_path_to_one_of(curr_cell.grid_pos, target_positions, movement_comp.movement_stats)
+	if not path:
+		HexLog.throttled(self , "%s failed to find path to target positions %s for AP type %s" % [ self , target_positions, Enum.to_str(ActionPoint.ActionType, ap_type)], HexLog.NO_PATH_AP_INTERVALL)
+		return
+
+	# Back-reference path to AP
+	var target_ap: ActionPoint = null
+	for ap in aps:
+		if ap.grid_pos == path._grid_points.back():
+			target_ap = ap
+			break
+
+	# Actually create tasks
+	var tasks: Array[Task] = []
+	tasks.append(Task.create_move_to_cell_task(target_ap.grid_pos))
+	tasks.append(Task.create_action_point_task(target_ap.grid_pos, target_ap))
+	task_queue.add_tasks(tasks)
+
+	
 func _look_into_dir(dir: Vector2) -> void:
 	if dir.x != 0:
 		animated_sprite.flip_h = dir.x < 0

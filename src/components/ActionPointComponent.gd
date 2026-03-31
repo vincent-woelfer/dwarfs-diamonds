@@ -86,8 +86,11 @@ func _physics_process(delta: float) -> void:
 	# Actual interaction logic
 	var done := false
 
-	if _curr_action_point.type == ActionPoint.ActionType.DISPOSE_RUBBLE:
-		done = _dispose_rubble()
+	if _curr_action_point.type == ActionPoint.ActionType.DROPOFF_RUBBLE:
+		done = _dropoff_rubble()
+
+	elif _curr_action_point.type == ActionPoint.ActionType.DROPOFF_GEMSTONE:
+		done = _dropoff_gemstone()
 
 	else:
 		push_error("Unsupported action point type %s" % [Enum.to_str(ActionPoint.ActionType, _curr_action_point.type)])
@@ -105,21 +108,43 @@ func _physics_process(delta: float) -> void:
 # ########################################################################################################################
 # These return "done = true" if the interaction is completed
 
-func _dispose_rubble() -> bool:
-	const rubble_dispose_time := 0.75
+func _dropoff_rubble() -> bool:
+	const dispose_time := 0.75
 	const after_last_time := 0.3
 
 	var carry_comp: CarryComponent = parent.carry_comp
 	var has_rubble := carry_comp.is_carrying_item_of_type(Enum.CarryableType.RUBBLE)
 
 	# Check for rubble disposal
-	if has_rubble and Util.has_time_passed(repeated_tick_timestamp, rubble_dispose_time):
+	if has_rubble and Util.has_time_passed(repeated_tick_timestamp, dispose_time):
 		carry_comp.delete(carry_comp.get_items_of_type(Enum.CarryableType.RUBBLE)[-1])
-		Audio.play_at_pos("dispose_trash", _curr_action_point.get_global_position())
 		repeated_tick_timestamp = Util.now()
+
+		Audio.play_at_pos("dispose_trash", _curr_action_point.get_global_position())
 
 	# Check for done - 0.5 after last rubble was deleted
 	if not has_rubble and Util.has_time_passed(repeated_tick_timestamp, after_last_time):
+		return true
+
+	return false
+
+
+func _dropoff_gemstone() -> bool:
+	const dispose_time := 0.35
+	const after_last_time := 0.5
+
+	var carry_comp: CarryComponent = parent.carry_comp
+	var has_gemstone := carry_comp.is_carrying_item_of_type(Enum.CarryableType.GEMSTONE)
+
+	# Check for gemstone disposal
+	if has_gemstone and Util.has_time_passed(repeated_tick_timestamp, dispose_time):
+		carry_comp.delete(carry_comp.get_items_of_type(Enum.CarryableType.GEMSTONE)[-1])
+		repeated_tick_timestamp = Util.now()
+
+		Global.level.level_stats_manager.update_gemstones_collected(1)
+
+	# Check for done - 0.5 after last rubble was deleted
+	if not has_gemstone and Util.has_time_passed(repeated_tick_timestamp, after_last_time):
 		return true
 
 	return false

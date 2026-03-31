@@ -18,7 +18,9 @@ var level_stats_manager: LevelStatsManager
 
 var sun_system: SunSystem
 
-
+########################################################################################################################
+# READY
+########################################################################################################################
 func _ready() -> void:
 	# GRID
 	_generate_grid()
@@ -29,7 +31,8 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	_compute_all_light_depths()
+	_full_light_depths_update()
+	EventBus.Signal_LightDepthUpdated.emit()
 
 	## Managers
 	nav_manager = NavManager.new()
@@ -130,6 +133,9 @@ func should_contain_torch(grid_pos: Vector2i) -> bool:
 	return false
 
 
+########################################################################################################################
+# Level Generation
+########################################################################################################################
 func _generate_grid() -> void:
 	HexLog.print_banner_with_text("Generating Grid")
 	cells.clear()
@@ -159,7 +165,7 @@ func _generate_grid() -> void:
 			var type: Enum.CellType = [Enum.CellType.A, Enum.CellType.B, Enum.CellType.C].pick_random()
 
 			# Is Solid			
-			var threshold_above_is_solid := 0.35
+			var threshold_above_is_solid := 0.25
 			var is_solid: bool = image.get_pixel(roundi(x * noise_scale), roundi(y * noise_scale)).r > threshold_above_is_solid
 			if y <= Global.SKY_HEIGHT:
 				is_solid = false
@@ -174,9 +180,46 @@ func _generate_grid() -> void:
 ########################################################################################################################
 # Light Calculation
 ########################################################################################################################
-func _compute_all_light_depths() -> void:
+# Queue of cells that need light depth update. Used to batch updates and avoid redundant calculations
+var _light_depth_update_queue: Array[Vector2i] = []
+
+func queue_update_cell_light_depth(grid_pos: Vector2i) -> void:
+	if not Util.is_grid_pos_valid(grid_pos):
+		return
+
+	# Dont check for duplicates, just add.
+	# This is faster and duplicates are not a problem since updates are idempotent
+	_light_depth_update_queue.append(grid_pos)
+
+
+func _update_all_light_depths() -> void:
 	var start_time := Time.get_ticks_msec()
 
+	# Check if we need a full update (at least one cell is now is_solid==true) or incremental updates are enough (all now !is_solid).
+	# free -> solid => update all
+	# solid -> free => incremental update possible
+	var needs_full_update := false
+	for cell_pos in _light_depth_update_queue:
+		var cell := get_cell(cell_pos)		
+		if cell != null and cell.is_solid:
+			needs_full_update = true
+			break
+
+	if needs_full_update:
+		_full_light_depths_update()		
+	else:
+		for cell_pos in _light_depth_update_queue:
+			_incremental_light_depth_update_cell_to_free(cell_pos)
+	_light_depth_update_queue.clear()
+	
+	var duration := Time.get_ticks_msec() - start_time
+	if duration > 1:
+		HexLog.print("Level => Updated light depth map in: %d ms" % [duration], Colors.LIGHT_DEPTH_PRINT_COLOR)
+
+	EventBus.Signal_LightDepthUpdated.emit()
+
+
+func _full_light_depths_update() -> void:
 	assert(cells.size() > 0 and cells[0].size() > 0)
 	var queue: Array[Vector2i] = []
 
@@ -206,14 +249,8 @@ func _compute_all_light_depths() -> void:
 				cells[n.x][n.y].light_depth = new_depth
 				queue.append(n)
 
-	var duration := Time.get_ticks_msec() - start_time
-	HexLog.print("Level => Updated complete light depth map in: %d ms" % [duration], Colors.LIGHT_DEPTH_PRINT_COLOR)
-
-
 ## Change one cell to free and update neighbouring cells. Faster than full recomputation
-func _change_cell_to_free(pos: Vector2i) -> void:
-	var start_time := Time.get_ticks_msec()
-
+func _incremental_light_depth_update_cell_to_free(pos: Vector2i) -> void:
 	assert(cells[pos.x][pos.y].is_solid == false)
 	cells[pos.x][pos.y].light_depth = 0
 	var queue: Array[Vector2i] = [pos]
@@ -233,21 +270,12 @@ func _change_cell_to_free(pos: Vector2i) -> void:
 				cells[n.x][n.y].light_depth = new_depth
 				queue.append(n)
 
-	var duration := Time.get_ticks_msec() - start_time
-	HexLog.print("Level => Updated one cell light depth map in: %d ms" % [duration], Colors.LIGHT_DEPTH_PRINT_COLOR)
-
-
-## Called AFTER changing cell.is_solid. Updates light_depth accordingly
-func _update_cell_is_solid(pos: Vector2i) -> void:
-	assert(Util.is_grid_pos_valid(pos))
-	var cell: Cell = cells[pos.x][pos.y]
-
-	if cell.is_solid:
-		# free -> solid => update all
-		_compute_all_light_depths()
-	else:
-		# solid -> free => incremental update possible
-		_change_cell_to_free(pos)
+########################################################################################################################
+# PROCESS
+########################################################################################################################
+func _process(delta: float) -> void:
+	if not _light_depth_update_queue.is_empty():
+		_update_all_light_depths()
 
 ########################################################################################################################
 # Helper functions

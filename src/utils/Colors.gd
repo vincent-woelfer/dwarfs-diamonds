@@ -101,14 +101,17 @@ static func get_action_point_color(type: ActionPoint.ActionType) -> Color:
 	return ActionPointColor.get(type, FALLBACK_COLOR)
 
 static var ActionPointColor := {
-	ActionPoint.ActionType.DISPOSE_RUBBLE: Color.DARK_ORANGE,
+	ActionPoint.ActionType.DROPOFF_RUBBLE: Color.DARK_ORANGE,
+	ActionPoint.ActionType.DROPOFF_GEMSTONE: Color.HOT_PINK,
 }
+
 
 ########################################################################################################################
 # BUILDING COLORS
 ########################################################################################################################
 static var building_modulate_finished: Color = Color(1, 1, 1, 1.0)
 static var building_modulate_unfinished: Color = Color(1.2, 0.2, 0.2, 0.8) # red tint
+# Unfinished buildings dont get lit
 static var building_light_mask_finished: int = 1
 static var building_light_mask_unfinished: int = 0
 
@@ -125,10 +128,21 @@ static var JOB_COLOR_DOING: Color = Color(0.0, 0.8, 0.0)
 
 
 ########################################################################################################################
-# GLOBAL MISC COLORS
+# GLOBAL PRINT COLORS
 ########################################################################################################################
 static var GLOBAL_ACTION_PRINT_COLOR: Color = to_print_color(Color.MAGENTA)
 static var NAV_IMPORTANT_PRINT_COLOR: Color = to_print_color(Color.RED)
 static var NAV_UNIMPORTANT_PRINT_COLOR: Color = to_print_color(Color.RED.lerp(Color.GRAY, 0.8))
 static var LIGHT_DEPTH_PRINT_COLOR: Color = to_print_color(Color.DARK_BLUE)
 static var TASK_PRINT_COLOR: Color = to_print_color(Color.DARK_CYAN)
+
+
+########################################################################################################################
+# GLOBAL LIGHT COLORS
+########################################################################################################################
+
+## Right at the border of the SOLID cell at a lit wall
+static var LIT_CELL_COLOR: Color = Color(0.1, 0.1, 0.1, 0.3)
+static var FADE_CELL_COLOR: Color = Color(0.1, 0.1, 0.1, 0.7)
+static var UNLIT_CELL_COLOR: Color = Color(0.05, 0.05, 0.05, 0.95)
+

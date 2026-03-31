@@ -4,15 +4,18 @@ extends Node
 ########################################################################################################################
 # GAMEPLAY SIGNALS
 ########################################################################################################################
-signal Signal_DebugPathSetStartCell(pos: Vector2i)
+## Emitted by NavManager when the nav grid has been updated
+## Includes is_solid changes + ladders
+signal Signal_NavUpdated()
 
-signal Signal_NavUpdated() # Emitted when the nav grid has been updated
+## Emitted by Level when the light caluclation was updated (as result of is_solid changes)
+signal Signal_LightDepthUpdated()
+
+## Emitted in Actions.destroy_cell after cell is destroyed
+signal Signal_CellDestroyed(destroyed_cell: Cell)
 
 # This is only for the one "central" cell
 signal Signal_MouseHoveredCellChanged(hovered_cell: Cell)
-
-## Emitted in Actions.destroy_cell after cell is destroyed
-signal Signal_GlobalCellDestroyed(destroyed_cell: Cell)
 
 
 ########################################################################################################################
@@ -25,11 +28,11 @@ var dev_draw_nav: bool = false
 
 # F2
 signal Signal_DevToogleJobsDraw()
-var dev_draw_jobs: bool = true
+var dev_draw_jobs: bool = false
 
 # F3
 signal Signal_DevToogleLight()
-var dev_light_on: bool = true
+var dev_light_on: bool = false
 
 # F4
 signal Signal_DevToogleDrawBuildingPattern()
@@ -37,15 +40,17 @@ var dev_draw_building_patterns: bool = false
 
 # F5
 signal Signal_DevToogleDrawActionPoints()
-var dev_draw_action_points: bool = true
+var dev_draw_action_points: bool = false
 
 # F6
 signal Signal_DevToogleDwarfDrawInfo()
-var dev_draw_dwarf_info: bool = true
+var dev_draw_dwarf_info: bool = false
 
 # F12
 signal Signal_DevToogleSunFastForward()
 var dev_sun_fast_forward: bool = false
+
+signal Signal_DebugPathSetStartCell(pos: Vector2i)
 
 
 ########################################################################################################################
@@ -87,11 +92,18 @@ func _input(event: InputEvent) -> void:
 		dev_sun_fast_forward = not dev_sun_fast_forward
 		Signal_DevToogleSunFastForward.emit()
 
+
+########################################################################################################################
+# READY
+########################################################################################################################
+
 ########################################################################################################################
 # READY
 ########################################################################################################################
 func _ready() -> void:
-	pass
+	self.process_priority = Enum.ProcessPriority.EVENT_BUS
+	
+	
 	# Actual signal connection is done in the code catching the signal like this:
 	# EventBus.Signal_XXX.connect(_on_Signal_XXX)
 

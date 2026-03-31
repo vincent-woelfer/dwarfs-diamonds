@@ -7,11 +7,11 @@ var pan_speed: float = 1000.0
 
 var zoom_curr: float = 1.0
 var zoom_target: float = 1.0
-var zoom_step: float = 0.1
+var zoom_step: float = 0.15
 var zoom_speed: float = 15.0
 # min = zoomed out, max = zoomed in
 var zoom_min: float = 0.7
-var zoom_max: float = 3.0
+var zoom_max: float = 6.0 # was 3 but for testing allow closer
 
 # For panning and level bounds
 # The world size (as in)
@@ -40,10 +40,11 @@ func mouse_pos_world_space() -> Vector2:
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mbe := event as InputEventMouseButton
+		# Zoom in/out with mouse wheel - make it feel linear by adjusting the zoom_target multiplicatively not additively
 		if mbe.button_index == MOUSE_BUTTON_WHEEL_UP and mbe.pressed:
-			zoom_target += zoom_step
+			zoom_target *= (1.0 + zoom_step)
 		elif mbe.button_index == MOUSE_BUTTON_WHEEL_DOWN and mbe.pressed:
-			zoom_target -= zoom_step
+			zoom_target *= (1.0 - zoom_step)
 		
 		zoom_target = clamp(zoom_target, zoom_min, zoom_max)
 
@@ -52,13 +53,13 @@ func _process(delta: float) -> void:
 	var input_vector := Vector2.ZERO
 	
 	if Input.is_action_pressed("ui_left") or Input.is_action_pressed("cam_move_left"):
-		input_vector.x -= 1
+		input_vector.x -= 1.0
 	if Input.is_action_pressed("ui_right") or Input.is_action_pressed("cam_move_right"):
-		input_vector.x += 1
+		input_vector.x += 1.0
 	if Input.is_action_pressed("ui_up") or Input.is_action_pressed("cam_move_up"):
-		input_vector.y -= 1
+		input_vector.y -= 1.0
 	if Input.is_action_pressed("ui_down") or Input.is_action_pressed("cam_move_down"):
-		input_vector.y += 1
+		input_vector.y += 1.0
 
 	
 	# Actually move

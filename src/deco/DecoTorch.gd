@@ -43,6 +43,9 @@ func _ready() -> void:
     # Start animation
     animated_sprite.play(animation_name)
     animated_sprite.set_frame_and_progress(randi_range(0, torch_sizes.size() - 1), randf())
+
+    # Normal Map Depth
+    light.set_height(30.0)
    
 
 static func instantiate() -> DecoTorch:

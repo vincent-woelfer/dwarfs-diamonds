@@ -5,7 +5,6 @@ extends Node2D
 # Darkness
 ###################################
 var darkness: CanvasModulate
-var darkness_factor: float = 0.4
 
 ###################################
 # Sunlight
@@ -40,14 +39,14 @@ func _ready() -> void:
 	add_child(sunlight)
 
 	# Darkness
-	darkness = CanvasModulate.new()
-	darkness.color = Color(darkness_factor, darkness_factor, darkness_factor, 1.0)
-	add_child(darkness)
+	# darkness = CanvasModulate.new()
+	# darkness.color = Colors.LEVEL_DARKNESS_COLOR
+	# add_child(darkness)
 
 	# start early morning
 	time = 0.25
 
-		# Dev Signals
+	# Dev Signals
 	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
 	EventBus.Signal_DevToogleSunFastForward.connect(_dev_toogle_sun_fast_forward)
 	_dev_toogle_light()
@@ -107,11 +106,11 @@ func _process(delta: float) -> void:
 func _dev_toogle_light() -> void:
 	if EventBus.dev_light_on:
 		# WITH LIGHTING / DARKNESS		
-		darkness.visible = true
+		# darkness.visible = true
 		sunlight.enabled = true
 	else:
 		# NO LIGHTING / DARKNESS
-		darkness.visible = false
+		# darkness.visible = false
 		sunlight.enabled = false
 
 

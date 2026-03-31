@@ -11,32 +11,27 @@ extends Node2D
 # If the order doesnt matter and its only simple notifications, use signals instead.
 ########################################################################################################################
 
-# Normally called by MiningComponent. Archives job through several steps.
 func destroy_cell(cell: Cell) -> void:
 	assert(cell != null)
 
 	print_action("Destroying cell %s" % [cell])
 
+	Global.level.level_stats_manager.total_mined_cells += 1
+
 	cell.destroy_cell()
 
-	Global.level._update_cell_is_solid(cell.grid_pos)
+	Global.level.queue_update_cell_light_depth(cell.grid_pos)
 
 	# Signal MiningComponets that mining was completed
-	EventBus.Signal_GlobalCellDestroyed.emit(cell)
+	EventBus.Signal_CellDestroyed.emit(cell)
 
 	# Call global action to trigger all steps (including job archiving)
 	Actions.mark_cell_for_mining(cell, false)
 
-	# Spawn Rubble
-	Global.level.spawn_rubble(cell.grid_pos)
-
-	if cell.has_mineral:
-		Global.level.spawn_gemstone(cell.grid_pos)
-
 
 func mark_cell_for_mining(cell: Cell, is_marked_for_mining: bool) -> void:
-	var changed := cell.set_marked_for_mining(is_marked_for_mining)
-	if not changed:
+	var has_changed := cell.set_marked_for_mining(is_marked_for_mining)
+	if not has_changed:
 		return
 
 	# Add or remove mining job
@@ -74,10 +69,7 @@ func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly
 
 	if finish_instantly:
 		building_instance._complete_construction()
-	else:
-		# Play sound effect
-		Audio.play_at_pos("building_placed", building_instance.global_position)
-
+	
 	return building_instance
 
 
@@ -90,12 +82,10 @@ func remove_building(building: BuildingBase) -> void:
 	print_action("Removing building: %s at %s%s" % [building.building_data.name(), building.grid_pos, building_status])
 
 	# Call building destroy logic
-	building.destroy_building()
+	building.on_destroy()
 
-	Audio.play_at_pos("building_on_destroy", building.global_position)
-
-	# Removes as child, calls queue_free	
-	Global.level.building_manager.remove_building(building)
+	# Unregister building (not usable after this but still exists for visual effects)
+	Global.level.building_manager.unregister_building(building)
 
 	# Remove from all cells covered by building -> updates their navmesh
 	for pos in building.building_data.pattern_building.get_world_positions():
@@ -104,16 +94,9 @@ func remove_building(building: BuildingBase) -> void:
 			covered_cell.remove_building(building)
 
 
-# CURRENTLY UNUSED
-# Just to have add/remove together.
-func add_job(job: Job) -> void:
-	print_action("Adding job %s" % [job])
-
-	Global.level.job_manager.add_job(job)
-
-
 func archive_job(job: Job, success: bool) -> void:
-	assert(job != null)
+	if job == null:
+		return
 
 	# Ensure this is only triggered once
 	if not job.is_active:
