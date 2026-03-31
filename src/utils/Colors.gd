@@ -110,6 +110,7 @@ static var ActionPointColor := {
 ########################################################################################################################
 static var building_modulate_finished: Color = Color(1, 1, 1, 1.0)
 static var building_modulate_unfinished: Color = Color(1.2, 0.2, 0.2, 0.8) # red tint
+# Unfinished buildings dont get lit
 static var building_light_mask_finished: int = 1
 static var building_light_mask_unfinished: int = 0
 

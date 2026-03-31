@@ -232,13 +232,14 @@ func _update_item_placement(delta: float) -> void:
 		if item.pick_up_animation_finished:
 			item_parent.global_position = target_pos
 		else:
-			var speed: float = 8.0
-			var threshold: float = Global.CELL_SIZE * 0.05
+			var max_pickup_time: float = 0.5 # seconds
+			var time_since_pickup: float = Util.now() - item.pick_up_animation_start_time
+			var animation_progress: float = clamp(time_since_pickup / max_pickup_time, 0.0, 1.0)
 
-			item_parent.global_position = item_parent.global_position.lerp(target_pos, delta * speed)
-			if item_parent.global_position.distance_to(target_pos) <= threshold:
+			# Move item
+			item_parent.global_position = item_parent.global_position.lerp(target_pos, animation_progress)
+			if animation_progress >= 1.0:
 				item.pick_up_animation_finished = true
-				item_parent.global_position = target_pos
 		
 		# Also update item-parent grid pos to match carrier - even though this is probaly not required in most cases.
 		item_parent.update_grid_pos(parent.grid_pos)

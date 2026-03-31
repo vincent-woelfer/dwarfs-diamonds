@@ -11,7 +11,9 @@ signal Signal_OnDropped()
 # Internal state
 var is_being_carried: bool = false
 var carrier: CarryComponent = null
+
 var pick_up_animation_finished: bool = false
+var pick_up_animation_start_time: float = 0.0
 
 # Own parent
 @onready var parent: GridObject2D = get_parent()
@@ -38,8 +40,10 @@ func can_be_picked_up_right_now() -> bool:
 # Overrite (and call super. on_picked_up) to add any logic needed when picked up
 func on_picked_up(new_carrier: CarryComponent) -> void:
 	is_being_carried = true
-	pick_up_animation_finished = false
 	carrier = new_carrier
+	
+	pick_up_animation_finished = false
+	pick_up_animation_start_time = Util.now()
 	Signal_OnPickedUp.emit()
 
 # Overrite (and call super.on_dropped) to add any logic needed when dropped

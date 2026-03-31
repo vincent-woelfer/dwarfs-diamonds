@@ -36,8 +36,8 @@ func setup_building_as_uncompleted(grid_pos_: Vector2i, building_data_: Building
 	self.building_data = building_data_.instantiate_building_data(grid_pos)
 
 	self.z_index = Enum.ZIndex.BUILDINGS
-	_set_modulate_internal(Colors.building_modulate_unfinished)
 	self.light_mask = Colors.building_light_mask_unfinished
+	_set_modulate_internal(Colors.building_modulate_unfinished)
 
 	# Initial Position
 	global_position = Global.level.get_cell(grid_pos).global_position + Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
