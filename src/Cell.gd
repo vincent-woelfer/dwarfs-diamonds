@@ -109,6 +109,12 @@ func destroy_cell() -> void:
 	Audio.play_at_pos("cell_on_destroy", global_position)
 	visual.set_dirty()
 
+	# Spawn Rubble
+	Global.level.spawn_rubble(grid_pos)
+
+	if has_mineral:
+		Global.level.spawn_gemstone(grid_pos)
+
 
 ###################################
 # Building Management - Called by Global Actions add/remove building

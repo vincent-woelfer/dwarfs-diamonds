@@ -11,7 +11,6 @@ extends Node2D
 # If the order doesnt matter and its only simple notifications, use signals instead.
 ########################################################################################################################
 
-# Normally called by MiningComponent. Archives job through several steps.
 func destroy_cell(cell: Cell) -> void:
 	assert(cell != null)
 
@@ -28,12 +27,6 @@ func destroy_cell(cell: Cell) -> void:
 
 	# Call global action to trigger all steps (including job archiving)
 	Actions.mark_cell_for_mining(cell, false)
-
-	# Spawn Rubble
-	Global.level.spawn_rubble(cell.grid_pos)
-
-	if cell.has_mineral:
-		Global.level.spawn_gemstone(cell.grid_pos)
 
 
 func mark_cell_for_mining(cell: Cell, is_marked_for_mining: bool) -> void:
@@ -76,10 +69,7 @@ func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly
 
 	if finish_instantly:
 		building_instance._complete_construction()
-	else:
-		# Play sound effect
-		Audio.play_at_pos("building_placed", building_instance.global_position)
-
+	
 	return building_instance
 
 

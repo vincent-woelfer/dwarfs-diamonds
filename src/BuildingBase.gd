@@ -43,6 +43,9 @@ func setup_building_as_uncompleted(grid_pos_: Vector2i, building_data_: Building
 	# Initial Position
 	global_position = Global.level.get_cell(grid_pos).global_position + Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
 
+	# Play sound effect
+	Audio.play_at_pos("building_placed", global_position)
+
 # Called internally when building is completed
 func _setup_action_points() -> void:
 	action_points.clear()
