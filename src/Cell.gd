@@ -115,6 +115,17 @@ func destroy_cell() -> void:
 	if has_mineral:
 		Global.level.spawn_gemstone(grid_pos)
 
+## Place platform in cell (for now just makes solid)
+func place_platform() -> void:
+	if is_solid:
+		return
+
+	is_solid = true
+	mining_process = 0.0
+	type = Enum.CellType.PLATFORM
+	queue_nav_update()
+	visual.set_dirty()
+
 
 ###################################
 # Building Management - Called by Global Actions add/remove building
