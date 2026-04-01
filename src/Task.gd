@@ -13,8 +13,6 @@ enum Type {
 	MINE,
 	# construct specified building
 	CONSTRUCT,
-	# construct platform
-	CONSTRUCT_PLATFORM,
 	# pick up specified item
 	PICKUP,
 	# perform action at action point
@@ -77,7 +75,7 @@ func is_move_to_task() -> bool:
 	return type in [Type.MOVE_TO_JOB, Type.MOVE_TO_CELL]
 
 func is_stationary_task() -> bool:
-	return type in [Type.MINE, Type.CONSTRUCT, Type.CONSTRUCT_PLATFORM, Type.PICKUP, Type.ACTION_POINT, Type.PLACE_TORCH]
+	return type in [Type.MINE, Type.CONSTRUCT, Type.PICKUP, Type.ACTION_POINT, Type.PLACE_TORCH]
 
 
 func reached_move_to_position(dwarf: Dwarf) -> bool:
@@ -118,11 +116,6 @@ static func create_construct_task(target_grid_pos_: Vector2i, building_: Buildin
 	var task := Task.new(Task.Type.CONSTRUCT)
 	task.target_grid_pos = target_grid_pos_
 	task.building = building_
-	return task
-
-static func create_construct_platform_task(target_grid_pos_: Vector2i) -> Task:
-	var task := Task.new(Task.Type.CONSTRUCT_PLATFORM)
-	task.target_grid_pos = target_grid_pos_
 	return task
 
 static func create_pickup_task(target_grid_pos_: Vector2i, carryable_item_: CarryableItemComponent) -> Task:
