@@ -64,8 +64,8 @@ func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly
 	# Add to all cells covered by building -> updates their navmesh
 	for pos in building_instance.building_data.pattern_building.get_world_positions():
 		var covered_cell: Cell = Global.level.get_cell(pos)
-		if covered_cell != null:
-			covered_cell.add_building(building_instance)
+		assert(covered_cell != null) # This should never happen
+		covered_cell.add_building(building_instance)
 
 	if finish_instantly:
 		building_instance._complete_construction()

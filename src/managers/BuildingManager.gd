@@ -10,6 +10,7 @@ var action_points: Array[ActionPoint] = []
 ########################################################################################################################
 static var ladder_building_data: BuildingDataRes = preload("res://scenes/buildings/LadderBuildingData.tres") as BuildingDataRes
 static var outpost_building_data: BuildingDataRes = preload("res://scenes/buildings/OutpostBuildingData.tres") as BuildingDataRes
+static var platform_blocking_building_data: BuildingDataRes = preload("res://scenes/buildings/PlatformBlockingBuildingData.tres") as BuildingDataRes
 
 ########################################################################################################################
 # PUBLIC METHODS

@@ -6,8 +6,6 @@ extends Node2D
 # Scene Components - Visual
 @onready var mouse_pointer_sprite: Sprite2D = $MousePointerSprite
 @onready var building_preview: BuildingPreview = $BuildingPreview
-# TODO add in scene ??
-@onready var platform_preview: PlatformPreview = $PlatformPreview
 
 # Scene Components - Functional compinents
 @onready var mining_comp: MiningComponent = $MiningComponent
@@ -31,7 +29,7 @@ var curr_center_cell: Cell = null
 var prev_center_cell: Cell = null
 
 # State machine
-enum State {NEUTRAL, BUILDING_PLACEMENT, BUILDING_DESTROY, PLATFORM_PLACEMENT}
+enum State {NEUTRAL, BUILDING_PLACEMENT, BUILDING_DESTROY}
 var sm: StateMachine
 func _physics_process(delta: float) -> void:
 	sm.physics_process(delta)
@@ -122,26 +120,6 @@ func _physics_process_building_destroy(delta: float) -> void:
 	_highlight_buildings_under_mouse_for_destruction()
 	_actions_building_destroy()
 
-###################################
-# Platform Placement State
-###################################
-func _enter_platform_placement() -> void:
-	# platform_preview ...
-	pass
-
-func _exit_platform_placement() -> void:
-	# platform_preview ...
-	pass
-
-func _physics_process_platform_placement(delta: float) -> void:
-	# Check for mode change first, if so return
-	if _actions_mode_change():
-		return
-	
-	# Actions
-	_follow_mouse_pointer()
-	_actions_platform_placement()
-
 
 ########################################################################################################################
 # ACTIONS PER STATE
@@ -158,6 +136,7 @@ func _actions_mode_change() -> bool:
 		sm.transition_to(State.NEUTRAL)
 		return true
 
+	# PLACE BUILDINGS
 	elif Input.is_action_just_pressed("mouse_place_building_ladder"):
 		sm.transition_to(State.BUILDING_PLACEMENT, BuildingManager.ladder_building_data)
 		return true
@@ -166,12 +145,13 @@ func _actions_mode_change() -> bool:
 		sm.transition_to(State.BUILDING_PLACEMENT, BuildingManager.outpost_building_data)
 		return true
 
-	elif Input.is_action_just_pressed("mouse_building_destroy"):
-		sm.transition_to(State.BUILDING_DESTROY)
+	elif Input.is_action_just_pressed("mouse_place_platform_blocking"):
+		sm.transition_to(State.BUILDING_PLACEMENT, BuildingManager.platform_blocking_building_data)
 		return true
 
-	elif Input.is_action_just_pressed("mouse_place_platform"):
-		sm.transition_to(State.PLATFORM_PLACEMENT)
+	# DESTROY
+	elif Input.is_action_just_pressed("mouse_building_destroy"):
+		sm.transition_to(State.BUILDING_DESTROY)
 		return true
 
 	return false
@@ -210,20 +190,6 @@ func _actions_building_destroy() -> void:
 			for building in curr_center_cell.buildings:
 				Actions.remove_building(building)
 
-
-func _actions_platform_placement() -> void:
-	var ctrl_pressed: bool = Input.is_physical_key_pressed(KEY_CTRL)
-
-	# Place Platform - Normal - NO CTRL
-	if Input.is_action_just_pressed("mouse_left") and not ctrl_pressed:
-		if curr_center_cell != null and not curr_center_cell.is_solid:
-			curr_center_cell.place_platform()
-		# building_preview.attempt_to_place_preview_building(false)
-
-	# Mouse Placement with instant placement (for testing) - CTRL
-	if Input.is_action_just_pressed("mouse_left") and ctrl_pressed:
-		pass
-		# building_preview.attempt_to_place_preview_building(true)
 
 ########################################################################################################################
 # INTERNAL METHODS

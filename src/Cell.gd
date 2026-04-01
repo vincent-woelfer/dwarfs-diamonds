@@ -28,7 +28,7 @@ var is_solid: bool
 # Passable = not solid and not other obstacle. Does not require ladder or similar.
 # Basically means "free air"
 func is_passable() -> bool:
-	return not is_solid
+	return not is_solid and not is_blocked
 
 
 # Standable = solid ground or ladder. Can stand on it. Also requires passable
@@ -52,6 +52,14 @@ func has_solid_ground() -> bool:
 func has_ladder() -> bool:
 	for building in buildings:
 		if building.building_data.type == BuildingDataRes.Type.LADDER and building.is_complete:
+			return true
+	return false
+
+
+# Blocked = has a non-complete platform blocking building
+func is_blocked() -> bool:
+	for building in buildings:
+		if building.building_data.type == BuildingDataRes.Type.PLATFORM_BLOCKING and not building.is_complete:
 			return true
 	return false
 
@@ -114,17 +122,6 @@ func destroy_cell() -> void:
 
 	if has_mineral:
 		Global.level.spawn_gemstone(grid_pos)
-
-## Place platform in cell (for now just makes solid)
-func place_platform() -> void:
-	if is_solid:
-		return
-
-	is_solid = true
-	mining_process = 0.0
-	type = Enum.CellType.PLATFORM
-	queue_nav_update()
-	visual.set_dirty()
 
 
 ###################################

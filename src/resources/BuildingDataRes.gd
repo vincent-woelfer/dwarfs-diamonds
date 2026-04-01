@@ -9,12 +9,14 @@ enum Type {
 	INVALID,
 	LADDER,
 	OUTPOST,
+	PLATFORM_BLOCKING,
 }
 
 const BUILDING_TYPE_NAMES: Dictionary[Type, String] = {
 	Type.INVALID: "INVALID",
 	Type.LADDER: "Ladder",
 	Type.OUTPOST: "Outpost",
+	Type.PLATFORM_BLOCKING: "PlatformBlocking",
 }
 
 ########################################################################################################################

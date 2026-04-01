@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://xn8vhlaoo7n4"]
+
+[ext_resource type="Texture2D" uid="uid://cw3nrk3w7gerg" path="res://assets/textures/platform_blocking.png" id="4_radu0"]
+
+[node name="PlatformBlocking" type="Node2D" unique_id=1607270670]
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=694442011]
+position = Vector2(0, -64)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("4_radu0")
