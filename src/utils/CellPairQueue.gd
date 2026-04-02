@@ -22,29 +22,41 @@ var _pairs: Array[Pair] = []
 
 
 func append_bidirectional(grid_pos_a: Vector2i, grid_pos_b: Vector2i) -> void:
-	append_unidirectional(grid_pos_a, grid_pos_b)
-	append_unidirectional(grid_pos_b, grid_pos_a)
+	if not _verify_pair_internal(grid_pos_a, grid_pos_b):
+		return
+
+	_append_unidirectional_internal(grid_pos_a, grid_pos_b)
+	_append_unidirectional_internal(grid_pos_b, grid_pos_a)
 
 
 func append_unidirectional(grid_pos_from: Vector2i, grid_pos_to: Vector2i) -> void:
-	# Check whether coordinates are valid
-	# -> this is the expected place to catch connections on map border, this is expected to happen (so no print here)
-	if not Util.is_grid_pos_valid(grid_pos_from) or not Util.is_grid_pos_valid(grid_pos_to):
+	if not _verify_pair_internal(grid_pos_from, grid_pos_to):
 		return
+
+	_append_unidirectional_internal(grid_pos_from, grid_pos_to)
+
+
+func _verify_pair_internal(a: Vector2i, b: Vector2i) -> bool:
+	# Check whether coordinates are valid
+	if not Util.is_grid_pos_valid(a) or not Util.is_grid_pos_valid(b):
+		return false
 
 	# Check whether they are neighbours -> should not fail
-	if not Util.are_neighbours(grid_pos_from, grid_pos_to):
-		assert(false, "Positions are not neighbours: %s, %s" % [grid_pos_from, grid_pos_to])
-		return
+	if not Util.are_neighbours(a, b):
+		assert(false, "Positions are not neighbours: %s, %s" % [a, b])
+		return false
 
+	return true
+
+func _append_unidirectional_internal(grid_pos_from: Vector2i, grid_pos_to: Vector2i) -> void:
 	# Dont check for duplicates, just add.
 	# This is faster and duplicates are not a problem since updates are idempotent (setting a connection multiple times is not a problem)
 	var new_pair := Pair.new(grid_pos_from, grid_pos_to)
 	_pairs.append(new_pair)
 
-	
-func pop_back() -> Pair:
-	return _pairs.pop_back()
+
+func get_all() -> Array[Pair]:
+	return _pairs
 
 
 func size() -> int:

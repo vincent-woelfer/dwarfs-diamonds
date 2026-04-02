@@ -66,6 +66,7 @@ func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly
 		var covered_cell: Cell = Global.level.get_cell(pos)
 		assert(covered_cell != null) # This should never happen
 		covered_cell.add_building(building_instance)
+		covered_cell.queue_nav_update()
 
 	if finish_instantly:
 		building_instance._complete_construction()

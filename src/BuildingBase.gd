@@ -90,7 +90,7 @@ func on_destroy() -> void:
 	Audio.play_at_pos("building_on_destroy", global_position)
 
 	await Util.await_time(effect_duration)
-	Global.level.building_manager.remove_building(self)
+	Global.level.building_manager.remove_building(self )
 
 
 func _set_modulate_internal(color: Color) -> void:
@@ -125,10 +125,17 @@ func _complete_construction() -> void:
 	Audio.play_at_pos("building_complete", global_position)
 
 	# Update nav for all building cells
-	for pos in building_data.pattern_building.get_world_positions():
+	var building_cells := building_data.pattern_building.get_world_positions()
+	for pos in building_cells:
 		var cell: Cell = Global.level.get_cell(pos)
 		if cell != null:
+			cell.on_building_completed(self )
 			cell.queue_nav_update()
+
+			# Additionally update for cell ontop (if exists) as it might be affected if building is a  platform or similar
+			var cell_ontop: Cell = Global.level.get_cell(pos + Global.VEC_UP)
+			if cell_ontop != null and cell_ontop.grid_pos not in building_cells:
+				cell_ontop.queue_nav_update()
 
 	# Action Points setup
 	_setup_action_points()
@@ -137,7 +144,7 @@ func _complete_construction() -> void:
 
 func _check_solid_ground(destroyed_cell: Cell) -> void:
 	if not building_data.has_solid_ground_at(grid_pos):
-		Actions.remove_building(self)
+		Actions.remove_building(self )
 
 
 func _flash(color: Color, duration: float) -> void:

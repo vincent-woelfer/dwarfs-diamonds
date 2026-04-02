@@ -32,23 +32,20 @@ var has_mineral: bool = false
 func is_passable() -> bool:
 	return not is_solid and not buildings.is_blocked()
 
-
-# Standable = solid ground or ladder. Can stand on it. Also requires passable
+## Standable = solid ground or ladder. Can stand on it. Also requires/implies passable
 func is_standable(can_use_ladders: bool = true) -> bool:
 	if not is_passable():
 		return false
 
-	var n_bot := get_neighbour(Global.VEC_DOWN)
-
-	if can_use_ladders:
-		return buildings.has_ladder() or (n_bot and n_bot.is_solid)
+	if can_use_ladders and buildings.has_ladder():
+		return true
 	else:
-		return n_bot and n_bot.is_solid
+		return has_solid_ground()
 
 # Solid Ground = solid cell below. Required e.g. for construction
 func has_solid_ground() -> bool:
 	var n_bot := get_neighbour(Global.VEC_DOWN)
-	return n_bot != null and n_bot.is_solid
+	return n_bot != null and (n_bot.is_solid or n_bot.buildings.has_platform())
 
 ########################################################################################################################
 # OTHER FLAGS
@@ -69,10 +66,12 @@ var mining_hardness: float = 1.0
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################
+## Updates this cell and all 8 neighbours
 func queue_nav_update() -> void:
-	# Update all neighbours. Self not needed as its implicitly updated when neighbour updates
-	for n: Vector2i in Util.neighbours_all:
-		var n_grid_pos: Vector2i = grid_pos + n
+	# Self not needed as its implicitly updated when neighbour updates
+	for dir: Vector2i in Util.neighbours_all:
+		var n_grid_pos: Vector2i = grid_pos + dir
+		# This updates this neighbour and their 8 neighbours -> 1 + 8 + 16 = 25
 		Global.level.nav_manager.queue_update_cell(n_grid_pos)
 
 
@@ -124,6 +123,10 @@ func remove_building(building: BuildingBase) -> void:
 		return
 	visual.set_dirty()
 	queue_nav_update()
+
+func on_building_completed(building: BuildingBase) -> void:
+	visual.set_dirty()
+	_update_mining_hardness()
 
 func get_buildings() -> Array[BuildingBase]:
 	return buildings.get_buildings()

@@ -19,10 +19,10 @@ const LEVEL_SIZE_VEC: Vector2 = Vector2(LEVEL_WIDTH, LEVEL_HEIGHT)
 # Aspect setting "expand" = both width and height change with aspect ratio.
 # Both will never be smaller than the base mouse_size (3840x2160), one will always be larger or exact base mouse_size.
 
-const VEC_LEFT := Vector2(-1, 0)
-const VEC_RIGHT := Vector2(1, 0)
-const VEC_UP := Vector2(0, -1)
-const VEC_DOWN := Vector2(0, 1)
+const VEC_LEFT := Vector2i(-1, 0)
+const VEC_RIGHT := Vector2i(1, 0)
+const VEC_UP := Vector2i(0, -1)
+const VEC_DOWN := Vector2i(0, 1)
 
 const MAX_ELEVATION_BASELINE: int = 10
 const MIN_SKY_HEIGHT: int = 5

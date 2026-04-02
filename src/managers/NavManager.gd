@@ -10,12 +10,9 @@ var _cell_connections_to_update: CellPairQueue = CellPairQueue.new()
 # PUBLIC METHODS
 ########################################################################################################################
 
-## Update nav for this cell and all neighbours
+## Update nav for this cell and all 8 neighbours
 func queue_update_cell(grid_pos: Vector2i) -> void:
-	if not Util.is_grid_pos_valid(grid_pos):
-		return
-
-	# Queue for connection update with all neighbours
+	# Queue for connection update with all neighbours. Adding twice is not a problem
 	for n_offset: Vector2i in Util.neighbours_all:
 		var neighbor_pos := grid_pos + n_offset
 		_cell_connections_to_update.append_bidirectional(grid_pos, neighbor_pos)
@@ -94,44 +91,52 @@ func _process(delta: float) -> void:
 # Happens at most once per frame
 func _update_cell_connections() -> void:
 	var start_time := Time.get_ticks_msec()
-	var cell_connections := _cell_connections_to_update.size()
-	
-	while not _cell_connections_to_update.is_empty():
-		# Guaranteed that pair is valid positions and not null
-		var cell_pair: CellPairQueue.Pair = _cell_connections_to_update.pop_back()
+	var num_cell_connections := _cell_connections_to_update.size()
 
+	# Guaranteed that pair is valid positions and not null
+	for cell_pair in _cell_connections_to_update.get_all():
 		# Update individual cells -> This is called way to often per cell per frame but whatever for now
-		_update_cell_individually(cell_pair.grid_pos_from)
-		_update_cell_individually(cell_pair.grid_pos_to)
+		_update_cell_is_enabled(cell_pair.grid_pos_from)
+		_update_cell_is_enabled(cell_pair.grid_pos_to)
+		
+		_update_cell_connection_pair(cell_pair)
 
-		# This is only called once per directional pair per frame
-		_update_cell_connection(cell_pair)
+	# Reset Queue
+	_cell_connections_to_update.clear()
 
 	# Redraw for debug purposes
 	_debug_draw_proxy_relative.queue_redraw()
 
 	var duration := Time.get_ticks_msec() - start_time
 	if duration > 1:
-		HexLog.print("Nav   => Updated %d nav-connections in: %d ms" % [cell_connections, duration], Colors.NAV_IMPORTANT_PRINT_COLOR)
+		HexLog.print("Nav   => Updated %d nav-connections in: %d ms" % [num_cell_connections, duration], Colors.NAV_IMPORTANT_PRINT_COLOR)
 
 	EventBus.Signal_NavUpdated.emit()
 
 
-func _update_cell_individually(grid_pos: Vector2i) -> void:
+func _update_cell_is_enabled(grid_pos: Vector2i) -> void:
 	var cell: Cell = Global.level.get_cell(grid_pos)
 	var id := cell.get_nav_id()
-	_astar.set_point_disabled(id, not cell.is_standable())
-	# Currently connections remain if point disabled (might change in future)
+
+	var should_be_enabled := cell.is_standable(true) and cell.is_passable()
+
+	# Currently connections remain if point disabled (but are implicietly disabled too)
+	_astar.set_point_disabled(id, not should_be_enabled)
 
 
 ## Determines whether to connect or disconnect two cells.
 ## Determined soley based on their flags and eventually neighbours.
-## Attention: Points might be disabled and connections might still be there
-func _update_cell_connection(cell_pair: CellPairQueue.Pair) -> void:
+## Attention: Points are only disabled and internal a-starconnections are not deleted
+func _update_cell_connection_pair(cell_pair: CellPairQueue.Pair) -> void:
 	# Unpack pair
 	var from: Cell = Global.level.get_cell(cell_pair.grid_pos_from)
 	var to: Cell = Global.level.get_cell(cell_pair.grid_pos_to)
 
+	_update_cell_connection_unidirectional(from, to)
+	_update_cell_connection_unidirectional(to, from)
+
+
+func _update_cell_connection_unidirectional(from: Cell, to: Cell) -> void:
 	var should_connect := false
 	if Util.are_cardinal_neighbours(from.grid_pos, to.grid_pos):
 		should_connect = _should_connect_cardinal_neighbours(from, to)
@@ -147,7 +152,7 @@ func _update_cell_connection(cell_pair: CellPairQueue.Pair) -> void:
 
 func _should_connect_cardinal_neighbours(from: Cell, to: Cell) -> bool:
 	# Both must be standable
-	if (not from.is_standable()) or (not to.is_standable()):
+	if (not from.is_standable(true)) or (not to.is_standable(true)):
 		return false
 
 	# If Horizontal, always connect
@@ -167,7 +172,7 @@ func _should_connect_cardinal_neighbours(from: Cell, to: Cell) -> bool:
 	
 	
 func _should_connect_diagonal_neighbours(from: Cell, to: Cell) -> bool:
-	# Both must be standable
+	# Both must be standable (implies passable)
 	if (not from.is_standable()) or (not to.is_standable()):
 		return false
 
@@ -178,14 +183,14 @@ func _should_connect_diagonal_neighbours(from: Cell, to: Cell) -> bool:
 	var lower_cell := Util.get_lower_cell(from, to)
 	var upper_cell := Util.get_upper_cell(from, to)
 
-	var lower_conn_cell: Cell = upper_cell.get_neighbour(Global.VEC_DOWN)
-	var upper_conn_cell: Cell = lower_cell.get_neighbour(Global.VEC_UP)
+	var below_upper_cell: Cell = upper_cell.get_neighbour(Global.VEC_DOWN)
+	var above_lower_cell: Cell = lower_cell.get_neighbour(Global.VEC_UP)
 
 	# Should always be valid
-	assert(lower_conn_cell != null)
-	assert(upper_conn_cell != null)
+	assert(below_upper_cell != null)
+	assert(above_lower_cell != null)
 
-	return lower_conn_cell.is_solid and upper_conn_cell.is_passable()
+	return above_lower_cell.is_passable()
 
 
 # Assumes level is already generated
