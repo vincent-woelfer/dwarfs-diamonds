@@ -19,7 +19,6 @@ enum CellType {
 	A,
 	B,
 	C,
-	PLATFORM,
 	SKY
 }
 

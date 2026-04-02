@@ -10,6 +10,9 @@ var _has_ladder: bool
 # Blocked = has a non-complete platform blocking building
 var _is_blocked: bool
 
+# Has platform = has a complete platform building
+var _has_platform: bool
+
 
 # Public getters for flags
 func has_ladder() -> bool:
@@ -18,8 +21,11 @@ func has_ladder() -> bool:
 func is_blocked() -> bool:
     return _is_blocked
 
+func has_platform() -> bool:
+    return _has_platform
+
 ########################################################################################################################
-# Main storage and logic
+# Main API
 ########################################################################################################################
 func add(building: BuildingBase) -> bool:
     if building in _buildings:
@@ -36,6 +42,9 @@ func remove(building: BuildingBase) -> bool:
     _update_flags()
     return true
 
+########################################################################################################################
+# Additional Utility API
+########################################################################################################################
 func is_empty() -> bool:
     return _buildings.is_empty()
 
@@ -44,6 +53,13 @@ func get_buildings() -> Array[BuildingBase]:
 
 func has_this_specific_building(building: BuildingBase) -> bool:
     return building in _buildings
+
+# TODO improve per platform type
+func get_platform_mining_hardness() -> float:
+    for building in _buildings:
+        if building.building_data.type == BuildingDataRes.Type.PLATFORM_BLOCKING and building.is_complete:
+            return 3.0
+    return 1.0
 
 ########################################################################################################################
 # Internal Logic
@@ -66,3 +82,9 @@ func _update_flags() -> void:
     for building in _buildings:
         if building.building_data.type == BuildingDataRes.Type.PLATFORM_BLOCKING and not building.is_complete:
             _is_blocked = true
+
+    # _has_platform
+    _has_platform = false
+    for building in _buildings:
+        if building.building_data.type == BuildingDataRes.Type.PLATFORM_BLOCKING and building.is_complete:
+            _has_platform = true

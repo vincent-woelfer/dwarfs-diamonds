@@ -172,9 +172,8 @@ func _generate_grid() -> void:
 	texture.width = ceil(Global.LEVEL_WIDTH * noise_scale)
 	texture.height = ceil(Global.LEVEL_HEIGHT * noise_scale)
 	
-	var fast_noise_lite := FastNoiseLite.new()
-	# fast_noise_lite.seed = 57
-	fast_noise_lite.seed = randi()
+	var fast_noise_lite := FastNoiseLite.new()	
+	fast_noise_lite.seed = Global.FIXED_MAP_SEED
 	texture.noise = fast_noise_lite
 	await texture.changed
 	var image := texture.get_image()

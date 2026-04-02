@@ -27,11 +27,13 @@ const VEC_DOWN := Vector2(0, 1)
 const MAX_ELEVATION_BASELINE: int = 10
 const MIN_SKY_HEIGHT: int = 5
 
+# var FIXED_MAP_SEED: int = 57
+var FIXED_MAP_SEED: int = randi()
+
 const CellMiningHardness := {
 	Enum.CellType.A: 1.0,
 	Enum.CellType.B: 2.0,
 	Enum.CellType.C: 3.0,
-	Enum.CellType.PLATFORM: 3.0,
 }
 
 # Group Names

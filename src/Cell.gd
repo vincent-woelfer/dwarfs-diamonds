@@ -82,8 +82,8 @@ func set_is_highlighted(highlighted: bool) -> void:
 
 
 func increase_mining_process(mining_speed_with_delta: float) -> void:
-	var mining_with_hardness := mining_speed_with_delta / mining_hardness
-	mining_process = clamp(mining_process + mining_with_hardness, 0.0, 1.0)
+	var actual_mining_increase := mining_speed_with_delta / mining_hardness
+	mining_process = clamp(mining_process + actual_mining_increase, 0.0, 1.0)
 	visual.set_dirty()
 
 	if mining_process >= 1.0:
@@ -213,10 +213,9 @@ func _init(_grid_pos: Vector2i, _type: Enum.CellType, _is_solid: bool, _has_mine
 	
 	self.is_marked_for_mining = false
 	self.is_highlighted = false
-	self.mining_process = 0.0	
+	self.mining_process = 0.0
 	
-	# mining hardness
-	mining_hardness = Global.CellMiningHardness.get(type, mining_hardness)
+	_update_mining_hardness()
 
 
 func _ready() -> void:
@@ -226,6 +225,14 @@ func _ready() -> void:
 	visual = CellVisuals.new(self )
 	add_child(visual)
 
+
+func _update_mining_hardness() -> void:
+	if is_solid:
+		mining_hardness = Global.CellMiningHardness.get(type)
+	elif buildings.has_platform():
+		mining_hardness = buildings.get_platform_mining_hardness()
+	else:
+		mining_hardness = 1.0
 
 func _to_string() -> String:
 	var print_color := Colors.to_print_color(Color.BROWN)
