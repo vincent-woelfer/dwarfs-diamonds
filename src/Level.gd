@@ -1,11 +1,16 @@
 class_name Level
 extends Node2D
 
+# SCENES
 var dwarf_scene := preload('res://scenes/Dwarf.tscn')
 var rubble_scene := preload('res://scenes/objects/Rubble.tscn')
 var gemstone_scene := preload('res://scenes/objects/Gemstone.tscn')
 
+# DATA
 var cells: Array[Array] = []
+
+# max_elevation = highest solid cell at this x. NOT updated after level generation
+var max_elevatation_at_x: Array[int] = []
 var dwarfs: Array[Dwarf] = []
 var rubbles: Array[Rubble] = []
 var gemstones: Array[Gemstone] = []
@@ -65,24 +70,26 @@ func _ready() -> void:
 			if not cell.is_solid and place_torch and should_contain_torch(grid_pos):
 				cell.add_deco_element(DecoTorch.instantiate())
 
-
 	# DWARF
-	spawn_dwarf(Vector2i(8, 5))
-	# spawn_dwarf(Vector2i(10, 6))
-
-	# other side
-	# spawn_dwarf(Vector2i(23, 6))
+	spawn_dwarf(8)
 
 
-func spawn_dwarf(grid_pos: Vector2i) -> void:
-	var cell := get_cell(grid_pos)
-	if cell == null or not cell.is_passable():
+func spawn_dwarf(x: int) -> void:
+	# Max elevation might not be up to date, is only for sky background
+	for y in range(Global.LEVEL_HEIGHT):
+		var grid_pos := Vector2i(x, y)
+		var cell := get_cell(grid_pos)
+		if cell == null or not cell.is_passable() or not cell.has_solid_ground():
+			continue
+
+		# Found a valid spawn position for the dwarf
+		var dwarf: Dwarf = dwarf_scene.instantiate()
+		dwarf.setup(grid_pos)
+		add_child(dwarf)
+		dwarfs.append(dwarf)
 		return
 
-	var dwarf: Dwarf = dwarf_scene.instantiate()
-	dwarf.setup(grid_pos)
-	add_child(dwarf)
-	dwarfs.append(dwarf)
+	assert(false)
 
 
 func spawn_rubble(grid_pos: Vector2i) -> void:
@@ -109,7 +116,7 @@ func spawn_gemstone(grid_pos: Vector2i) -> void:
 ## Deterministic torch placement
 func should_contain_torch(grid_pos: Vector2i) -> bool:
 	# Simple rule: place torch every 5 cells in x and y, avoid sky area
-	if grid_pos.y <= Global.SKY_HEIGHT + 2:
+	if grid_pos.y <= Global.MAX_ELEVATION_BASELINE + 2:
 		return false
 
 	var percentage_with_torch := 0.95
@@ -132,6 +139,17 @@ func should_contain_torch(grid_pos: Vector2i) -> bool:
 
 	return false
 
+########################################################################################################################
+# Max Elevation / Sky
+########################################################################################################################
+func _get_max_elevation_at_x(x: int) -> int:
+	if x < 0 or x >= Global.LEVEL_WIDTH:
+		assert(false)
+		return 1 # 1 So at least one line of sky
+	return max_elevatation_at_x[x]
+
+func is_sky(grid_pos: Vector2i) -> bool:
+	return grid_pos.y < _get_max_elevation_at_x(grid_pos.x)
 
 ########################################################################################################################
 # Level Generation
@@ -146,6 +164,7 @@ func _generate_grid() -> void:
 		for y in range(Global.LEVEL_HEIGHT):
 			row.append(null)
 		cells.append(row)
+		max_elevatation_at_x.append(0)
 
 	var noise_scale := 15.0
 
@@ -160,21 +179,53 @@ func _generate_grid() -> void:
 	await texture.changed
 	var image := texture.get_image()
 
+	_generate_max_elevation_profile(image, noise_scale)
+
+	var threshold_above_is_solid := 0.25
+	
 	for x in range(Global.LEVEL_WIDTH):
 		for y in range(Global.LEVEL_HEIGHT):
 			var type: Enum.CellType = [Enum.CellType.A, Enum.CellType.B, Enum.CellType.C].pick_random()
 
-			# Is Solid			
-			var threshold_above_is_solid := 0.25
+			# Is Solid						
 			var is_solid: bool = image.get_pixel(roundi(x * noise_scale), roundi(y * noise_scale)).r > threshold_above_is_solid
-			if y <= Global.SKY_HEIGHT:
+
+			# No holes above baseline
+			if _get_max_elevation_at_x(x) == y or y <= Global.MAX_ELEVATION_BASELINE:
+				is_solid = true
+
+			if is_sky(Vector2i(x, y)):
 				is_solid = false
 				type = Enum.CellType.SKY
 
-			var cell := Cell.new(Vector2i(x, y), type, is_solid)
-			cell.position = Vector2(x, y) * Global.CELL_SIZE
+			var has_mineral: bool = (randf() < 0.2) if y >= Global.MAX_ELEVATION_BASELINE else false
+			var cell := Cell.new(Vector2i(x, y), type, is_solid, has_mineral)
 			add_child(cell)
 			cells[x][y] = cell
+
+
+func _generate_max_elevation_profile(image: Image, noise_scale: float) -> void:
+	max_elevatation_at_x.clear()
+	max_elevatation_at_x.resize(Global.LEVEL_WIDTH)
+
+	var threshold_above_is_solid_above_baseline := 0.7
+
+	for x in range(Global.LEVEL_WIDTH):
+		for y in range(Global.LEVEL_HEIGHT):
+			var grid_pos := Vector2i(x, y)
+			var is_solid: bool = image.get_pixel(roundi(x * noise_scale), roundi(y * noise_scale)).r > threshold_above_is_solid_above_baseline
+			var is_last_above_baseline := y == Global.MAX_ELEVATION_BASELINE
+			var is_sky_allowed := y >= Global.MIN_SKY_HEIGHT
+
+			if is_sky_allowed and (is_solid or is_last_above_baseline):
+				max_elevatation_at_x[x] = y
+				break
+
+	# Smoothing
+	var new_max_elevatation_at_x: Array[int] = max_elevatation_at_x.duplicate()
+	for x in range(1, Global.LEVEL_WIDTH - 1):
+		new_max_elevatation_at_x[x] = roundi((max_elevatation_at_x[x - 1] + max_elevatation_at_x[x] + max_elevatation_at_x[x + 1]) / 3.0)
+	max_elevatation_at_x = new_max_elevatation_at_x
 
 
 ########################################################################################################################
@@ -200,13 +251,13 @@ func _update_all_light_depths() -> void:
 	# solid -> free => incremental update possible
 	var needs_full_update := false
 	for cell_pos in _light_depth_update_queue:
-		var cell := get_cell(cell_pos)		
+		var cell := get_cell(cell_pos)
 		if cell != null and cell.is_solid:
 			needs_full_update = true
 			break
 
 	if needs_full_update:
-		_full_light_depths_update()		
+		_full_light_depths_update()
 	else:
 		for cell_pos in _light_depth_update_queue:
 			_incremental_light_depth_update_cell_to_free(cell_pos)

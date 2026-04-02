@@ -24,7 +24,8 @@ const VEC_RIGHT := Vector2(1, 0)
 const VEC_UP := Vector2(0, -1)
 const VEC_DOWN := Vector2(0, 1)
 
-const SKY_HEIGHT: int = 6
+const MAX_ELEVATION_BASELINE: int = 10
+const MIN_SKY_HEIGHT: int = 5
 
 const CellMiningHardness := {
 	Enum.CellType.A: 1.0,

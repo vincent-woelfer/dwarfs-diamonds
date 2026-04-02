@@ -97,19 +97,18 @@ func destroy_cell() -> void:
 
 	is_solid = false
 	mining_process = 0.0
-	if grid_pos.y <= Global.SKY_HEIGHT:
+	if Global.level.is_sky(grid_pos):
 		type = Enum.CellType.SKY
-
-	queue_nav_update()
+	
 	Audio.play_at_pos("cell_on_destroy", global_position)
-	visual.set_dirty()
 
-	# Spawn Rubble
+	# Spawn Rubble / Gemstone
 	Global.level.spawn_rubble(grid_pos)
-
 	if has_mineral:
 		Global.level.spawn_gemstone(grid_pos)
 
+	visual.set_dirty()
+	queue_nav_update()
 
 ###################################
 # Building Management - Called by Global Actions add/remove building
@@ -203,19 +202,18 @@ func get_floor_point_at_world_x(world_x: float) -> Vector2:
 ########################################################################################################################
 # PRIVATE METHODS
 ########################################################################################################################
-func _init(_grid_pos: Vector2i, _type: Enum.CellType, _is_solid: bool) -> void:
+func _init(_grid_pos: Vector2i, _type: Enum.CellType, _is_solid: bool, _has_mineral: bool) -> void:
 	self.process_priority = Enum.ProcessPriority.CELL
 
 	self.grid_pos = _grid_pos
+	self.position = Vector2(grid_pos) * Global.CELL_SIZE
 	self.type = _type
 	self.is_solid = _is_solid
-
+	self.has_mineral = _has_mineral
+	
 	self.is_marked_for_mining = false
 	self.is_highlighted = false
-	self.mining_process = 0.0
-
-	#TODO DEV
-	self.has_mineral = (randf() < 0.2) if type != Enum.CellType.SKY else false
+	self.mining_process = 0.0	
 	
 	# mining hardness
 	mining_hardness = Global.CellMiningHardness.get(type, mining_hardness)
