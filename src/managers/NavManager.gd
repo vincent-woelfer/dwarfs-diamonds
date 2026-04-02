@@ -159,7 +159,7 @@ func _should_connect_cardinal_neighbours(from: Cell, to: Cell) -> bool:
 
 	# If upwards, we can only go up if the lower cell has a ladder.
 	if from == lower_cell:
-		return lower_cell.has_ladder()
+		return lower_cell.buildings.has_ladder()
 
 	# If downwards, we can always go down
 	else:

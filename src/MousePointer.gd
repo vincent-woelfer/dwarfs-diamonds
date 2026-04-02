@@ -187,7 +187,7 @@ func _actions_building_destroy() -> void:
 	# Destroy Building
 	if Input.is_action_just_pressed("mouse_left"):
 		if curr_center_cell != null:
-			for building in curr_center_cell.buildings:
+			for building in curr_center_cell.get_buildings():
 				Actions.remove_building(building)
 
 
@@ -199,12 +199,12 @@ func _actions_building_destroy() -> void:
 func _highlight_buildings_under_mouse_for_destruction() -> void:
 	# Hightlight current
 	if curr_center_cell != null:
-		for building in curr_center_cell.buildings:
+		for building in curr_center_cell.get_buildings():
 			building.set_modulate_external(Colors.building_modulate_external_destroy)
 
 	# Un-highlight previous ONLY IF different from current
 	if prev_center_cell != null and prev_center_cell != curr_center_cell:
-		for building in prev_center_cell.buildings:
+		for building in prev_center_cell.get_buildings():
 			building.set_modulate_external(Color.WHITE)
 
 
@@ -212,11 +212,11 @@ func _highlight_buildings_under_mouse_for_destruction() -> void:
 func _unhighlight_all_buildings() -> void:
 	# Un-highlight current & previous
 	if curr_center_cell != null:
-		for building in curr_center_cell.buildings:
+		for building in curr_center_cell.get_buildings():
 			building.set_modulate_external(Color.WHITE)
 
 	if prev_center_cell != null:
-		for building in prev_center_cell.buildings:
+		for building in prev_center_cell.get_buildings():
 			building.set_modulate_external(Color.WHITE)
 
 ## Update selected cells based on mouse position and selection pattern

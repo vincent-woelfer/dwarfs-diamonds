@@ -30,7 +30,7 @@ func start_building(cell: Cell, cell_from: Cell, building: BuildingBase) -> bool
 		return false
 
 	# Verify that the building is at the current cell
-	assert(cell.buildings.count(building) == 1)
+	assert(cell.buildings.has_this_specific_building(building))
 
 	# TODO add check if in workable from poses?
 

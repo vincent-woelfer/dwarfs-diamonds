@@ -7,10 +7,8 @@ var grid_pos: Vector2i
 var visual: CellVisuals
 
 var deco_elements: Array[DecoBase] = []
-var buildings: Array[BuildingBase] = []
+var buildings: CellBuildingsContainer = CellBuildingsContainer.new()
 var action_points: Array[ActionPoint] = []
-
-var has_mineral: bool = false
 
 # 0  = air / not solid
 # 1  = adjacent to air
@@ -20,7 +18,11 @@ var light_depth: int = 999
 ########################################################################################################################
 # GROUND TRUTH BOOL STATUS FLAGS
 ########################################################################################################################
+# Solid = not-mined cell or stable and finished platform. Also no sky
 var is_solid: bool
+
+# Has mineral = has a mineral vein. Only for visuals and drop logic
+var has_mineral: bool = false
 
 ########################################################################################################################
 # Derived State Flags
@@ -28,7 +30,7 @@ var is_solid: bool
 # Passable = not solid and not other obstacle. Does not require ladder or similar.
 # Basically means "free air"
 func is_passable() -> bool:
-	return not is_solid and not is_blocked
+	return not is_solid and not buildings.is_blocked()
 
 
 # Standable = solid ground or ladder. Can stand on it. Also requires passable
@@ -39,7 +41,7 @@ func is_standable(can_use_ladders: bool = true) -> bool:
 	var n_bot := get_neighbour(Global.VEC_DOWN)
 
 	if can_use_ladders:
-		return (has_ladder()) or (n_bot and n_bot.is_solid)
+		return buildings.has_ladder() or (n_bot and n_bot.is_solid)
 	else:
 		return n_bot and n_bot.is_solid
 
@@ -47,21 +49,6 @@ func is_standable(can_use_ladders: bool = true) -> bool:
 func has_solid_ground() -> bool:
 	var n_bot := get_neighbour(Global.VEC_DOWN)
 	return n_bot != null and n_bot.is_solid
-
-
-func has_ladder() -> bool:
-	for building in buildings:
-		if building.building_data.type == BuildingDataRes.Type.LADDER and building.is_complete:
-			return true
-	return false
-
-
-# Blocked = has a non-complete platform blocking building
-func is_blocked() -> bool:
-	for building in buildings:
-		if building.building_data.type == BuildingDataRes.Type.PLATFORM_BLOCKING and not building.is_complete:
-			return true
-	return false
 
 ########################################################################################################################
 # OTHER FLAGS
@@ -128,21 +115,19 @@ func destroy_cell() -> void:
 # Building Management - Called by Global Actions add/remove building
 ###################################
 func add_building(building: BuildingBase) -> void:
-	if building in buildings:
+	if not buildings.add(building):
 		return
-
-	buildings.append(building)
 	visual.set_dirty()
 	queue_nav_update()
 
 func remove_building(building: BuildingBase) -> void:
-	if building not in buildings:
+	if not buildings.remove(building):
 		return
-
-	buildings.erase(building)
 	visual.set_dirty()
 	queue_nav_update()
 
+func get_buildings() -> Array[BuildingBase]:
+	return buildings.get_buildings()
 
 ###################################
 # Action Point Management (added/removed ONLY by BuildingManager)
