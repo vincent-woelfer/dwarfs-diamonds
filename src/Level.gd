@@ -343,3 +343,11 @@ func get_cell(grid_pos: Vector2i) -> Cell:
 func sample_cell_at_world_pos(world_pos: Vector2) -> Cell:
 	var grid_pos := Vector2i(floori(world_pos.x / Global.CELL_SIZE), floori(world_pos.y / Global.CELL_SIZE))
 	return get_cell(grid_pos)
+
+
+func get_dwarfs_in_cell(grid_pos: Vector2i) -> Array[Dwarf]:
+	var dwarfs_in_cell: Array[Dwarf] = []
+	for dwarf in dwarfs:
+		if dwarf.grid_pos == grid_pos:
+			dwarfs_in_cell.append(dwarf)
+	return dwarfs_in_cell

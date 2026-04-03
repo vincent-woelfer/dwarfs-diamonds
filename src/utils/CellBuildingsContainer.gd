@@ -17,8 +17,9 @@ func has_ladder() -> bool:
 func is_blocked() -> bool:
     var _is_blocked := false
     for building in _buildings:
-        if building.building_data.type == BuildingDataRes.Type.PLATFORM_BLOCKING:
+        if building.building_data.pattern_blocking.get_world_positions().has(_parent.grid_pos):
             _is_blocked = true
+            break
 
     return _is_blocked
 
@@ -70,9 +71,11 @@ func get_platform_mining_hardness() -> float:
 # Internal Logic
 ########################################################################################################################
 var _buildings: Array[BuildingBase] = []
+var _parent: Cell
 
-func _init() -> void:
+func _init(_parent_cell: Cell) -> void:
     _buildings = []
+    _parent = _parent_cell
 
 func _update_flags() -> void:
     return

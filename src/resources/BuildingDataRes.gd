@@ -52,6 +52,11 @@ var pattern_build_from_color: Color = Color.GREEN
 @export_custom(PROPERTY_HINT_COLOR_NO_ALPHA, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY)
 var pattern_solid_ground_color: Color = Color(0.3, 0.15, 0.1) # Dark brown
 
+## Patter defining where the building blocks movement, e.g. for platforms. Relevant for placement checks aswell (no dwarf must be in blocking area when placing the building).
+@export var pattern_blocking: GridPatternRes
+@export_custom(PROPERTY_HINT_COLOR_NO_ALPHA, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY)
+var pattern_blocking_color: Color = Color.ORANGE_RED
+
 ########################################################################################################################
 # Action Points
 ########################################################################################################################
@@ -63,12 +68,12 @@ var pattern_solid_ground_color: Color = Color(0.3, 0.15, 0.1) # Dark brown
 ########################################################################################################################
 # Placement Checks
 ########################################################################################################################
-func is_placeable_at(grid_pos: Vector2i) -> bool:
+func is_placeable_at(building_grid_pos: Vector2i) -> bool:
 	# Check if all building pattern cells exist, are free and have solid ground if required
 	assert(pattern_building != null)
 
 	# Check building pattern cells
-	var pattern_building_world := GridPatternRes.init_from_pattern(self.pattern_building, grid_pos)
+	var pattern_building_world := GridPatternRes.init_from_pattern(self.pattern_building, building_grid_pos)
 	for pos in pattern_building_world.get_world_positions():
 		var cell: Cell = Global.level.get_cell(pos)
 		if cell == null:
@@ -84,22 +89,55 @@ func is_placeable_at(grid_pos: Vector2i) -> bool:
 			return false
 				
 	# Check solid ground requirement
-	if not has_solid_ground_at(grid_pos):
+	if not has_solid_ground_at(building_grid_pos):
 		return false
 
-	# Build from does not need validation, player is required to place it correctly
+	# Build from does not need validation, player is required to place it correctly. Only validation is that at least once cell must exists (no map border)
+	var pattern_build_from_world := GridPatternRes.init_from_pattern(self.pattern_build_from, building_grid_pos)
+	var at_least_one_build_from_cell_exists := false
+	for pos in pattern_build_from_world.get_world_positions():
+		var cell: Cell = Global.level.get_cell(pos)
+		if cell == null:
+			continue
+		at_least_one_build_from_cell_exists = true
+		break
+
+	if not at_least_one_build_from_cell_exists:
+		return false
+
+	# Blocking Pattern
+	if not is_blocking_pattern_clear_at(building_grid_pos):
+		return false
 
 	return true
 
 
-func has_solid_ground_at(grid_pos: Vector2i) -> bool:
+func has_solid_ground_at(building_grid_pos: Vector2i) -> bool:
 	assert(pattern_building != null)
-	var pattern_solid_ground_world := GridPatternRes.init_from_pattern(self.pattern_solid_ground, grid_pos)
+	var pattern_solid_ground_world := GridPatternRes.init_from_pattern(self.pattern_solid_ground, building_grid_pos)
 
 	# Check solid ground requirement
 	for pos in pattern_solid_ground_world.get_world_positions():
 		var cell: Cell = Global.level.get_cell(pos)
 		if cell == null or not cell.is_solid:
+			return false
+
+	return true
+
+
+func is_blocking_pattern_clear_at(building_grid_pos: Vector2i) -> bool:
+	assert(pattern_blocking != null)
+	var pattern_blocking_world := GridPatternRes.init_from_pattern(self.pattern_blocking, building_grid_pos)
+
+	# Check blocking pattern
+	for pos in pattern_blocking_world.get_world_positions():
+		var cell: Cell = Global.level.get_cell(pos)
+		if cell == null:
+			continue
+
+		# If any dwarf is in the blocking area, it's not clear
+		var dwarfs_in_cell: Array[Dwarf] = Global.level.get_dwarfs_in_cell(pos)
+		if not dwarfs_in_cell.is_empty():
 			return false
 
 	return true

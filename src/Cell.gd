@@ -7,7 +7,7 @@ var grid_pos: Vector2i
 var visual: CellVisuals
 
 var deco_elements: Array[DecoBase] = []
-var buildings: CellBuildingsContainer = CellBuildingsContainer.new()
+var buildings: CellBuildingsContainer = CellBuildingsContainer.new(self )
 var action_points: Array[ActionPoint] = []
 
 # 0  = air / not solid
