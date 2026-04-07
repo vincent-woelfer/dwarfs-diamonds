@@ -10,6 +10,7 @@ enum Type {
 	LADDER,
 	OUTPOST,
 	PLATFORM_BLOCKING,
+	PLATFORM_BRIDGE,
 }
 
 const BUILDING_TYPE_NAMES: Dictionary[Type, String] = {
@@ -17,6 +18,7 @@ const BUILDING_TYPE_NAMES: Dictionary[Type, String] = {
 	Type.LADDER: "Ladder",
 	Type.OUTPOST: "Outpost",
 	Type.PLATFORM_BLOCKING: "PlatformBlocking",
+	Type.PLATFORM_BRIDGE: "PlatformBridge",
 }
 
 ########################################################################################################################
@@ -82,9 +84,13 @@ func is_placeable_at(building_grid_pos: Vector2i) -> bool:
 	if not is_blocking_pattern_clear_at(building_grid_pos):
 		return false
 
-	# Additional custom checks - for now hardcoded here
+	# Additional custom checks - for now hardcoded here.
+	# TODO override has_solid_ground check in child class
 	if self.type == Type.LADDER:
 		if not Ladder.is_placement_valid_for_ladder(building_grid_pos):
+			return false
+	elif self.type == Type.PLATFORM_BRIDGE:
+		if not PlatformBridge.is_placement_valid_for_platform_bridge(building_grid_pos):
 			return false
 
 	return true

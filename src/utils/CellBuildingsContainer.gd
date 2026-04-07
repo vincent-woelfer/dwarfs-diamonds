@@ -27,7 +27,7 @@ func is_blocked() -> bool:
 func has_platform() -> bool:
     var _has_platform := false
     for building in _buildings:
-        if building.building_data.type == BuildingDataRes.Type.PLATFORM_BLOCKING and building.is_complete:
+        if building.building_data.type in [BuildingDataRes.Type.PLATFORM_BLOCKING, BuildingDataRes.Type.PLATFORM_BRIDGE ] and building.is_complete:
             _has_platform = true
             
     return _has_platform

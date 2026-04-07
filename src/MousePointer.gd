@@ -145,8 +145,15 @@ func _actions_mode_change() -> bool:
 		sm.transition_to(State.BUILDING_PLACEMENT, BuildingManager.outpost_building_data)
 		return true
 
-	elif Input.is_action_just_pressed("mouse_place_platform_blocking"):
-		sm.transition_to(State.BUILDING_PLACEMENT, BuildingManager.platform_blocking_building_data)
+	elif Input.is_action_just_pressed("mouse_place_platform"):
+		if building_preview.building_data == BuildingManager.platform_bridge_building_data:
+			sm.transition_to(State.BUILDING_PLACEMENT, BuildingManager.platform_blocking_building_data)
+		elif building_preview.building_data == BuildingManager.platform_blocking_building_data:
+			sm.transition_to(State.BUILDING_PLACEMENT, BuildingManager.platform_bridge_building_data)
+		else:
+			# Default
+			sm.transition_to(State.BUILDING_PLACEMENT, BuildingManager.platform_blocking_building_data)
+
 		return true
 
 	# DESTROY

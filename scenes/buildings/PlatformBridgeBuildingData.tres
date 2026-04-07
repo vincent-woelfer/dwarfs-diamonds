@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="BuildingDataRes" format=3 uid="uid://d2f2f0bo35aco"]
+
+[ext_resource type="Script" uid="uid://dg7m75nftn2bc" path="res://src/resources/ActionPointRes.gd" id="1_kpa8g"]
+[ext_resource type="Script" uid="uid://qrjawossld3p" path="res://src/resources/GridPatternRes.gd" id="2_wle3f"]
+[ext_resource type="Script" uid="uid://582fgtaaib5v" path="res://src/resources/BuildingDataRes.gd" id="3_epdga"]
+
+[sub_resource type="Resource" id="Resource_duvw7"]
+script = ExtResource("2_wle3f")
+cells = Array[Vector2i]([Vector2i(0, 0)])
+metadata/_custom_type_script = "uid://qrjawossld3p"
+
+[sub_resource type="Resource" id="Resource_4a6mf"]
+script = ExtResource("2_wle3f")
+cells = Array[Vector2i]([Vector2i(-1, 0), Vector2i(1, 0), Vector2i(-1, -1), Vector2i(1, -1)])
+metadata/_custom_type_script = "uid://qrjawossld3p"
+
+[sub_resource type="Resource" id="Resource_vwinv"]
+script = ExtResource("2_wle3f")
+cells = Array[Vector2i]([Vector2i(0, 0)])
+metadata/_custom_type_script = "uid://qrjawossld3p"
+
+[resource]
+script = ExtResource("3_epdga")
+type = 4
+build_time = 3.0
+pattern_building = SubResource("Resource_vwinv")
+pattern_build_from = SubResource("Resource_4a6mf")
+pattern_blocking = SubResource("Resource_duvw7")
+metadata/_custom_type_script = "uid://582fgtaaib5v"

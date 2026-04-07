@@ -401,9 +401,9 @@ func _apply_for_job() -> void:
 	if applied_for_job:
 		return
 
-	if Global.level.job_manager.apply_for_new_job(self ):
-		applied_for_job = true
-	elif sm.state == State.IDLE:
+	applied_for_job = Global.level.job_manager.apply_for_new_job(self )
+
+	if not applied_for_job and sm.state == State.IDLE:
 		# Failed to apply, own tasks as fallback
 		_create_own_tasks()
 
