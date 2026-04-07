@@ -46,6 +46,7 @@ func setup_building_as_uncompleted(grid_pos_: Vector2i, building_data_: Building
 	# Play sound effect
 	Audio.play_at_pos("building_placed", global_position)
 
+
 # Called internally when building is completed
 func _setup_action_points() -> void:
 	action_points.clear()
@@ -58,6 +59,9 @@ func _setup_action_points() -> void:
 
 
 func _ready() -> void:
+	if Engine.is_editor_hint():
+		return
+		
 	# Add build job
 	build_job = Job.new(Job.Type.BUILD, curr_cell)
 	build_job.building = self

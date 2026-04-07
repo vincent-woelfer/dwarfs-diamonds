@@ -1,4 +1,5 @@
 # No class_name here, the name of the singleton is set in the autoload
+@tool
 extends Node
 
 ########################################################################################################################
@@ -57,6 +58,9 @@ signal Signal_DebugPathSetStartCell(pos: Vector2i)
 # Handle DEV-Input here
 ########################################################################################################################
 func _input(event: InputEvent) -> void:
+	if Engine.is_editor_hint():
+		return
+
 	# F1
 	if event.is_action_pressed("dev_toogle_nav_draw"):
 		dev_draw_nav = not dev_draw_nav

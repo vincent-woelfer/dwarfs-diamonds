@@ -373,7 +373,7 @@ func _on_job_assigned(new_job: Job) -> void:
 		return
 
 	if new_job == null:
-		# HexLog.throttled(self , "%s found no job, remains idle / creating own tasks!" % [ self ], HexLog.NO_JOB_INTERVALL)
+		HexLog.throttled(self , "%s found no job, remains idle / creating own tasks!" % [ self ], HexLog.NO_JOB_INTERVALL)
 		# Check for tasks coming from own "needs"
 		_create_own_tasks()
 		return

@@ -76,6 +76,9 @@ func apply_for_new_job(dwarf: Dwarf) -> bool:
 		print_rich("%s is already looking for a job, ignoring duplicate apply!" % [dwarf])
 		return false
 
+	if _jobs.is_empty():
+		return false
+
 	_dwarfs_looking_for_jobs.append(dwarf)
 	return true
 
