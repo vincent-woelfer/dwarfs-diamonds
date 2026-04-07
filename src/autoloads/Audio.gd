@@ -69,7 +69,7 @@ func stop_player(player: AudioStreamPlayer2D) -> void:
 
 
 func update_player_position(player: AudioStreamPlayer2D, new_pos: Vector2) -> void:
-	if not is_instance_valid(player) or player not in _players:
+	if player == null or player not in _players:
 		return
 
 	player.global_position = new_pos

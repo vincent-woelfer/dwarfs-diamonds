@@ -122,7 +122,6 @@ func _distribute_jobs_to_dwarfs() -> void:
 		return
 
 	# Update all jobs first
-	# TODO benchmark this, if it becomes a bottleneck we can add a dirty flag to only update when needed
 	for job in _jobs:
 		job.update_workable_from_cells()
 
@@ -136,37 +135,41 @@ func _distribute_jobs_to_dwarfs() -> void:
 		dwarfs_with_scored_jobs[dwarf] = scored_jobs
 		for scored_job: ScoredJob in scored_jobs:
 			job_set[scored_job.job] = true
-	var all_jobs: Array[Job] = job_set.keys()
 
-	# Build n×n cost matrix (negate scores → minimize cost)
-	var matrix_size: int = max(_dwarfs_looking_for_jobs.size(), all_jobs.size())
+	# Expand each job into capacity-many slots, capped at dwarf count to limit matrix size
+	var job_slots: Array[Job] = []
+	for job: Job in job_set.keys():
+		var slots: int = mini(job.calculate_capacity(), _dwarfs_looking_for_jobs.size())
+		for _i: int in slots:
+			job_slots.append(job)
 
-	# Type = Array[Array[float]], Indexing is [dwarf_idx][job_idx]
+	# Build nxn cost matrix, Indexing is [dwarf_idx][slot_idx]
+	var matrix_size: int = max(_dwarfs_looking_for_jobs.size(), job_slots.size())
+	const no_job_penalty: float = 1e9
+
+	# Type = Array[Array[float]], Indexing is [dwarf_idx][slot_idx]
 	var cost_matrix: Array[Array] = []
-	const NO_JOB_PENALTY: float = 1e9
 	for i: int in matrix_size:
 		cost_matrix.append([])
 		for j: int in matrix_size:
-			cost_matrix[i].append(NO_JOB_PENALTY)
+			cost_matrix[i].append(no_job_penalty)
 
-	# Populate matrix with scored jobs
+	# Populate matrix - all slots belonging to the same job share the same score
 	for dwarf_idx: int in _dwarfs_looking_for_jobs.size():
 		for scored_job: ScoredJob in dwarfs_with_scored_jobs[_dwarfs_looking_for_jobs[dwarf_idx]]:
-			# Get job index in all_jobs
-			var job_idx: int = all_jobs.find(scored_job.job)
-			if job_idx != -1:
-				# Hungarian algorithm minimizes cost, for our score lower is better so we can directly use it
-				cost_matrix[dwarf_idx][job_idx] = scored_job.score
+			for slot_idx: int in job_slots.size():
+				if job_slots[slot_idx] == scored_job.job:
+					cost_matrix[dwarf_idx][slot_idx] = scored_job.score
 
-	# Get optimal assignment, index = dwarf_idx, value = job_idx (or -1 if no job assigned)
+	# Get optimal assignment, index = dwarf_idx, value = slot_idx
 	var assignment: Array[int] = _hungarian_job_caluclation(cost_matrix, matrix_size)
 
-	# Assign jobs according to assignment
+	# slot_idx maps directly back to a Job reference via job_slots
 	for dwarf_idx: int in dwarfs_with_scored_jobs.size():
-		var job_idx: int = assignment[dwarf_idx]
+		var slot_idx: int = assignment[dwarf_idx]
 		var job: Job = null
-		if job_idx < all_jobs.size() and cost_matrix[dwarf_idx][job_idx] < NO_JOB_PENALTY:
-			job = all_jobs[job_idx]
+		if slot_idx < job_slots.size() and cost_matrix[dwarf_idx][slot_idx] < no_job_penalty:
+			job = job_slots[slot_idx]
 
 		_dwarfs_looking_for_jobs[dwarf_idx]._on_job_assigned(job)
 

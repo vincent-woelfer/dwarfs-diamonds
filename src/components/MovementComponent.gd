@@ -201,7 +201,10 @@ func _physics_process_following_path(delta: float) -> void:
 	Signal_MovementDirectionChanged.emit(movement_dir)
 
 	# Update audio player position
-	Audio.update_player_position(_audio_player_positional, parent.global_position)
+	if is_instance_valid(_audio_player_positional):
+		Audio.update_player_position(_audio_player_positional, parent.global_position)
+	else:
+		_audio_player_positional = null
 
 	# Check if we reached the end of the path
 	if path.reached_end():
