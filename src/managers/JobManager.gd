@@ -118,8 +118,10 @@ var _dwarfs_looking_for_jobs: Array[Dwarf] = []
 ## Main job distribution function
 func _distribute_jobs_to_dwarfs() -> void:
 	var start_time := Time.get_ticks_msec()
-	if _dwarfs_looking_for_jobs.is_empty():
+	if _dwarfs_looking_for_jobs.is_empty() or _jobs.is_empty():
 		return
+
+	HexLog.print("Jobs  => Starting job distribution to %d dwarfs..." % [_dwarfs_looking_for_jobs.size()], Colors.JOBS_PRINT_COLOR)
 
 	# Update all jobs first
 	for job in _jobs:

@@ -95,12 +95,8 @@ func remove_building(building: BuildingBase) -> void:
 
 
 func archive_job(job: Job, success: bool) -> void:
-	if job == null:
-		return
-
 	# Ensure this is only triggered once
-	if not job.is_active:
-		push_error("Tried to archive job %s but was archived before (is_active=false)" % [job])
+	if job == null or not job.is_active:
 		return
 
 	# Print before actually calling archive so log order makes more sense. This has the downside that the pinted job is still printed as active.

@@ -121,7 +121,6 @@ func assign_dwarf(dwarf: Dwarf) -> bool:
 func unassign_dwarf(dwarf: Dwarf) -> void:
 	assert(dwarf != null)
 	assert(assigned_dwarfs.has(dwarf))
-
 	assigned_dwarfs.erase(dwarf)
 
 
