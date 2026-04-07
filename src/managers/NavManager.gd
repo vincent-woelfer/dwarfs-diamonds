@@ -83,23 +83,31 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if not _cell_connections_to_update.is_empty():
-		_update_cell_connections()
+		_update_all_queued_cell_connections()
 	
 
 # Disabled = currently not walkable
 # Connections might still be there for disabled cells (might changein future)
 # Happens at most once per frame
-func _update_cell_connections() -> void:
+func _update_all_queued_cell_connections() -> void:
 	var start_time := Time.get_ticks_msec()
 	var num_cell_connections := _cell_connections_to_update.size()
 
 	# Guaranteed that pair is valid positions and not null
-	for cell_pair in _cell_connections_to_update.get_all():
+	for cell_pair: CellPairQueue.Pair in _cell_connections_to_update.get_all():
+		# Unpack pair - guaranteed to be valid positions and not null
+		var from: Cell = Global.level.get_cell(cell_pair.grid_pos_from)
+		var to: Cell = Global.level.get_cell(cell_pair.grid_pos_to)
+
 		# Update individual cells -> This is called way to often per cell per frame but whatever for now
-		_update_cell_is_enabled(cell_pair.grid_pos_from)
-		_update_cell_is_enabled(cell_pair.grid_pos_to)
+		_update_cell_is_enabled(from)
+		_update_cell_is_enabled(to)
 		
-		_update_cell_connection_pair(cell_pair)
+		_update_cell_connection_pair(from, to)
+
+		# Reset cell nav-flag
+		from._queued_nav_update = false
+		to._queued_nav_update = false
 
 	# Reset Queue
 	_cell_connections_to_update.clear()
@@ -114,8 +122,7 @@ func _update_cell_connections() -> void:
 	EventBus.Signal_NavUpdated.emit()
 
 
-func _update_cell_is_enabled(grid_pos: Vector2i) -> void:
-	var cell: Cell = Global.level.get_cell(grid_pos)
+func _update_cell_is_enabled(cell: Cell) -> void:
 	var id := cell.get_nav_id()
 
 	var should_be_enabled := cell.is_standable(true) and cell.is_passable()
@@ -127,13 +134,9 @@ func _update_cell_is_enabled(grid_pos: Vector2i) -> void:
 ## Determines whether to connect or disconnect two cells.
 ## Determined soley based on their flags and eventually neighbours.
 ## Attention: Points are only disabled and internal a-starconnections are not deleted
-func _update_cell_connection_pair(cell_pair: CellPairQueue.Pair) -> void:
-	# Unpack pair
-	var from: Cell = Global.level.get_cell(cell_pair.grid_pos_from)
-	var to: Cell = Global.level.get_cell(cell_pair.grid_pos_to)
-
-	_update_cell_connection_unidirectional(from, to)
-	_update_cell_connection_unidirectional(to, from)
+func _update_cell_connection_pair(from_cell: Cell, to_cell: Cell) -> void:
+	_update_cell_connection_unidirectional(from_cell, to_cell)
+	_update_cell_connection_unidirectional(to_cell, from_cell)
 
 
 func _update_cell_connection_unidirectional(from: Cell, to: Cell) -> void:
@@ -209,7 +212,7 @@ func _generate_nav_grid() -> void:
 			var id := Util.hash(grid_pos)
 
 			_astar.add_point(id, grid_pos, 1.0)
-			# Setting point disabled is handled in _update_cell_connections
+			# Setting point disabled is handled in _update_all_queued_cell_connections
 
 			# Queue for connection update with all neighbours
 			for n_offset: Vector2i in Util.neighbours_all:
@@ -220,7 +223,7 @@ func _generate_nav_grid() -> void:
 	HexLog.print_banner_with_text("Created astar with %d points in: %d ms" % [Global.LEVEL_WIDTH * Global.LEVEL_HEIGHT, duration])
 
 	# Call update once
-	_update_cell_connections()
+	_update_all_queued_cell_connections()
 
 
 ## Helper functions

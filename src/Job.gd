@@ -6,7 +6,7 @@ extends RefCounted
 ###################################
 enum Type {
 	MINE,
-	BUILD,	
+	BUILD,
 	PICKUP,
 }
 
@@ -83,7 +83,7 @@ func calculate_capacity() -> int:
 
 		Job.Type.BUILD:
 			# Only allow multiple dwarfs for big buildings
-			const big_building_build_time_threshold := 4.0 # seconds
+			const big_building_build_time_threshold := 3.0 # seconds
 			if building.building_data.build_time >= big_building_build_time_threshold and building.build_process == 0.0 and workable_from_poses.size() >= 2:
 				return 2
 			return 1

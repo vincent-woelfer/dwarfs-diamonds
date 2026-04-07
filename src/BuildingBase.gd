@@ -132,10 +132,11 @@ func _complete_construction() -> void:
 			cell.on_building_completed(self )
 			cell.queue_nav_update()
 
+			# Should not be needed!
 			# Additionally update for cell ontop (if exists) as it might be affected if building is a  platform or similar
-			var cell_ontop: Cell = Global.level.get_cell(pos + Global.VEC_UP)
-			if cell_ontop != null and cell_ontop.grid_pos not in building_cells:
-				cell_ontop.queue_nav_update()
+			# var cell_ontop: Cell = Global.level.get_cell(pos + Global.VEC_UP)
+			# if cell_ontop != null and cell_ontop.grid_pos not in building_cells:
+			# 	cell_ontop.queue_nav_update()
 
 	# Action Points setup
 	_setup_action_points()

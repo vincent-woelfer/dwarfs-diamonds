@@ -69,8 +69,14 @@ var mining_hardness: float = 1.0
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################
+
+var _queued_nav_update: bool = false
 ## Updates this cell and all 8 neighbours
 func queue_nav_update() -> void:
+	if _queued_nav_update:
+		return
+	_queued_nav_update = true
+
 	# Self not needed as its implicitly updated when neighbour updates
 	for dir: Vector2i in Util.neighbours_all:
 		var n_grid_pos: Vector2i = grid_pos + dir

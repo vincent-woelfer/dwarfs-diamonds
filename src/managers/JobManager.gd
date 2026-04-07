@@ -106,7 +106,7 @@ func _score_jobs_for_dwarf(dwarf: Dwarf) -> Array[ScoredJob]:
 		HexLog.print("\nJobManager: Scoring jobs for %s (lower is better):" % [dwarf], print_color)
 		for scored_job: ScoredJob in scored_jobs:
 			# Use print_rich to manually format color of score only
-			print_rich(Util.color_string("- Score: %6.0f" % [scored_job.score], print_color) + (" - %s" % [scored_job.job]))
+			print_rich(Util.color_string("- Score: %6.1f" % [scored_job.score], print_color) + (" - %s" % [scored_job.job]))
 		print() # New line as separator
 
 	# Return job
@@ -115,7 +115,9 @@ func _score_jobs_for_dwarf(dwarf: Dwarf) -> Array[ScoredJob]:
 
 var _dwarfs_looking_for_jobs: Array[Dwarf] = []
 
+## Main job distribution function
 func _distribute_jobs_to_dwarfs() -> void:
+	var start_time := Time.get_ticks_msec()
 	if _dwarfs_looking_for_jobs.is_empty():
 		return
 
@@ -170,6 +172,10 @@ func _distribute_jobs_to_dwarfs() -> void:
 
 	# Clear
 	_dwarfs_looking_for_jobs.clear()
+
+	var duration := Time.get_ticks_msec() - start_time
+	if duration > 1:
+		HexLog.print("Jobs  => Distributed jobs to %d dwarfs in: %d ms" % [dwarfs_with_scored_jobs.size(), duration], Colors.JOBS_PRINT_COLOR)
 
 
 # cost_matrix type is Array[Array[float]], Indexing is [dwarf_idx][job_idx]

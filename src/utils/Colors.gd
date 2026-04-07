@@ -132,6 +132,7 @@ static var JOB_COLOR_DOING: Color = Color(0.0, 0.8, 0.0)
 static var GLOBAL_ACTION_PRINT_COLOR: Color = to_print_color(Color.MAGENTA)
 static var NAV_IMPORTANT_PRINT_COLOR: Color = to_print_color(Color.RED)
 static var NAV_UNIMPORTANT_PRINT_COLOR: Color = to_print_color(Color.RED.lerp(Color.GRAY, 0.8))
+static var JOBS_PRINT_COLOR: Color = to_print_color(Color.GREEN)
 static var LIGHT_DEPTH_PRINT_COLOR: Color = to_print_color(Color.DARK_BLUE)
 static var TASK_PRINT_COLOR: Color = to_print_color(Color.DARK_CYAN)
 
@@ -144,4 +145,3 @@ static var TASK_PRINT_COLOR: Color = to_print_color(Color.DARK_CYAN)
 static var LIT_CELL_COLOR: Color = Color(0.1, 0.1, 0.1, 0.3)
 static var FADE_CELL_COLOR: Color = Color(0.1, 0.1, 0.1, 0.7)
 static var UNLIT_CELL_COLOR: Color = Color(0.05, 0.05, 0.05, 0.95)
-
