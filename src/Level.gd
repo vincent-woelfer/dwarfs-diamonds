@@ -209,7 +209,7 @@ func _generate_max_elevation_profile(image: Image, noise_scale: float) -> void:
 	max_elevatation_at_x.clear()
 	max_elevatation_at_x.resize(Global.LEVEL_WIDTH)
 
-	var threshold_above_is_solid_above_elevation_baseline := 0.9
+	var threshold_above_is_solid_above_elevation_baseline := 0.825
 
 	for x in range(Global.LEVEL_WIDTH):
 		for y in range(Global.LEVEL_HEIGHT):
