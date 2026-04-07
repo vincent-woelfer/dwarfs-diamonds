@@ -2,10 +2,11 @@ class_name MovementComponent
 extends Node2D
 
 ################ Signals ################
-# if mining cell below (and the one below that is solid) => fall_height = 1
-signal Signal_OnStartedFalling(est_fall_height_cells: int)
 
-# fall_height_cells can be 0 (e.g. after spawning in mid-air in same cell)
+# Fall height is number of free cells we fall THROUGH (excluding starting cell)
+# Fall height = 0 -> exception, may happen if spawned in mid-air in same cell.
+# Fall height = 1 -> if mining downwards one cell.
+signal Signal_OnStartedFalling(est_fall_height_cells: int)
 signal Signal_OnLanded(fall_height_cells: int)
 
 signal Signal_OnFinishedPath()
@@ -37,7 +38,7 @@ var curr_falling_speed: float = 0.0
 var fall_start_y: int
 
 # Reference to the used audio player
-var _audio_player: AudioStreamPlayer2D = null
+var _audio_player_positional: AudioStreamPlayer2D = null
 
 ########################################################################################################################
 # PUBLIC
@@ -164,8 +165,8 @@ func _enter_following_path(new_path: Path) -> void:
 	path.start_following_from_pos(parent.global_position, parent_width)
 
 	# Start audio
-	if _audio_player == null:
-		_audio_player = Audio.play_at_pos("dwarf_walk_1_looped", parent.global_position)
+	if _audio_player_positional == null:
+		_audio_player_positional = Audio.play_at_pos("dwarf_walk_1_looped", parent.global_position)
 
 func _exit_following_path() -> void:
 	if path:
@@ -173,9 +174,9 @@ func _exit_following_path() -> void:
 	path = null
 
 	# Stop audio
-	if _audio_player != null:
-		Audio.stop_player(_audio_player)
-		_audio_player = null
+	if _audio_player_positional != null:
+		Audio.stop_player(_audio_player_positional)
+		_audio_player_positional = null
 	
 	
 func _physics_process_following_path(delta: float) -> void:
@@ -200,7 +201,7 @@ func _physics_process_following_path(delta: float) -> void:
 	Signal_MovementDirectionChanged.emit(movement_dir)
 
 	# Update audio player position
-	Audio.update_player_position(_audio_player, parent.global_position)
+	Audio.update_player_position(_audio_player_positional, parent.global_position)
 
 	# Check if we reached the end of the path
 	if path.reached_end():

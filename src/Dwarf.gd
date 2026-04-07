@@ -19,6 +19,7 @@ var dwarf_color: Color
 # var job_with_path: JobWithPath
 var curr_job: Job = null
 var curr_path: Path = null
+var applied_for_job: bool = false
 
 var num_torches: int = 50
 var look_dir: Vector2 = Vector2.RIGHT
@@ -104,11 +105,7 @@ func _physics_process_idle(delta: float) -> void:
 		return
 	
 	# Otherwise try to find new job
-	var new_job: bool = _find_new_job()
-
-	if not new_job:
-		# Check for tasks coming from own "needs"
-		_create_own_tasks()
+	_apply_for_job()
 		
 
 ###################################
@@ -287,23 +284,6 @@ func _on_action_completed(action_point: ActionPoint) -> void:
 
 
 ## Triggered by MovementComponent
-func _on_landed(fall_height_cells: int) -> void:
-	# Once cell is normal after mining below -> dont do anything special
-	if fall_height_cells > 1:
-		print_rich("%s landed after falling %d cells" % [ self , fall_height_cells])
-		Audio.play_at_pos_with_pitch("dwarf_on_landing", global_position, 1.4)
-
-	if fall_height_cells > 5:
-		sm.transition_to(State.DYING)
-		return
-
-	sm.transition_to(State.IDLE)
-
-	# Simulate entering cell anew with idle (to trigger placing torches)
-	_on_new_cell_entered(curr_cell)
-
-
-## Triggered by MovementComponent
 func _on_new_cell_entered(new_cell: Cell) -> void:
 	_debug_draw_proxy_absolute.queue_redraw()
 	
@@ -324,20 +304,38 @@ func _on_movement_direction_changed(new_dir: Vector2) -> void:
 
 ## Triggered by MovementComponent
 func _on_started_falling(est_fall_height_cells: int) -> void:
-	# Not for normal mining downwards, only actually falling
-	if est_fall_height_cells > 1:
-		var audio_name: String = "ohoh_%d" % randi_range(1, 3)
-		Audio.play_at_pos(audio_name, global_position)
-
+	# Log
 	if est_fall_height_cells <= 1:
 		print_rich("%s started falling" % [ self ])
 	else:
 		print_rich("%s started falling, estimated fall height is %d cells" % [ self , est_fall_height_cells])
 
-	# Transition to falling state BEFORE _abort_tasks_enter_idle
+	# Audio only for actually falling multiple cells
+	if est_fall_height_cells > 1:
+		var audio_name: String = "ohoh_%d" % randi_range(1, 3)
+		Audio.play_at_pos(audio_name, global_position)
+
+	# Transition to falling state BEFORE _abort_tasks_enter_idle (for cleaner log order)
 	sm.transition_to(State.FALLING)
 
 	_abort_tasks_enter_idle()
+
+
+## Triggered by MovementComponent
+func _on_landed(fall_height_cells: int) -> void:
+	# Once cell is normal after mining below -> dont do anything special
+	if fall_height_cells > 1:
+		print_rich("%s landed after falling %d cells" % [ self , fall_height_cells])
+		Audio.play_at_pos_with_pitch("dwarf_on_landing", global_position, 1.4)
+
+	if fall_height_cells > 5:
+		sm.transition_to(State.DYING)
+		return
+
+	sm.transition_to(State.IDLE)
+
+	# Simulate entering cell anew with idle (to trigger placing torches)
+	_on_new_cell_entered(curr_cell)
 	
 
 ## Triggered by Job when job is not active anymore. This can be because the job was completed or aborted.
@@ -352,6 +350,28 @@ func _on_job_archived() -> void:
 	_abort_tasks_enter_idle()
 
 
+func _on_job_assigned(new_job: Job) -> void:
+	if not applied_for_job:
+		print_rich("%s was assigned a job %s without applying for it, ignoring!" % [ self , new_job])
+		return
+	applied_for_job = false
+
+	if new_job == null:
+		HexLog.throttled(self , "%s found no job, remains idle / creating own tasks!" % [ self ], HexLog.NO_JOB_INTERVALL)
+
+		# Check for tasks coming from own "needs"
+		_create_own_tasks()
+		return
+
+	# Assign job
+	curr_job = new_job
+	curr_job.assign_dwarf(self )
+
+	# Add to task queue and start right away
+	task_queue.add_job(curr_job)
+	_start_next_task()
+
+
 ## Triggered by NavMesh updates (via EventBus)
 func _on_nav_updated() -> void:
 	# If nav updated while following a path -> recalculate path for job or abort if not valid
@@ -362,6 +382,17 @@ func _on_nav_updated() -> void:
 ########################################################################################################################
 # OWN (UTILITY) FUNCTIONS
 ########################################################################################################################
+func _apply_for_job() -> void:
+	if applied_for_job:
+		return
+
+	if Global.level.job_manager.apply_for_new_job(self ):
+		applied_for_job = true
+	else:
+		# Failed to apply, own tasks as fallback
+		_create_own_tasks()
+
+
 func _abort_tasks_enter_idle() -> void:
 	# Store for printing
 	var last_job := curr_job
@@ -397,27 +428,6 @@ func _abort_tasks_enter_idle() -> void:
 	# Transition back to idle but dont override falling/dying state
 	if transition_to_idle:
 		sm.transition_to(State.IDLE)
-
-
-func _find_new_job() -> bool:
-	# Try to get a new job	
-	var new_job_with_path: JobWithPath = Global.level.job_manager.get_new_job_for_dwarf(self )
-
-	if new_job_with_path == null:
-		HexLog.throttled(self , "%s found no job, remains idle" % [ self ], HexLog.NO_JOB_INTERVALL)
-		return false
-
-	# Assign job
-	curr_job = new_job_with_path.job
-	curr_job.assign_dwarf(self )
-
-	# We are throwing away the path here, as improvement we could cache it and reuse it.
-
-	# Add to task queue and start right away
-	task_queue.add_job(curr_job)
-	_start_next_task()
-
-	return true
 
 
 func _create_own_tasks() -> void:

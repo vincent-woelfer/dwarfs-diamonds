@@ -72,6 +72,8 @@ func _ready() -> void:
 
 	# DWARF
 	spawn_dwarf(8)
+	spawn_dwarf(14)
+	spawn_dwarf(20)
 
 
 func spawn_dwarf(x: int) -> void:
@@ -207,12 +209,12 @@ func _generate_max_elevation_profile(image: Image, noise_scale: float) -> void:
 	max_elevatation_at_x.clear()
 	max_elevatation_at_x.resize(Global.LEVEL_WIDTH)
 
-	var threshold_above_is_solid_above_baseline := 0.7
+	var threshold_above_is_solid_above_elevation_baseline := 0.9
 
 	for x in range(Global.LEVEL_WIDTH):
 		for y in range(Global.LEVEL_HEIGHT):
 			var grid_pos := Vector2i(x, y)
-			var is_solid: bool = image.get_pixel(roundi(x * noise_scale), roundi(y * noise_scale)).r > threshold_above_is_solid_above_baseline
+			var is_solid: bool = image.get_pixel(roundi(x * noise_scale), roundi(y * noise_scale)).r > threshold_above_is_solid_above_elevation_baseline
 			var is_last_above_baseline := y == Global.MAX_ELEVATION_BASELINE
 			var is_sky_allowed := y >= Global.MIN_SKY_HEIGHT
 

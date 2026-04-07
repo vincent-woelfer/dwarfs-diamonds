@@ -63,20 +63,26 @@ func remove_mining_job_for_cell(cell: Cell) -> void:
 
 ## Get best job for dwarf according to various criteria
 ## THE MAIN FUNCTION OF THE JOB MANAGER
-func get_new_job_for_dwarf(dwarf: Dwarf) -> JobWithPath:
+func apply_for_new_job(dwarf: Dwarf) -> bool:
 	assert(dwarf != null)
+
+	if not Global.level.nav_manager.is_cell_enabled(dwarf.grid_pos):
+		HexLog.throttled(dwarf, "%s is in a disconnected cell, pathfinding is disabled, not accepting job application!" % [dwarf])
+		return false
+
+	if dwarf in _dwarfs_looking_for_jobs:
+		print_rich("%s is already looking for a job, ignoring duplicate apply!" % [dwarf])
+		return false
+
+	_dwarfs_looking_for_jobs.append(dwarf)
+	return true
+
+
+func _score_jobs_for_dwarf(dwarf: Dwarf) -> Array[ScoredJob]:
 	var start_pos: Vector2i = dwarf.grid_pos
-	var print_color := Colors.to_print_color(dwarf.dwarf_color)
 
-	# Check if we are in a connected cell
 	if not Global.level.nav_manager.is_cell_enabled(start_pos):
-		HexLog.throttled(dwarf, "%s is in a disconnected cell, pathfinding is disabled!" % [dwarf])
-		return null
-
-	# Update all jobs first
-	# TODO benchmark this, if it becomes a bottleneck we can add a dirty flag to only update when needed
-	for job in _jobs:
-		job.update_workable_from_cells()
+		return []
 
 	# Filter jobs and score all remaining jobs according to various criteria (mostly distance for now)
 	var workable_jobs: Array[Job] = _filter_workable_jobs_for_dwarf(dwarf)
@@ -91,58 +97,135 @@ func get_new_job_for_dwarf(dwarf: Dwarf) -> JobWithPath:
 		if scored_job != null:
 			scored_jobs.append(scored_job)
 		
-	# No valid jobs -> Return null
-	# Also, print all jobs, throttled AND only if we had any
-	if scored_jobs.is_empty():
-		if not _jobs.is_empty():
-			if HexLog.throttled(dwarf, "\nJobManager: No valid job for %s, rejected jobs (means no path or not workable for this dwarf):" % [dwarf],
-					HexLog.NO_JOB_INTERVALL, print_color):
-				for rejected_job: Job in _jobs:
-					print_rich("- %s" % [rejected_job])
-				# NO new-line as separator here, dwarf prints following line
-
-		# Return no matter what since we found no valid job
-		return null
-
 	# Sort by score
 	scored_jobs.sort_custom(ScoredJob.compare)
 
-	# Debug Print	
-	HexLog.print("\nJobManager: Scoring jobs for %s (lower is better):" % [dwarf], print_color)
-	for scored_job: ScoredJob in scored_jobs:
-		# Use print_rich to manually format color of score only
-		print_rich(Util.color_string("- Score: %6.0f" % [scored_job.score], print_color) + (" - %s" % [scored_job.job]))
-	print() # New line as separator
+	# Debug Print
+	if not scored_jobs.is_empty():
+		var print_color := Colors.to_print_color(dwarf.dwarf_color)
+		HexLog.print("\nJobManager: Scoring jobs for %s (lower is better):" % [dwarf], print_color)
+		for scored_job: ScoredJob in scored_jobs:
+			# Use print_rich to manually format color of score only
+			print_rich(Util.color_string("- Score: %6.0f" % [scored_job.score], print_color) + (" - %s" % [scored_job.job]))
+		print() # New line as separator
 
-	# Return best job
-	return JobWithPath.new(scored_jobs[0].job, scored_jobs[0].path)
-	
-
-########################################################################################################################
-# PRIVATE METHODS
-########################################################################################################################
-func _ready() -> void:
-	self.process_priority = Enum.ProcessPriority.JOBS
-
-	# Signals
-	EventBus.Signal_NavUpdated.connect(_on_nav_updated)
-
-	# Dev Signals
-	EventBus.Signal_DevToogleJobsDraw.connect(_dev_toogle_jobs_draw)
-	_dev_toogle_jobs_draw()
+	# Return job
+	return scored_jobs
 
 
-func _process(delta: float) -> void:
-	# To many places, just call every frame. This is because the jobs themselfs can also change
-	_debug_draw_proxy_relative.queue_redraw()
+var _dwarfs_looking_for_jobs: Array[Dwarf] = []
 
+func _distribute_jobs_to_dwarfs() -> void:
+	if _dwarfs_looking_for_jobs.is_empty():
+		return
 
-# Not really required, this only keeps jobs up to date for debug drawing
-func _on_nav_updated() -> void:
+	# Update all jobs first
+	# TODO benchmark this, if it becomes a bottleneck we can add a dirty flag to only update when needed
 	for job in _jobs:
 		job.update_workable_from_cells()
 
+	# Hungarian Algorithm to distribute jobs optimally according to scores
+	var job_set: Dictionary[Job, bool] = {}
+	var dwarfs_with_scored_jobs: Dictionary[Dwarf, Array] = {} # Type = [Dwarf, Array[ScoredJob]]
 
+	# Collect all scored jobs
+	for dwarf: Dwarf in _dwarfs_looking_for_jobs:
+		var scored_jobs: Array[ScoredJob] = _score_jobs_for_dwarf(dwarf)
+		dwarfs_with_scored_jobs[dwarf] = scored_jobs
+		for scored_job: ScoredJob in scored_jobs:
+			job_set[scored_job.job] = true
+	var all_jobs: Array[Job] = job_set.keys()
+
+	# Build n×n cost matrix (negate scores → minimize cost)
+	var matrix_size: int = max(_dwarfs_looking_for_jobs.size(), all_jobs.size())
+
+	# Type = Array[Array[float]], Indexing is [dwarf_idx][job_idx]
+	var cost_matrix: Array[Array] = []
+	const NO_JOB_PENALTY: float = 1e9
+	for i: int in matrix_size:
+		cost_matrix.append([])
+		for j: int in matrix_size:
+			cost_matrix[i].append(NO_JOB_PENALTY)
+
+	# Populate matrix with scored jobs
+	for dwarf_idx: int in _dwarfs_looking_for_jobs.size():
+		for scored_job: ScoredJob in dwarfs_with_scored_jobs[_dwarfs_looking_for_jobs[dwarf_idx]]:
+			# Get job index in all_jobs
+			var job_idx: int = all_jobs.find(scored_job.job)
+			if job_idx != -1:
+				# Hungarian algorithm minimizes cost, for our score lower is better so we can directly use it
+				cost_matrix[dwarf_idx][job_idx] = scored_job.score
+
+	# Get optimal assignment, index = dwarf_idx, value = job_idx (or -1 if no job assigned)
+	var assignment: Array[int] = _hungarian_job_caluclation(cost_matrix, matrix_size)
+
+	# Assign jobs according to assignment
+	for dwarf_idx: int in dwarfs_with_scored_jobs.size():
+		var job_idx: int = assignment[dwarf_idx]
+		var job: Job = null
+		if job_idx < all_jobs.size() and cost_matrix[dwarf_idx][job_idx] < NO_JOB_PENALTY:
+			job = all_jobs[job_idx]
+
+		_dwarfs_looking_for_jobs[dwarf_idx]._on_job_assigned(job)
+
+	# Clear
+	_dwarfs_looking_for_jobs.clear()
+
+
+# cost_matrix type is Array[Array[float]], Indexing is [dwarf_idx][job_idx]
+# Returns assignment array. index = dwarf_idx, value = job_idx (or -1 if no job assigned)
+func _hungarian_job_caluclation(cost_matrix: Array[Array], matrix_size: int) -> Array[int]:
+	var u: Array = []; var v: Array = []
+	var p: Array = []; var way: Array = []
+	for i: int in matrix_size + 1:
+		u.append(0.0); v.append(0.0); p.append(0); way.append(0)
+
+	for i: int in range(1, matrix_size + 1):
+		p[0] = i
+		var j0: int = 0
+		var minVal: Array[float] = []
+		var used: Array[bool] = []
+		for _k: int in matrix_size + 1:
+			minVal.append(INF)
+			used.append(false)
+
+		while true:
+			used[j0] = true
+			var i0: int = p[j0]
+			var delta: float = INF
+			var j1: int = -1
+			for j: int in range(1, matrix_size + 1):
+				if not used[j]:
+					var cur: float = cost_matrix[i0 - 1][j - 1] - u[i0] - v[j]
+					if cur < minVal[j]:
+						minVal[j] = cur
+						way[j] = j0
+					if minVal[j] < delta:
+						delta = minVal[j]
+						j1 = j
+			for j: int in range(0, matrix_size + 1):
+				if used[j]:
+					u[p[j]] += delta; v[j] -= delta
+				else:
+					minVal[j] -= delta
+			j0 = j1
+			if p[j0] == 0:
+				break
+		while j0 != 0:
+			p[j0] = p[way[j0]]
+			j0 = way[j0]
+
+	var assignment: Array[int] = []
+	assignment.resize(matrix_size)
+	for j: int in range(1, matrix_size + 1):
+		if p[j] != 0:
+			assignment[p[j] - 1] = j - 1
+
+	return assignment
+
+########################################################################################################################
+# Job Filtering and Scoring
+########################################################################################################################
 func _filter_workable_jobs_for_dwarf(dwarf: Dwarf) -> Array[Job]:
 	var filtered_jobs: Array[Job] = []
 	for job: Job in _jobs:
@@ -175,13 +258,15 @@ func _filter_workable_jobs_for_dwarf(dwarf: Dwarf) -> Array[Job]:
 	return filtered_jobs
 
 
-## Score job - lower is better
-## Unit = seconds (because path time is the default score)
+## Score job - lower is better.
+## Unit = seconds (because path time is the default score).
 ## Returns null if job should not be considered at all
 func _score_job(job: Job, path: Path, dwarf: Dwarf) -> ScoredJob:
 	var remaining_time := job.estimate_remaining_time()
 	var path_time := path.get_total_time(dwarf.movement_comp.movement_stats)
-	var score: float = path_time
+
+	# Minimum score is 1.0, base score is path time.
+	var score: float = 1.0 + path_time
 
 	# Dont start jobs that will be finished before we arrive
 	if path_time > remaining_time:
@@ -209,6 +294,31 @@ func _score_job(job: Job, path: Path, dwarf: Dwarf) -> ScoredJob:
 
 	return ScoredJob.new(job, path, score)
 
+########################################################################################################################
+# PRIVATE METHODS
+########################################################################################################################
+func _ready() -> void:
+	self.process_priority = Enum.ProcessPriority.JOBS
+
+	# Signals
+	EventBus.Signal_NavUpdated.connect(_on_nav_updated)
+
+	# Dev Signals
+	EventBus.Signal_DevToogleJobsDraw.connect(_dev_toogle_jobs_draw)
+	_dev_toogle_jobs_draw()
+
+
+func _process(delta: float) -> void:
+	# To many places, just call every frame. This is because the jobs themselfs can also change
+	_debug_draw_proxy_relative.queue_redraw()
+
+	_distribute_jobs_to_dwarfs()
+
+
+# Not really required, this only keeps jobs up to date for debug drawing
+func _on_nav_updated() -> void:
+	for job in _jobs:
+		job.update_workable_from_cells()
 	
 ########################################################################################################################
 # DEBUG DRAWING
