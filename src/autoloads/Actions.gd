@@ -61,12 +61,11 @@ func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly
 	# Also adds as child
 	Global.level.building_manager.register_building(building_instance)
 
-	# Add to all cells covered by building -> updates their navmesh
+	# Add to all cells covered by building -> this updates their navmesh
 	for pos in building_instance.building_data.pattern_building.get_world_positions():
 		var covered_cell: Cell = Global.level.get_cell(pos)
 		assert(covered_cell != null) # This should never happen
 		covered_cell.add_building(building_instance)
-		covered_cell.queue_nav_update()
 
 	if finish_instantly:
 		building_instance._complete_construction()

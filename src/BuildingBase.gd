@@ -3,7 +3,7 @@
 class_name BuildingBase
 extends GridObject2D
 
-## Set in editor for actual buildings to define type
+## Set in editor for actual buildings to define type, gets instantiated for actual building pos when placed.
 @export var building_data: BuildingDataRes
 
 ## Building construction process

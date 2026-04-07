@@ -40,12 +40,15 @@ func is_standable(can_use_ladders: bool = true) -> bool:
 	if can_use_ladders and buildings.has_ladder():
 		return true
 	else:
-		return has_solid_ground()
+		return has_solid_ground_below()
 
 # Solid Ground = solid cell below. Required e.g. for construction
-func has_solid_ground() -> bool:
+func has_solid_ground_below() -> bool:
 	var n_bot := get_neighbour(Global.VEC_DOWN)
-	return n_bot != null and (n_bot.is_solid or n_bot.buildings.has_platform())
+	return n_bot != null and n_bot.is_solid_ground()
+
+func is_solid_ground() -> bool:
+	return is_solid or buildings.has_platform()
 
 ########################################################################################################################
 # OTHER FLAGS
@@ -115,6 +118,10 @@ func destroy_cell() -> void:
 func add_building(building: BuildingBase) -> void:
 	if not buildings.add(building):
 		return
+	# also delete deco
+	for deco: DecoBase in deco_elements:
+		remove_deco_element(deco)
+		
 	visual.set_dirty()
 	queue_nav_update()
 
@@ -175,6 +182,13 @@ func add_deco_element(new_deco: DecoBase) -> void:
 	add_child(new_deco)
 	visual.set_dirty()
 
+func remove_deco_element(deco: DecoBase) -> void:
+	if deco not in deco_elements:
+		return
+
+	deco_elements.erase(deco)
+	deco.queue_free()
+	visual.set_dirty()
 
 ## Returns a single poly point in world-space absolute
 func get_poly_point(point: Enum.PolyPoint) -> Vector2:

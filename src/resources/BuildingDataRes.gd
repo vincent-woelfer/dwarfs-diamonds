@@ -68,7 +68,29 @@ var pattern_blocking_color: Color = Color.ORANGE_RED
 ########################################################################################################################
 # Placement Checks
 ########################################################################################################################
+## Main placing check, includes all the others
 func is_placeable_at(building_grid_pos: Vector2i) -> bool:
+	if not is_building_pattern_clear(building_grid_pos):
+		return false
+				
+	if not has_solid_ground_at(building_grid_pos):
+		return false
+
+	if not has_valid_build_from_cell(building_grid_pos):
+		return false
+	
+	if not is_blocking_pattern_clear_at(building_grid_pos):
+		return false
+
+	# Additional custom checks - for now hardcoded here
+	if self.type == Type.LADDER:
+		if not Ladder.is_placement_valid_for_ladder(building_grid_pos):
+			return false
+
+	return true
+
+
+func is_building_pattern_clear(building_grid_pos: Vector2i) -> bool:
 	# Check if all building pattern cells exist, are free and have solid ground if required
 	assert(pattern_building != null)
 
@@ -80,19 +102,19 @@ func is_placeable_at(building_grid_pos: Vector2i) -> bool:
 			return false
 
 		# Cell for building must be empty
-		if cell.is_solid:
+		if cell.is_solid or cell.buildings.is_blocked():
 			return false
 
 		# Check if any other building occupies the cell
 		# TODO could be improved by checking building types etc. Some buildings might be allowed to overlap others (maybe?)
 		if not cell.buildings.is_empty():
 			return false
-				
-	# Check solid ground requirement
-	if not has_solid_ground_at(building_grid_pos):
-		return false
+		
+	return true
 
-	# Build from does not need validation, player is required to place it correctly. Only validation is that at least once cell must exists (no map border)
+## Build from does not need validation, player is required to place it correctly.
+## Only validation is that at least once cell must exists (no map border).
+func has_valid_build_from_cell(building_grid_pos: Vector2i) -> bool:
 	var pattern_build_from_world := GridPatternRes.init_from_pattern(self.pattern_build_from, building_grid_pos)
 	var at_least_one_build_from_cell_exists := false
 	for pos in pattern_build_from_world.get_world_positions():
@@ -101,32 +123,27 @@ func is_placeable_at(building_grid_pos: Vector2i) -> bool:
 			continue
 		at_least_one_build_from_cell_exists = true
 		break
-
-	if not at_least_one_build_from_cell_exists:
-		return false
-
-	# Blocking Pattern
-	if not is_blocking_pattern_clear_at(building_grid_pos):
-		return false
-
-	return true
-
+	return at_least_one_build_from_cell_exists
 
 func has_solid_ground_at(building_grid_pos: Vector2i) -> bool:
-	assert(pattern_building != null)
+	if pattern_solid_ground == null:
+		return true
+
 	var pattern_solid_ground_world := GridPatternRes.init_from_pattern(self.pattern_solid_ground, building_grid_pos)
 
 	# Check solid ground requirement
 	for pos in pattern_solid_ground_world.get_world_positions():
 		var cell: Cell = Global.level.get_cell(pos)
-		if cell == null or not cell.is_solid:
+		if not (cell != null and cell.is_solid_ground()):
 			return false
 
 	return true
 
 
 func is_blocking_pattern_clear_at(building_grid_pos: Vector2i) -> bool:
-	assert(pattern_blocking != null)
+	if pattern_blocking == null:
+		return true
+		
 	var pattern_blocking_world := GridPatternRes.init_from_pattern(self.pattern_blocking, building_grid_pos)
 
 	# Check blocking pattern
@@ -186,14 +203,9 @@ func instantiate_building_data(grid_pos: Vector2i) -> BuildingDataRes:
 		var prop_name: String = property.name
 		if prop_name.begins_with("pattern_") and property.type != TYPE_COLOR:
 			var pattern: GridPatternRes = self.get(prop_name)
-			instance.set(prop_name, _instantiate_pattern_at(pattern, grid_pos, prop_name))
+			instance.set(prop_name, GridPatternRes.init_from_pattern(pattern, grid_pos))
 
 	return instance
-
-func _instantiate_pattern_at(pattern: GridPatternRes, grid_pos: Vector2i, var_name: String) -> GridPatternRes:
-	if pattern == null:
-		push_error("BuildingDataRes %s has no '%s' defined." % [ self.name(), var_name])
-	return GridPatternRes.init_from_pattern(pattern, grid_pos)
 
 
 ## Returns an array of dictionaries with keys "pattern" (GridPatternRes) and "color" (Color), scanned dynamically from this BuildingDataRes.

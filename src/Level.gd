@@ -79,7 +79,7 @@ func spawn_dwarf(x: int) -> void:
 	for y in range(Global.LEVEL_HEIGHT):
 		var grid_pos := Vector2i(x, y)
 		var cell := get_cell(grid_pos)
-		if cell == null or not cell.is_passable() or not cell.has_solid_ground():
+		if cell == null or not cell.is_passable() or not cell.has_solid_ground_below():
 			continue
 
 		# Found a valid spawn position for the dwarf
