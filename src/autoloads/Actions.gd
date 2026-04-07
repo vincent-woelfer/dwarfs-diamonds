@@ -101,9 +101,9 @@ func archive_job(job: Job, success: bool) -> void:
 
 	# Print before actually calling archive so log order makes more sense. This has the downside that the pinted job is still printed as active.
 	if success:
-		print_action("Completing (archiving) job %s" % [job])
+		print_action("Completing successful job %s" % [job])
 	else:
-		print_action("Deleting (archiving) job %s" % [job])
+		print_action("Deleting aborted job %s" % [job])
 
 	# Signals all dwarfs to call on_job_finished().
 	# ONLY place where job.archive() is called.

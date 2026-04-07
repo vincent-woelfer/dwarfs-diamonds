@@ -3,6 +3,8 @@ extends Node2D
 
 var _jobs: Array[Job] = [] # Ensure Job class is properly defined elsewhere
 
+const max_fall_height_for_job_application: int = 2
+
 ########################################################################################################################
 # PUBLIC METHODS - ADD / REMOVE JOBS
 ########################################################################################################################
@@ -81,6 +83,9 @@ func apply_for_new_job(dwarf: Dwarf) -> bool:
 func _score_jobs_for_dwarf(dwarf: Dwarf) -> Array[ScoredJob]:
 	var start_pos: Vector2i = dwarf.grid_pos
 
+	if dwarf.sm.state == Dwarf.State.FALLING and dwarf.est_fall_height_cells <= max_fall_height_for_job_application:
+		start_pos = dwarf.est_landing_cell.grid_pos
+
 	if not Global.level.nav_manager.is_cell_enabled(start_pos):
 		return []
 
@@ -101,13 +106,13 @@ func _score_jobs_for_dwarf(dwarf: Dwarf) -> Array[ScoredJob]:
 	scored_jobs.sort_custom(ScoredJob.compare)
 
 	# Debug Print
-	if not scored_jobs.is_empty():
-		var print_color := Colors.to_print_color(dwarf.dwarf_color)
-		HexLog.print("\nJobManager: Scoring jobs for %s (lower is better):" % [dwarf], print_color)
-		for scored_job: ScoredJob in scored_jobs:
-			# Use print_rich to manually format color of score only
-			print_rich(Util.color_string("- Score: %6.1f" % [scored_job.score], print_color) + (" - %s" % [scored_job.job]))
-		print() # New line as separator
+	# if not scored_jobs.is_empty():
+	var print_color := Colors.to_print_color(dwarf.dwarf_color)
+	HexLog.print("\nJobManager: Scoring jobs for %s (lower is better):" % [dwarf], print_color)
+	for scored_job: ScoredJob in scored_jobs:
+		# Use print_rich to manually format color of score only
+		print_rich(Util.color_string("- Score: %6.1f" % [scored_job.score], print_color) + (" - %s" % [scored_job.job]))
+	print() # New line as separator
 
 	# Return job
 	return scored_jobs
@@ -118,14 +123,22 @@ var _dwarfs_looking_for_jobs: Array[Dwarf] = []
 ## Main job distribution function
 func _distribute_jobs_to_dwarfs() -> void:
 	var start_time := Time.get_ticks_msec()
+
+	# Add soon-landing dwarfs as dummy applicants so other dwarfs do not get their most obvious jobs in the landing cell
+	for dwarf in Global.level.dwarfs:
+		if dwarf.sm.state == Dwarf.State.FALLING and dwarf.est_fall_height_cells <= max_fall_height_for_job_application:
+			if dwarf not in _dwarfs_looking_for_jobs:
+				HexLog.print("Jobs  => Adding falling dwarf %s" % [dwarf], Colors.JOBS_PRINT_COLOR)
+				_dwarfs_looking_for_jobs.append(dwarf)
+
 	if _dwarfs_looking_for_jobs.is_empty() or _jobs.is_empty():
 		return
-
-	HexLog.print("Jobs  => Starting job distribution to %d dwarfs..." % [_dwarfs_looking_for_jobs.size()], Colors.JOBS_PRINT_COLOR)
 
 	# Update all jobs first
 	for job in _jobs:
 		job.update_workable_from_cells()
+
+	HexLog.print("Jobs  => Starting job distribution to %d dwarfs..." % [_dwarfs_looking_for_jobs.size()], Colors.JOBS_PRINT_COLOR)
 
 	# Hungarian Algorithm to distribute jobs optimally according to scores
 	var job_set: Dictionary[Job, bool] = {}
@@ -173,7 +186,11 @@ func _distribute_jobs_to_dwarfs() -> void:
 		if slot_idx < job_slots.size() and cost_matrix[dwarf_idx][slot_idx] < no_job_penalty:
 			job = job_slots[slot_idx]
 
-		_dwarfs_looking_for_jobs[dwarf_idx]._on_job_assigned(job)
+		# Assign job to dwarf (including null for no job) - except the dwarf was not actually looking but got added as a dummy
+		var dwarf: Dwarf = _dwarfs_looking_for_jobs[dwarf_idx]
+		if dwarf.sm.state == Dwarf.State.FALLING:
+			continue
+		dwarf._on_job_assigned(job)
 
 	# Clear
 	_dwarfs_looking_for_jobs.clear()

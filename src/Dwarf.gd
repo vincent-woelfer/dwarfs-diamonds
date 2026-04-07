@@ -24,6 +24,9 @@ var applied_for_job: bool = false
 var num_torches: int = 50
 var look_dir: Vector2 = Vector2.RIGHT
 
+var est_fall_height_cells: int = 0
+var est_landing_cell: Cell = null
+
 # State machine
 enum State {IDLE, MOVING, MINING, BUILDING, FALLING, DYING, ACTION}
 var sm: StateMachine
@@ -197,6 +200,22 @@ func _enter_action(action_point: ActionPoint) -> void:
 func _exit_action() -> void:
 	action_point_comp.stop_interacting()
 
+###################################
+# FALLING
+###################################
+func _enter_falling() -> void:
+	animated_sprite.play("fall")
+
+	# Log
+	print_rich("%s started falling for %d cells" % [ self , est_fall_height_cells])
+
+	# Audio only for actually falling multiple cells
+	if est_fall_height_cells > 1:
+		var audio_name: String = "ohoh_%d" % randi_range(1, 3)
+		Audio.play_at_pos(audio_name, global_position)
+
+	_abort_tasks_enter_idle()
+	
 
 ###################################
 # DYING
@@ -303,22 +322,12 @@ func _on_movement_direction_changed(new_dir: Vector2) -> void:
 
 
 ## Triggered by MovementComponent
-func _on_started_falling(est_fall_height_cells: int) -> void:
-	# Log
-	if est_fall_height_cells <= 1:
-		print_rich("%s started falling" % [ self ])
-	else:
-		print_rich("%s started falling, estimated fall height is %d cells" % [ self , est_fall_height_cells])
-
-	# Audio only for actually falling multiple cells
-	if est_fall_height_cells > 1:
-		var audio_name: String = "ohoh_%d" % randi_range(1, 3)
-		Audio.play_at_pos(audio_name, global_position)
+func _on_started_falling(est_fall_height_cells_: int) -> void:
+	self.est_fall_height_cells = est_fall_height_cells_
+	self.est_landing_cell = Global.level.get_cell(grid_pos + Vector2i(0, est_fall_height_cells_))
 
 	# Transition to falling state BEFORE _abort_tasks_enter_idle (for cleaner log order)
 	sm.transition_to(State.FALLING)
-
-	_abort_tasks_enter_idle()
 
 
 ## Triggered by MovementComponent
@@ -336,6 +345,9 @@ func _on_landed(fall_height_cells: int) -> void:
 
 	# Simulate entering cell anew with idle (to trigger placing torches)
 	_on_new_cell_entered(curr_cell)
+
+	# Instantly apply for new job
+	_apply_for_job()
 	
 
 ## Triggered by Job when job is not active anymore. This can be because the job was completed or aborted.
@@ -355,6 +367,10 @@ func _on_job_assigned(new_job: Job) -> void:
 		print_rich("%s was assigned a job %s without applying for it, ignoring!" % [ self , new_job])
 		return
 	applied_for_job = false
+
+	# If still falling -> simply ignore
+	if sm.state == State.FALLING:
+		return
 
 	if new_job == null:
 		# HexLog.throttled(self , "%s found no job, remains idle / creating own tasks!" % [ self ], HexLog.NO_JOB_INTERVALL)
@@ -387,7 +403,7 @@ func _apply_for_job() -> void:
 
 	if Global.level.job_manager.apply_for_new_job(self ):
 		applied_for_job = true
-	else:
+	elif sm.state == State.IDLE:
 		# Failed to apply, own tasks as fallback
 		_create_own_tasks()
 
