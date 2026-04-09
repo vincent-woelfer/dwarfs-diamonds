@@ -92,6 +92,8 @@ func _get_parent_look_dir() -> Vector2:
 ########################################################################################################################
 # Overwritten methods from AbstractStorageComponent - redirected to _storage
 ########################################################################################################################
+# TODO DROP/TRansfer to other container/storage/disposal
+
 func pickup_all_in_range(priority_items: Array[CarryableItemComponent]) -> bool:
 	return _storage.pickup_all_in_range(parent.grid_pos, priority_items)
 
@@ -101,17 +103,8 @@ func pickup(item: CarryableItemComponent) -> bool:
 func drop(item: CarryableItemComponent) -> void:
 	_storage.drop(item)
 
-	# Just drop (should fall)
-	# Set item position to be inside cell of carrier
-	# TODO maybe animate this
-	# item.parent.global_position = parent.global_position
-
-
 func drop_all() -> void:
 	_storage.drop_all()
-
-# TODO DROP/TRansfer to other container/storage/disposal
-
 
 func delete(item: CarryableItemComponent) -> void:
 	_storage.delete(item)

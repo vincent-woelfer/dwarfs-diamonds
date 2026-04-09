@@ -93,9 +93,6 @@ func drop_all() -> Array[CarryableItemComponent]:
 	return dropped_items
 
 
-# TODO DROP/Transfer to other container/storage/disposal
-
-
 ###################################
 # DELETE
 ###################################
@@ -194,17 +191,6 @@ func get_items_of_type(item_type: Enum.CarryableItemType) -> Array[CarryableItem
 ########################################################################################################################
 # PRIVATE METHODS
 ########################################################################################################################
-func _ready() -> void:
-	pass
-	# assert(parent != null)
-	# assert(parent is GridObject2D)
-
-
-# func _physics_process(delta: float) -> void:
-# 	if is_carrying_anything():
-# 		_update_item_placement(delta)
-
-
 ## Internal helper to efficiently keep track of items per type, used for placement logic
 func _update_item_type_group_sizes() -> void:
 	_item_type_group_sizes = {}
@@ -213,70 +199,3 @@ func _update_item_type_group_sizes() -> void:
 			_item_type_group_sizes[item.item_type] = 0
 		_item_type_group_sizes[item.item_type] += 1
 
-
-########################################################################################################################
-# ITEM PLACEMENT
-########################################################################################################################
-# func _get_parent_look_dir() -> Vector2:
-# 	var look_dir: Variant = parent.get("look_dir")
-# 	if look_dir != null and look_dir is Vector2:
-# 		@warning_ignore("unsafe_cast")
-# 		return look_dir as Vector2
-
-# 	# default look dir if not available
-# 	return Vector2.RIGHT
-
-
-# # TODO 
-# func _update_item_placement(delta: float) -> void:
-# 	var idx_by_type: Dictionary[Enum.CarryableItemType, int] = {}
-
-# 	for i in _curr_carried_items.size():
-# 		var item: CarryableItemComponent = _curr_carried_items[i]
-# 		var item_parent: GridObject2D = item.parent
-
-# 		# Idx by type and group idx
-# 		if not idx_by_type.has(item.item_type):
-# 			idx_by_type[item.item_type] = 0
-# 		var idx_in_group: int = idx_by_type[item.item_type]
-# 		idx_by_type[item.item_type] += 1
-# 		var group_idx: int = item.item_type as int
-
-# 		var target_pos: Vector2 = _get_carried_item_position(item.item_type, idx_in_group, group_idx)
-
-# 		# Lerp if animation not finished, snap once securely attached
-# 		if item.pick_up_animation_finished:
-# 			item_parent.global_position = target_pos
-# 		else:
-# 			var max_pickup_time: float = 0.5 # seconds
-# 			var time_since_pickup: float = Util.now() - item.pick_up_animation_start_time
-# 			var animation_progress: float = clamp(time_since_pickup / max_pickup_time, 0.0, 1.0)
-
-# 			# Move item
-# 			item_parent.global_position = item_parent.global_position.lerp(target_pos, animation_progress)
-# 			if animation_progress >= 1.0:
-# 				item.pick_up_animation_finished = true
-		
-# 		# Also update item-parent grid pos to match carrier - even though this is probaly not required in most cases.
-# 		item_parent.update_grid_pos(parent.grid_pos)
-	
-
-# ## Returns global position
-# ## Assumes all objects have their origin at center bottom. -Y is up.
-# func _get_carried_item_position(item_type: Enum.CarryableItemType, index_in_group: int, group_index: int) -> Vector2:
-# 	# Flip horizontal offset based on look dir if available
-# 	var flip_horizontal: float = -1.0 if _get_parent_look_dir().x < 0 else 1.0
-
-# 	# Base = "on back of dwarf" - flipped based on look dir
-# 	var vertical_offset_base: float = Global.CELL_SIZE * 0.285
-# 	var horizontal_offset_base: float = Global.CELL_SIZE * -0.3 # - so its slightly to the back of the dwarf
-# 	var base_pos: Vector2 = parent.global_position + Vector2(horizontal_offset_base * flip_horizontal, -vertical_offset_base)
-
-# 	# Group offset - also flipped
-# 	var offset_for_groups: Array[float] = [0.0, Global.CELL_SIZE * 0.2]
-# 	var group_offset := Vector2(offset_for_groups[group_index] * flip_horizontal, 0.0)
-
-# 	# Item offset - not flipped, just stacks up vertically per item in the same group
-# 	var offset_y_per_item := Vector2(0.0, -Global.CELL_SIZE * 0.15)
-
-# 	return base_pos + group_offset + index_in_group * offset_y_per_item
