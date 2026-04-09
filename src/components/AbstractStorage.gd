@@ -1,4 +1,4 @@
-class_name AbstractStorageComponent
+class_name AbstractStorage
 extends RefCounted
 
 ########################################################################################################################

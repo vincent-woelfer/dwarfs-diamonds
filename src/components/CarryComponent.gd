@@ -7,7 +7,7 @@ extends Node2D
 
 @onready var parent: GridObject2D = get_parent()
 
-var _storage: AbstractStorageComponent = AbstractStorageComponent.new()
+var _storage: AbstractStorage = AbstractStorage.new()
 
 ########################################################################################################################
 # ITEM PLACEMENT
@@ -90,7 +90,7 @@ func _get_parent_look_dir() -> Vector2:
 
 
 ########################################################################################################################
-# Overwritten methods from AbstractStorageComponent - redirected to _storage
+# Overwritten methods from AbstractStorage - redirected to _storage
 ########################################################################################################################
 # TODO DROP/TRansfer to other container/storage/disposal
 

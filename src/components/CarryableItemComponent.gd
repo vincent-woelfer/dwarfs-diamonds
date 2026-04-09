@@ -14,7 +14,7 @@ signal Signal_OnDropped()
 
 # Internal state
 var is_in_storage: bool = false
-var storage: AbstractStorageComponent = null
+var storage: AbstractStorage = null
 
 var pick_up_animation_finished: bool = false
 var pick_up_animation_start_time: float = 0.0
@@ -48,7 +48,7 @@ func delete_self() -> void:
 # is_in_storage + storage will be handled by CarryComponent.
 ########################################################################################################################
 # Overrite (and call super. on_picked_up) to add any logic needed when picked up
-func on_picked_up(new_storage: AbstractStorageComponent) -> void:
+func on_picked_up(new_storage: AbstractStorage) -> void:
 	is_in_storage = true
 	storage = new_storage
 	
