@@ -68,7 +68,7 @@ enum MoveMode {
 }
 
 # Number is used to sort groups in inventory for now (TODO refactor)
-enum CarryableType {
+enum CarryableItemType {
 	RUBBLE = 0,
 	GEMSTONE = 1,
 }

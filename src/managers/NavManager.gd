@@ -125,6 +125,7 @@ func _update_all_queued_cell_connections() -> void:
 func _update_cell_is_enabled(cell: Cell) -> void:
 	var id := cell.get_nav_id()
 
+	# We assume use_ladders = true
 	var should_be_enabled := cell.is_standable(true) and cell.is_passable()
 
 	# Currently connections remain if point disabled (but are implicietly disabled too)

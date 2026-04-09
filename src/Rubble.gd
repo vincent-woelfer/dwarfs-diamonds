@@ -17,10 +17,10 @@ func _ready() -> void:
 	self.z_index = Enum.ZIndex.RUBBLE
 
 	movement_comp.movement_stats.can_use_ladders = false
-	movement_comp.movement_stats.can_use_ladders_when_falling = false
+	movement_comp.movement_stats.can_use_ladders_falling = false
 
 	# Set carryable item type
-	carryable_item_comp.item_type = Enum.CarryableType.RUBBLE
+	carryable_item_comp.item_type = Enum.CarryableItemType.RUBBLE
 
 	# Modulate color randomly
 	sprite.modulate = Colors.rand_rubble_color()
@@ -30,8 +30,8 @@ func _ready() -> void:
 	movement_comp.Signal_OnLanded.connect(_on_landed)
 
 	# CarryableItemComponent + MovementComponent signals
-	carryable_item_comp.Signal_OnPickedUp.connect(movement_comp.picked_up)
-	carryable_item_comp.Signal_OnDropped.connect(movement_comp.dropped)
+	carryable_item_comp.Signal_OnPickedUp.connect(movement_comp.on_picked_up)
+	carryable_item_comp.Signal_OnDropped.connect(movement_comp.on_dropped)
 
 	carryable_item_comp.Signal_OnPickedUp.connect(_on_picked_up)
 	carryable_item_comp.Signal_OnDropped.connect(_on_dropped)
@@ -62,7 +62,7 @@ func _can_be_picked_up() -> bool:
 
 
 func _on_new_cell_entered(new_cell: Cell) -> void:
-	if new_cell == null or carryable_item_comp.is_being_carried:
+	if new_cell == null or carryable_item_comp.is_in_storage:
 		return
 
 	if pickup_job != null:

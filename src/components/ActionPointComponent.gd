@@ -38,8 +38,6 @@ func start_action(action_point: ActionPoint) -> bool:
 	action_started_timestamp = Util.now()
 	repeated_tick_timestamp = Util.now()
 
-	# _audio_player = Audio.play_at_pos("dispose_trash", action_point.global_position)
-
 	return true
 
 
@@ -67,9 +65,9 @@ func can_interact_at_all(action_point: ActionPoint) -> bool:
 	return true
 
 
-# ########################################################################################################################
-# # PRIVATE METHODS
-# ########################################################################################################################
+########################################################################################################################
+# PRIVATE METHODS
+########################################################################################################################
 # func _ready() -> void:
 	# SIGNALS
 
@@ -105,19 +103,18 @@ func _physics_process(delta: float) -> void:
 
 # ########################################################################################################################
 # INTERACTION LOGIC
+# called every frame from _physics_process while interacting, returns true if interaction is completed
 # ########################################################################################################################
-# These return "done = true" if the interaction is completed
-
 func _dropoff_rubble() -> bool:
 	const dispose_time := 0.75
 	const after_last_time := 0.3
 
 	var carry_comp: CarryComponent = parent.carry_comp
-	var has_rubble := carry_comp.is_carrying_item_of_type(Enum.CarryableType.RUBBLE)
+	var has_rubble := carry_comp.is_carrying_item_of_type(Enum.CarryableItemType.RUBBLE)
 
 	# Check for rubble disposal
 	if has_rubble and Util.has_time_passed(repeated_tick_timestamp, dispose_time):
-		carry_comp.delete(carry_comp.get_items_of_type(Enum.CarryableType.RUBBLE)[-1])
+		carry_comp.delete(carry_comp.get_items_of_type(Enum.CarryableItemType.RUBBLE)[-1])
 		repeated_tick_timestamp = Util.now()
 
 		Audio.play_at_pos("dispose_trash", _curr_action_point.get_global_position())
@@ -134,11 +131,11 @@ func _dropoff_gemstone() -> bool:
 	const after_last_time := 0.5
 
 	var carry_comp: CarryComponent = parent.carry_comp
-	var has_gemstone := carry_comp.is_carrying_item_of_type(Enum.CarryableType.GEMSTONE)
+	var has_gemstone := carry_comp.is_carrying_item_of_type(Enum.CarryableItemType.GEMSTONE)
 
 	# Check for gemstone disposal
 	if has_gemstone and Util.has_time_passed(repeated_tick_timestamp, dispose_time):
-		carry_comp.delete(carry_comp.get_items_of_type(Enum.CarryableType.GEMSTONE)[-1])
+		carry_comp.delete(carry_comp.get_items_of_type(Enum.CarryableItemType.GEMSTONE)[-1])
 		repeated_tick_timestamp = Util.now()
 
 		Global.level.level_stats_manager.update_gemstones_collected(1)

@@ -77,8 +77,6 @@ func _ready() -> void:
 
 	action_point_comp.Signal_OnActionCompleted.connect(_on_action_completed)
 
-	# TODO carry_comp signals?
-
 
 ########################################################################################################################
 # STATE MACHINE HANDLERS
@@ -224,16 +222,22 @@ func _enter_dying() -> void:
 	animated_sprite.play("die")
 
 	print_rich("%s has died!" % [ self ])
+
+	carry_comp.drop_all()
 	
 	_abort_tasks_enter_idle()
-
-	# Hide player sprite + light
-	animated_sprite.visible = false
-	light.enabled = false
 
 	# Play death sound
 	Audio.play_at_pos_with_pitch("dwarf_on_landing", global_position, 1.8)
 
+	Global.level.remove_dwarf(self )
+
+	# Hide player sprite + light
+	# animated_sprite.visible = false
+	# light.enabled = false
+
+	# Wait for animation to finish and then delete self
+	await animated_sprite.animation_finished
 	queue_free()
 
 
@@ -449,11 +453,11 @@ func _create_own_tasks() -> void:
 	var tasks: Array[Task] = []
 
 	# Dispose Gemstone
-	if carry_comp.is_carrying_item_of_type(Enum.CarryableType.GEMSTONE):
+	if carry_comp.is_carrying_item_of_type(Enum.CarryableItemType.GEMSTONE):
 		_create_action_point_tasks_for_type(ActionPoint.ActionType.DROPOFF_GEMSTONE)
 
 	# Dispose Rubble
-	elif carry_comp.is_carrying_item_of_type(Enum.CarryableType.RUBBLE):
+	elif carry_comp.is_carrying_item_of_type(Enum.CarryableItemType.RUBBLE):
 		_create_action_point_tasks_for_type(ActionPoint.ActionType.DROPOFF_RUBBLE)
 
 

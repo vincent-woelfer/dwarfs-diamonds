@@ -84,7 +84,7 @@ func tick_follow_path(delta: float, movement_stats: MovementStats) -> Vector2:
 		var dir_to_next: Vector2 = vec_to_next.normalized()
 
 		var move_mode := _floor_point_move_modes[_next_floor_idx]
-		var speed: float = movement_stats.get_speed(move_mode)
+		var speed: float = movement_stats.get_movement_mode_speed(move_mode)
 		var distance: float = speed * delta
 
 		# Distance no enough to reach new waypoint -> break
@@ -349,7 +349,7 @@ func _get_time_for_path(start_pos: Vector2, start_index: int, movement_stats: Mo
 	for i in range(start_index, _floor_points.size() - 1):
 		var dist_to_next: float = (_floor_points[i + 1] - start_pos).length()
 		var move_mode := _floor_point_move_modes[i]
-		var speed: float = movement_stats.get_speed(move_mode)
+		var speed: float = movement_stats.get_movement_mode_speed(move_mode)
 		time += dist_to_next / speed
 		start_pos = _floor_points[i + 1]
 

@@ -73,10 +73,10 @@ func abort_path() -> void:
 		sm.transition_to(State.NOT_MOVING)
 
 
-# used by CarryableItemComponent when picked up / dropped
-func picked_up() -> void:
+# used by CarryableItemComponent when picked up / on_dropped
+func on_picked_up() -> void:
 	sm.transition_to(State.CARRIED)
-func dropped() -> void:
+func on_dropped() -> void:
 	sm.transition_to(State.NOT_MOVING)
 
 
@@ -299,7 +299,7 @@ func _get_curr_move_mode() -> Enum.MoveMode:
 
 func _get_can_use_ladders() -> bool:
 	if is_falling():
-		return movement_stats.can_use_ladders_when_falling
+		return movement_stats.can_use_ladders_falling
 	else:
 		return movement_stats.can_use_ladders
 

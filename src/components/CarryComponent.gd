@@ -1,182 +1,70 @@
 class_name CarryComponent
 extends Node2D
 
-
-@export var carry_capacity: float = 2.0
-
-# internal
-var _curr_carried_items: Array[CarryableItemComponent] = []
-var _curr_total_weight: float = 0.0
-
-# placement logic
-var _item_type_group_sizes: Dictionary[Enum.CarryableType, int]
+########################################################################################################################
+# Basically the dwarf's backpack. Handles picking up and dropping items, but also the visual placement of items on the carrier.
+########################################################################################################################
 
 @onready var parent: GridObject2D = get_parent()
 
+var _storage: AbstractStorageComponent = AbstractStorageComponent.new()
+
 ########################################################################################################################
-# PUBLIC METHODS
+# ITEM PLACEMENT
 ########################################################################################################################
-###################################
-# PICKUP
-###################################
-# Picks up all pickupable items in range until capacity is full, prioritizing the given items first.
-# Returns true if ALL priority items were picked up
-func pickup_all_in_range(priority_items: Array[CarryableItemComponent]) -> bool:
-	var items: Array[CarryableItemComponent] = get_all_pickupable_items_in_range()
-	var picked_up: Array[CarryableItemComponent] = []
+func _update_item_placement(delta: float) -> void:
+	var item_type_group_sizes: Dictionary[Enum.CarryableItemType, int] = _storage.get_item_type_group_sizes()
+	var idx_by_type: Dictionary[Enum.CarryableItemType, int] = {}
 
-	# Sort so that priority items come first
-	items.sort_custom(func(a: CarryableItemComponent, b: CarryableItemComponent) -> bool:
-		var a_prio: bool = priority_items.has(a)
-		var b_prio: bool = priority_items.has(b)
-		return a_prio and not b_prio
-	)
+	for i in _storage.get_carried_total_count():
+		var item: CarryableItemComponent = _storage.get_item_by_index(i)
 
-	for item: CarryableItemComponent in items:
-		if pickup(item):
-			picked_up.append(item)
+		# Idx by type and group idx
+		if not idx_by_type.has(item.item_type):
+			idx_by_type[item.item_type] = 0
+		var idx_in_group: int = idx_by_type[item.item_type]
+		idx_by_type[item.item_type] += 1
+		var group_idx: int = item.item_type as int
 
-	# Check if all priority items were picked up
-	for prio_item: CarryableItemComponent in priority_items:
-		if not picked_up.has(prio_item):
-			return false
+		var target_pos: Vector2 = _get_carried_item_position(item.item_type, idx_in_group, group_idx)
 
-	return true
+		# Lerp if animation not finished, snap once securely attached
+		if item.pick_up_animation_finished:
+			item.parent.global_position = target_pos
+		else:
+			var max_pickup_time: float = 0.5 # seconds
+			var time_since_pickup: float = Util.now() - item.pick_up_animation_start_time
+			var animation_progress: float = clamp(time_since_pickup / max_pickup_time, 0.0, 1.0)
 
-## Actually picks up the item if possible, returns false otherwise
-func pickup(item: CarryableItemComponent) -> bool:
-	if not can_pickup(item):
-		return false
+			# Move item
+			item.parent.global_position = item.parent.global_position.lerp(target_pos, animation_progress)
+			if animation_progress >= 1.0:
+				item.pick_up_animation_finished = true
+		
+		# Also update item-parent grid pos to match carrier - even though this is probaly not required in most cases.
+		item.parent.update_grid_pos(parent.grid_pos)
+	
 
-	print_rich("%s picked up %s" % [parent, item])
+## Returns global position
+## Assumes all objects have their origin at center bottom. -Y is up.
+func _get_carried_item_position(item_type: Enum.CarryableItemType, index_in_group: int, group_index: int) -> Vector2:
+	# Flip horizontal offset based on look dir if available
+	var flip_horizontal: float = -1.0 if _get_parent_look_dir().x < 0 else 1.0
 
-	# Modify self
-	_curr_carried_items.append(item)
-	_curr_total_weight += item.weight
-	_update_item_type_group_sizes()
+	# Base = "on back of dwarf" - flipped based on look dir
+	var vertical_offset_base: float = Global.CELL_SIZE * 0.285
+	var horizontal_offset_base: float = Global.CELL_SIZE * -0.3 # - so its slightly to the back of the dwarf
+	var base_pos: Vector2 = parent.global_position + Vector2(horizontal_offset_base * flip_horizontal, -vertical_offset_base)
 
-	# Modify item
-	item.on_picked_up(self )
+	# Group offset - also flipped
+	var offset_for_groups: Array[float] = [0.0, Global.CELL_SIZE * 0.2]
+	var group_offset := Vector2(offset_for_groups[group_index] * flip_horizontal, 0.0)
 
-	return true
+	# Item offset - not flipped, just stacks up vertically per item in the same group
+	var offset_y_per_item := Vector2(0.0, -Global.CELL_SIZE * 0.15)
 
+	return base_pos + group_offset + index_in_group * offset_y_per_item
 
-###################################
-# DROP
-###################################
-func drop(item: CarryableItemComponent) -> void:
-	if item == null or not _curr_carried_items.has(item):
-		return
-
-	# Modify self
-	_curr_carried_items.erase(item)
-	_curr_total_weight -= item.weight
-	_update_item_type_group_sizes()
-
-	# Modify item
-	item.on_dropped()
-
-	# Set item position to be inside cell of carrier
-	# TODO maybe animate this
-	item.parent.global_position = parent.global_position
-
-
-func drop_all() -> void:
-	# Duplicate the array to allow modification during iteration
-	for item: CarryableItemComponent in _curr_carried_items.duplicate():
-		drop(item)
-
-# TODO DROP/TRansfer to other container/storage/disposal
-
-
-###################################
-# DELETE
-###################################
-func delete(item: CarryableItemComponent) -> void:
-	if item == null or not _curr_carried_items.has(item):
-		return
-
-	# Modify self
-	_curr_carried_items.erase(item)
-	_curr_total_weight -= item.weight
-
-	_update_item_type_group_sizes()
-
-	# Delete parent (since item is a component, we assume the whole object should be deleted)
-	item.parent.queue_free()
-
-###################################
-# CAN CARRY / PICKUP
-###################################
-## Can this carrier pick up the given item right now
-func can_pickup(item: CarryableItemComponent) -> bool:
-	# Perform basic checks
-	if item == null or not item.can_be_picked_up_right_now():
-		return false
-
-	# Check if can carry at all
-	if not can_carry_ignoring_position(item):
-		return false
-
-	# Check pickup range (currently same cell)
-	if item.parent.grid_pos != parent.grid_pos:
-		return false
-
-	return true
-
-
-## Can this carry component carry the given item at all (ignoring range etc)
-## Used to filter jobs
-func can_carry_ignoring_position(item: CarryableItemComponent) -> bool:
-	# Perform basic checks
-	if item == null:
-		return false
-
-	# Check weight capacity
-	var new_total_weight := _curr_total_weight + item.weight
-	if new_total_weight > carry_capacity:
-		return false
-
-	# TODO check other restrictions?
-
-	return true
-
-###################################
-# Getters
-###################################
-func is_carrying_anything() -> bool:
-	return not _curr_carried_items.is_empty()
-
-func get_carried_total_weight() -> float:
-	return _curr_total_weight
-
-func get_carried_load_percentage() -> float:
-	return _curr_total_weight / carry_capacity
-
-
-## Returns all pickupable items in range (currently same cell)
-## The weight is only checked for each item alone, this doesnt mean all items can be picked up together
-func get_all_pickupable_items_in_range() -> Array[CarryableItemComponent]:
-	var items: Array[CarryableItemComponent] = []
-	for item: CarryableItemComponent in Global.get_group(Global.GROUP_CARRYABLE_ITEMS):
-		# For performance, first check grid pos
-		if item.parent.grid_pos != parent.grid_pos:
-			continue
-		if can_pickup(item):
-			items.append(item)
-
-	return items
-
-
-func is_carrying_item_of_type(item_type: Enum.CarryableType) -> bool:
-	for item: CarryableItemComponent in _curr_carried_items:
-		if item.item_type == item_type:
-			return true
-	return false
-
-
-func get_items_of_type(item_type: Enum.CarryableType) -> Array[CarryableItemComponent]:
-	return _curr_carried_items.filter(func(item: CarryableItemComponent) -> bool: return item.item_type == item_type)
 
 ########################################################################################################################
 # PRIVATE METHODS
@@ -200,67 +88,54 @@ func _get_parent_look_dir() -> Vector2:
 	# default look dir if not available
 	return Vector2.RIGHT
 
+
 ########################################################################################################################
-# ITEM PLACEMENT
+# Overwritten methods from AbstractStorageComponent - redirected to _storage
 ########################################################################################################################
-func _update_item_type_group_sizes() -> void:
-	_item_type_group_sizes = {}
-	for item: CarryableItemComponent in _curr_carried_items:
-		if not _item_type_group_sizes.has(item.item_type):
-			_item_type_group_sizes[item.item_type] = 0
-		_item_type_group_sizes[item.item_type] += 1
+func pickup_all_in_range(priority_items: Array[CarryableItemComponent]) -> bool:
+	return _storage.pickup_all_in_range(parent.grid_pos, priority_items)
+
+func pickup(item: CarryableItemComponent) -> bool:
+	return _storage.pickup(parent.grid_pos, item)
+
+func drop(item: CarryableItemComponent) -> void:
+	_storage.drop(item)
+
+	# Just drop (should fall)
+	# Set item position to be inside cell of carrier
+	# TODO maybe animate this
+	# item.parent.global_position = parent.global_position
 
 
-# TODO 
-func _update_item_placement(delta: float) -> void:
-	var idx_by_type: Dictionary[Enum.CarryableType, int] = {}
+func drop_all() -> void:
+	_storage.drop_all()
 
-	for i in _curr_carried_items.size():
-		var item: CarryableItemComponent = _curr_carried_items[i]
-		var item_parent: GridObject2D = item.parent
+# TODO DROP/TRansfer to other container/storage/disposal
 
-		# Idx by type and group idx
-		if not idx_by_type.has(item.item_type):
-			idx_by_type[item.item_type] = 0
-		var idx_in_group: int = idx_by_type[item.item_type]
-		idx_by_type[item.item_type] += 1
-		var group_idx: int = item.item_type as int
 
-		var target_pos: Vector2 = _get_carried_item_position(item.item_type, idx_in_group, group_idx)
+func delete(item: CarryableItemComponent) -> void:
+	_storage.delete(item)
 
-		# Lerp if animation not finished, snap once securely attached
-		if item.pick_up_animation_finished:
-			item_parent.global_position = target_pos
-		else:
-			var max_pickup_time: float = 0.5 # seconds
-			var time_since_pickup: float = Util.now() - item.pick_up_animation_start_time
-			var animation_progress: float = clamp(time_since_pickup / max_pickup_time, 0.0, 1.0)
+func can_pickup(item: CarryableItemComponent) -> bool:
+	return _storage.can_pickup(parent.grid_pos, item)
 
-			# Move item
-			item_parent.global_position = item_parent.global_position.lerp(target_pos, animation_progress)
-			if animation_progress >= 1.0:
-				item.pick_up_animation_finished = true
-		
-		# Also update item-parent grid pos to match carrier - even though this is probaly not required in most cases.
-		item_parent.update_grid_pos(parent.grid_pos)
-	
+func can_carry_ignoring_position(item: CarryableItemComponent) -> bool:
+	return _storage.does_fit_into_capacity(item)
 
-## Returns global position
-## Assumes all objects have their origin at center bottom. -Y is up.
-func _get_carried_item_position(item_type: Enum.CarryableType, index_in_group: int, group_index: int) -> Vector2:
-	# Flip horizontal offset based on look dir if available
-	var flip_horizontal: float = -1.0 if _get_parent_look_dir().x < 0 else 1.0
+func is_carrying_anything() -> bool:
+	return _storage.is_carrying_anything()
 
-	# Base = "on back of dwarf" - flipped based on look dir
-	var vertical_offset_base: float = Global.CELL_SIZE * 0.285
-	var horizontal_offset_base: float = Global.CELL_SIZE * -0.3 # - so its slightly to the back of the dwarf
-	var base_pos: Vector2 = parent.global_position + Vector2(horizontal_offset_base * flip_horizontal, -vertical_offset_base)
+func get_carried_total_weight() -> float:
+	return _storage.get_carried_total_weight()
 
-	# Group offset - also flipped
-	var offset_for_groups: Array[float] = [0.0, Global.CELL_SIZE * 0.2]
-	var group_offset := Vector2(offset_for_groups[group_index] * flip_horizontal, 0.0)
+func get_carried_weight_percentage() -> float:
+	return _storage.get_carried_weight_percentage()
 
-	# Item offset - not flipped, just stacks up vertically per item in the same group
-	var offset_y_per_item := Vector2(0.0, -Global.CELL_SIZE * 0.15)
+func get_all_pickupable_items_in_range() -> Array[CarryableItemComponent]:
+	return _storage.get_all_pickupable_items_in_range(parent.grid_pos)
 
-	return base_pos + group_offset + index_in_group * offset_y_per_item
+func is_carrying_item_of_type(item_type: Enum.CarryableItemType) -> bool:
+	return _storage.is_carrying_item_of_type(item_type)
+
+func get_items_of_type(item_type: Enum.CarryableItemType) -> Array[CarryableItemComponent]:
+	return _storage.get_items_of_type(item_type)

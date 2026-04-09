@@ -93,6 +93,9 @@ func spawn_dwarf(x: int) -> void:
 
 	assert(false)
 
+func remove_dwarf(dwarf: Dwarf) -> void:
+	dwarfs.erase(dwarf)
+
 
 func spawn_rubble(grid_pos: Vector2i) -> void:
 	var cell := get_cell(grid_pos)
