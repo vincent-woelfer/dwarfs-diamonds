@@ -1,13 +1,15 @@
-class_name CarryComponent
+class_name StockpileComponent
 extends Node2D
 
 ########################################################################################################################
-# Basically the dwarf's backpack. Handles picking up and dropping items, but also the visual placement of items on the carrier.
+# A stationary or moving. Handles picking up and dropping items, but also the visual placement of items on the carrier.
 ########################################################################################################################
 
 @onready var parent: GridObject2D = get_parent()
 
 var _storage: AbstractStorage = AbstractStorage.new()
+
+# TODO variables for storage space visualisation.
 
 ########################################################################################################################
 # ITEM PLACEMENT
@@ -30,35 +32,31 @@ func _update_item_placement(delta: float) -> void:
 
 		# Lerp if animation not finished, snap once securely attached
 		if item.pick_up_animation_finished:
-			item.move_parent(target_pos)
+			item.parent.global_position = target_pos
 		else:
 			var max_pickup_time: float = 0.5 # seconds
 			var time_since_pickup: float = Util.now() - item.pick_up_animation_start_time
 			var animation_progress: float = clamp(time_since_pickup / max_pickup_time, 0.0, 1.0)
 
 			# Move item
-			item.move_parent(item.parent.global_position.lerp(target_pos, animation_progress))
+			item.parent.global_position = item.parent.global_position.lerp(target_pos, animation_progress)
 			if animation_progress >= 1.0:
 				item.pick_up_animation_finished = true
 		
 		# Also update item-parent grid pos to match carrier - even though this is probaly not required in most cases.
-		item.set_parent_grid_pos(parent.grid_pos)
+		item.parent.update_grid_pos(parent.grid_pos)
 	
 
 ## Returns global position
 ## Assumes all objects have their origin at center bottom. -Y is up.
 func _get_carried_item_position(item_type: Enum.CarryableItemType, index_in_group: int, group_index: int) -> Vector2:
-	# Flip horizontal offset based on look dir if available
-	var flip_horizontal: float = -1.0 if _get_parent_look_dir().x < 0 else 1.0
-
-	# Base = "on back of dwarf" - flipped based on look dir
 	var vertical_offset_base: float = Global.CELL_SIZE * 0.285
 	var horizontal_offset_base: float = Global.CELL_SIZE * -0.3 # - so its slightly to the back of the dwarf
-	var base_pos: Vector2 = parent.global_position + Vector2(horizontal_offset_base * flip_horizontal, -vertical_offset_base)
+	var base_pos: Vector2 = parent.global_position + Vector2(horizontal_offset_base, -vertical_offset_base)
 
 	# Group offset - also flipped
 	var offset_for_groups: Array[float] = [0.0, Global.CELL_SIZE * 0.2]
-	var group_offset := Vector2(offset_for_groups[group_index] * flip_horizontal, 0.0)
+	var group_offset := Vector2(offset_for_groups[group_index], 0.0)
 
 	# Item offset - not flipped, just stacks up vertically per item in the same group
 	var offset_y_per_item := Vector2(0.0, -Global.CELL_SIZE * 0.15)
@@ -77,16 +75,6 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if is_carrying_anything():
 		_update_item_placement(delta)
-
-
-func _get_parent_look_dir() -> Vector2:
-	var look_dir: Variant = parent.get("look_dir")
-	if look_dir != null and look_dir is Vector2:
-		@warning_ignore("unsafe_cast")
-		return look_dir as Vector2
-
-	# default look dir if not available
-	return Vector2.RIGHT
 
 
 ########################################################################################################################

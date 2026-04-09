@@ -12,10 +12,11 @@ signal Signal_OnDropped()
 # Configurable properties
 @export var weight: float = 1.0
 
-# Internal state
+# Storage state
 var is_in_storage: bool = false
 var storage: AbstractStorage = null
 
+# Pick-up animation state
 var pick_up_animation_finished: bool = false
 var pick_up_animation_start_time: float = 0.0
 
@@ -42,6 +43,16 @@ func can_be_picked_up_right_now() -> bool:
 
 func delete_self() -> void:
 	parent.queue_free()
+
+########################################################################################################################
+# For moving the parent component
+########################################################################################################################
+func move_parent(new_global_position: Vector2) -> void:
+	parent.global_position = new_global_position
+
+func set_parent_grid_pos(new_grid_pos: Vector2i) -> void:
+	parent.update_grid_pos(new_grid_pos)
+
 
 ########################################################################################################################
 # Only for additional logic specific to this item. Override in subclasses. 

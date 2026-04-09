@@ -2,7 +2,6 @@ class_name MovementComponent
 extends Node2D
 
 ################ Signals ################
-
 # Fall height is number of free cells we fall THROUGH (excluding starting cell)
 # Fall height = 0 -> exception, may happen if spawned in mid-air in same cell.
 # Fall height = 1 -> if mining downwards one cell.
