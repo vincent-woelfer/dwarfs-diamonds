@@ -15,7 +15,7 @@ var _curr_total_weight: float = 0.0
 var _curr_total_count: int = 0
 
 # for placement logic
-var _item_type_group_sizes: Dictionary[Enum.CarryableItemType, int]
+var _item_type_group_sizes: Dictionary[Item.ItemType, int]
 
 ########################################################################################################################
 # PUBLIC METHODS
@@ -154,7 +154,7 @@ func get_carried_weight_percentage() -> float:
 	return _curr_total_weight / capacity_max_weight
 
 
-func get_item_type_group_sizes() -> Dictionary[Enum.CarryableItemType, int]:
+func get_item_type_group_sizes() -> Dictionary[Item.ItemType, int]:
 	return _item_type_group_sizes
 
 
@@ -178,14 +178,14 @@ func get_all_pickupable_items_in_range(carrier_pos: Vector2i) -> Array[Carryable
 	return items
 
 
-func is_carrying_item_of_type(item_type: Enum.CarryableItemType) -> bool:
+func is_carrying_item_of_type(item_type: Item.ItemType) -> bool:
 	for item: CarryableItemComponent in _curr_carried_items:
 		if item.item_type == item_type:
 			return true
 	return false
 
 
-func get_items_of_type(item_type: Enum.CarryableItemType) -> Array[CarryableItemComponent]:
+func get_items_of_type(item_type: Item.ItemType) -> Array[CarryableItemComponent]:
 	return _curr_carried_items.filter(func(item: CarryableItemComponent) -> bool: return item.item_type == item_type)
 
 ########################################################################################################################

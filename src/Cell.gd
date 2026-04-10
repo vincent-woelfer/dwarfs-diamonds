@@ -111,9 +111,9 @@ func destroy_cell() -> void:
 	Audio.play_at_pos("cell_on_destroy", global_position)
 
 	# Spawn Rubble / Gemstone
-	Global.level.spawn_rubble(grid_pos)
+	Global.level.spawn_item(grid_pos, Global.level.rubble_scene)
 	if has_mineral:
-		Global.level.spawn_gemstone(grid_pos)
+		Global.level.spawn_item(grid_pos, Global.level.gemstone_scene)
 
 	visual.set_dirty()
 	queue_nav_update()

@@ -9,8 +9,9 @@ extends Node2D
 signal Signal_OnPickedUp()
 signal Signal_OnDropped()
 
-# Configurable properties
-@export var weight: float = 1.0
+# Configurable properties - Set by item itself
+var weight: float = 1.0
+var item_type: Item.ItemType
 
 # Storage state
 var is_in_storage: bool = false
@@ -19,8 +20,6 @@ var storage: AbstractStorage = null
 # Pick-up animation state
 var pick_up_animation_finished: bool = false
 var pick_up_animation_start_time: float = 0.0
-
-var item_type: Enum.CarryableItemType
 
 # Own parent (the item itself)
 @onready var parent: GridObject2D = get_parent()

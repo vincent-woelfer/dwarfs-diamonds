@@ -13,8 +13,8 @@ var _storage: AbstractStorage = AbstractStorage.new()
 # ITEM PLACEMENT
 ########################################################################################################################
 func _update_item_placement(delta: float) -> void:
-	var item_type_group_sizes: Dictionary[Enum.CarryableItemType, int] = _storage.get_item_type_group_sizes()
-	var idx_by_type: Dictionary[Enum.CarryableItemType, int] = {}
+	var item_type_group_sizes: Dictionary[Item.ItemType, int] = _storage.get_item_type_group_sizes()
+	var idx_by_type: Dictionary[Item.ItemType, int] = {}
 
 	for i in _storage.get_carried_total_count():
 		var item: CarryableItemComponent = _storage.get_item_by_index(i)
@@ -47,7 +47,7 @@ func _update_item_placement(delta: float) -> void:
 
 ## Returns global position
 ## Assumes all objects have their origin at center bottom. -Y is up.
-func _get_carried_item_position(item_type: Enum.CarryableItemType, index_in_group: int, group_index: int) -> Vector2:
+func _get_carried_item_position(item_type: Item.ItemType, index_in_group: int, group_index: int) -> Vector2:
 	# Flip horizontal offset based on look dir if available
 	var flip_horizontal: float = -1.0 if _get_parent_look_dir().x < 0 else 1.0
 
@@ -127,8 +127,8 @@ func get_carried_weight_percentage() -> float:
 func get_all_pickupable_items_in_range() -> Array[CarryableItemComponent]:
 	return _storage.get_all_pickupable_items_in_range(parent.grid_pos)
 
-func is_carrying_item_of_type(item_type: Enum.CarryableItemType) -> bool:
+func is_carrying_item_of_type(item_type: Item.ItemType) -> bool:
 	return _storage.is_carrying_item_of_type(item_type)
 
-func get_items_of_type(item_type: Enum.CarryableItemType) -> Array[CarryableItemComponent]:
+func get_items_of_type(item_type: Item.ItemType) -> Array[CarryableItemComponent]:
 	return _storage.get_items_of_type(item_type)

@@ -1,13 +1,13 @@
 [gd_scene format=3 uid="uid://dt5kqlg5jmdr8"]
 
-[ext_resource type="Script" uid="uid://ckyc5xiqmkgrr" path="res://src/Gemstone.gd" id="1_268gt"]
+[ext_resource type="Script" uid="uid://dvfuodfhfjb43" path="res://src/objects/Item.gd" id="1_e03ft"]
 [ext_resource type="Texture2D" uid="uid://cy35sr548440v" path="res://assets/sprites/gemstone_1.png" id="2_268gt"]
 [ext_resource type="Texture2D" uid="uid://ivritkqyttia" path="res://assets/sprites/gradient_light_flares.png" id="2_e03ft"]
 [ext_resource type="Script" uid="uid://12nby18asb05" path="res://src/components/MovementComponent.gd" id="3_eodmy"]
 [ext_resource type="Script" uid="uid://byab8uhnbyngm" path="res://src/components/CarryableItemComponent.gd" id="4_y6d6v"]
 
 [node name="Gemstone" type="Node2D" unique_id=1896315996]
-script = ExtResource("1_268gt")
+script = ExtResource("1_e03ft")
 
 [node name="PointLight2D" type="PointLight2D" parent="." unique_id=1069997814]
 position = Vector2(0, -14)
@@ -25,4 +25,3 @@ script = ExtResource("3_eodmy")
 
 [node name="CarryableItemComponent" type="Node2D" parent="." unique_id=1879016142]
 script = ExtResource("4_y6d6v")
-weight = 0.2

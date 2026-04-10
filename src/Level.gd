@@ -12,8 +12,6 @@ var cells: Array[Array] = []
 # max_elevation = highest solid cell at this x. NOT updated after level generation
 var max_elevatation_at_x: Array[int] = []
 var dwarfs: Array[Dwarf] = []
-var rubbles: Array[Rubble] = []
-var gemstones: Array[Gemstone] = []
 
 # Managers
 var nav_manager: NavManager
@@ -97,25 +95,15 @@ func remove_dwarf(dwarf: Dwarf) -> void:
 	dwarfs.erase(dwarf)
 
 
-func spawn_rubble(grid_pos: Vector2i) -> void:
+func spawn_item(grid_pos: Vector2i, item_scene: PackedScene) -> void:
 	var cell := get_cell(grid_pos)
 	if cell == null or not cell.is_passable():
 		return
 
-	var new_rubble: Rubble = rubble_scene.instantiate()
-	new_rubble.setup(grid_pos)
-	add_child(new_rubble)
-	rubbles.append(new_rubble)
-
-func spawn_gemstone(grid_pos: Vector2i) -> void:
-	var cell := get_cell(grid_pos)
-	if cell == null or not cell.is_passable():
-		return
-
-	var new_gemstone: Gemstone = gemstone_scene.instantiate()
-	new_gemstone.setup(grid_pos)
-	add_child(new_gemstone)
-	gemstones.append(new_gemstone)
+	var item: Item = item_scene.instantiate()
+	var spawn_offset := Vector2(0, -Global.CELL_SIZE * 0.3) # Spawn above floor
+	item.setup(grid_pos, spawn_offset)
+	add_child(item)
 
 
 ## Deterministic torch placement
@@ -177,7 +165,7 @@ func _generate_grid() -> void:
 	texture.width = ceil(Global.LEVEL_WIDTH * noise_scale)
 	texture.height = ceil(Global.LEVEL_HEIGHT * noise_scale)
 	
-	var fast_noise_lite := FastNoiseLite.new()	
+	var fast_noise_lite := FastNoiseLite.new()
 	fast_noise_lite.seed = Global.FIXED_MAP_SEED
 	texture.noise = fast_noise_lite
 	await texture.changed

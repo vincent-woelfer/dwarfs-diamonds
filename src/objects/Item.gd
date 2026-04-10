@@ -1,47 +1,78 @@
-class_name Gemstone
+class_name Item
 extends GridObject2D
 
-# Scene Components
+# Number is used to sort groups in inventory for now (TODO refactor)
+enum ItemType {
+	RUBBLE = 0,
+	GEMSTONE = 1,
+}
+
+# THIS IS A SCENE
+# Scene Components - Required
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var movement_comp: MovementComponent = $MovementComponent
 @onready var carryable_item_comp: CarryableItemComponent = $CarryableItemComponent
+
+# Scene Components - Optional
 @onready var light: PointLight2D = $PointLight2D
 
-# The pickup job associated with this gemstone
+# Used to set CarryableItemComponent weight
+@export var weight: float = 1.0
+@export var item_type: ItemType
+
+# The pickup job associated with this item
 var pickup_job: Job = null
 
+# Further Config
 var light_energy_default: float = 0.25
 
-func _ready() -> void:
+@export var on_landed_audio: String = ""
+
+
+# Spawn offset y must be negative to be placed above floor
+func setup(grid_pos_: Vector2i, spawn_offset: Vector2 = Vector2.ZERO) -> void:
+	# Validation
+	assert(item_type in ItemType.values(), "Invalid item type %s" % [item_type])
+
+	super.setup(grid_pos_)
+
+	# Position
 	global_position = Global.level.get_cell(grid_pos).get_floor_point()
-	global_position.y -= Global.CELL_SIZE * 0.3 # Let it fall a bit on spawn
+	global_position += spawn_offset
 
-	self.z_index = Enum.ZIndex.GEMSTONE
+	# General setup
+	self.z_index = Enum.ZIndex.GEMSTONE if item_type == ItemType.GEMSTONE else Enum.ZIndex.RUBBLE
 
+	# Setup MovementComponent
 	movement_comp.movement_stats.can_use_ladders = false
 	movement_comp.movement_stats.can_use_ladders_falling = false
 
-	# Set carryable item type
-	carryable_item_comp.item_type = Enum.CarryableItemType.GEMSTONE
+	# Setup CarryableItemComponent
+	carryable_item_comp.item_type = item_type
+	carryable_item_comp.weight = weight
 
-	# Modulate color randomly
-	var color: Color = [Color.HOT_PINK, Color.CYAN, Color.YELLOW_GREEN].pick_random()
-	sprite.modulate = color * 2.0
+	# Gemstone color
+	var gem_color: Color = [Color.HOT_PINK, Color.CYAN, Color.YELLOW_GREEN].pick_random()
+	if item_type == ItemType.GEMSTONE:
+		sprite.modulate = gem_color * 2.0
+	elif item_type == ItemType.RUBBLE:
+		sprite.modulate = Colors.rand_rubble_color()
 
-	light.color = Color.WHITE.lerp(color, 0.5)
-	light.energy = light_energy_default
+	# Light
+	if light != null:
+		var light_color: Color = gem_color if item_type == ItemType.GEMSTONE else Color.WHITE
+		light.color = Color.WHITE.lerp(light_color, 0.5)
+		light.energy = light_energy_default
 
 	# SIGNALS
 	movement_comp.Signal_OnStartedFalling.connect(_on_started_falling)
 	movement_comp.Signal_OnLanded.connect(_on_landed)
-
-	# CarryableItemComponent + MovementComponent signals
 	carryable_item_comp.Signal_OnPickedUp.connect(movement_comp.on_picked_up)
 	carryable_item_comp.Signal_OnDropped.connect(movement_comp.on_dropped)
-
 	carryable_item_comp.Signal_OnPickedUp.connect(_on_picked_up)
 	carryable_item_comp.Signal_OnDropped.connect(_on_dropped)
 
+func _ready() -> void:
 	_add_pickup_job()
 
 
@@ -57,12 +88,14 @@ func _on_dropped() -> void:
 	_add_pickup_job()
 
 	# restore light energy when dropped
-	light.energy = light_energy_default
+	if light != null:
+		light.energy = light_energy_default
 
 
 func _process(delta: float) -> void:
-	var light_rotation_speed_rad_per_sec := deg_to_rad(15)
-	light.rotate(light_rotation_speed_rad_per_sec * delta)
+	if light:
+		var light_rotation_speed_rad_per_sec := deg_to_rad(15)
+		light.rotate(light_rotation_speed_rad_per_sec * delta)
 
 
 func _add_pickup_job() -> void:
@@ -95,10 +128,12 @@ func _on_landed(fall_height_cells: int) -> void:
 	# Trigger on cell entered anew to update job status
 	_on_new_cell_entered(curr_cell)
 
-	if fall_height_cells >= 1:
-		Audio.play_at_pos("gemstone_drop", global_position)
+	if fall_height_cells >= 0:
+		if on_landed_audio != "":
+			Audio.play_at_pos(on_landed_audio, global_position)
 
 
 func _to_string() -> String:
 	var color := Colors.to_print_color(sprite.modulate)
-	return Util.color_string("Gemstone @%s" % [ self._grid_pos], color)
+	var print_name: String = "Rubble" if item_type == ItemType.RUBBLE else "Gemstone"
+	return Util.color_string("%s @%s" % [print_name, self._grid_pos], color)

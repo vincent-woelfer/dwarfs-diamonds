@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://rjy3skkrbgma"]
 
+[ext_resource type="Script" uid="uid://d2am4rqpe00xe" path="res://src/objects/Dwarf.gd" id="1_0mwxv"]
 [ext_resource type="Texture2D" uid="uid://1ugg66bw4erc" path="res://assets/sprites/gradient.png" id="1_d170h"]
 [ext_resource type="SpriteFrames" uid="uid://1pxkf0jq8fyl" path="res://assets/sprites/dwarf_sprite_frames.tres" id="1_ms7vq"]
-[ext_resource type="Script" uid="uid://cmcygcrc8o3af" path="res://src/Dwarf.gd" id="1_po7l6"]
 [ext_resource type="Script" uid="uid://sfmxn54qwmtl" path="res://src/components/MiningComponent.gd" id="3_ms7vq"]
 [ext_resource type="Script" uid="uid://b56e6awnf6woo" path="res://src/components/ConstructionComponent.gd" id="5_56axy"]
 [ext_resource type="Script" uid="uid://12nby18asb05" path="res://src/components/MovementComponent.gd" id="5_o7n6f"]
@@ -11,7 +11,7 @@
 [ext_resource type="Script" uid="uid://c6ev22w02fxwg" path="res://src/components/ActionPointComponent.gd" id="9_0mwxv"]
 
 [node name="Dwarf" type="Node2D" unique_id=1095445124]
-script = ExtResource("1_po7l6")
+script = ExtResource("1_0mwxv")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=739565940]
 light_mask = 0
@@ -42,7 +42,6 @@ script = ExtResource("5_o7n6f")
 
 [node name="CarryComponent" type="Node2D" parent="." unique_id=935967982]
 script = ExtResource("7_2lrks")
-carry_capacity = 4.0
 metadata/_custom_type_script = "uid://ca0ir7bdht3kr"
 
 [node name="TaskQueueComponent" type="Node2D" parent="." unique_id=1669064102]

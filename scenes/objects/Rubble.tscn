@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://d2vaim21rg5dc"]
 
-[ext_resource type="Script" uid="uid://c7wsd7s4pb5n8" path="res://src/Rubble.gd" id="1_dy5u4"]
+[ext_resource type="Script" uid="uid://dvfuodfhfjb43" path="res://src/objects/Item.gd" id="1_be3li"]
 [ext_resource type="Texture2D" uid="uid://cr4mqv8fdinsj" path="res://assets/sprites/sack.png" id="2_dy5u4"]
 [ext_resource type="Script" uid="uid://byab8uhnbyngm" path="res://src/components/CarryableItemComponent.gd" id="4_cnnc0"]
 [ext_resource type="Script" uid="uid://12nby18asb05" path="res://src/components/MovementComponent.gd" id="5_ogmlh"]
 
 [node name="Rubble" type="Node2D" unique_id=1896315996]
-script = ExtResource("1_dy5u4")
+script = ExtResource("1_be3li")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=758708384]
 position = Vector2(0, -26)
