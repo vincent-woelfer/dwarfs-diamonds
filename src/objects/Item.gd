@@ -20,13 +20,13 @@ enum ItemType {
 @export var weight: float = 1.0
 @export var item_type: ItemType
 
+@export var on_landed_audio: String = ""
+
 # The pickup job associated with this item
 var pickup_job: Job = null
 
 # Further Config
 var light_energy_default: float = 0.25
-
-@export var on_landed_audio: String = ""
 
 
 # Spawn offset y must be negative to be placed above floor
@@ -34,7 +34,7 @@ func setup(grid_pos_: Vector2i, spawn_offset: Vector2 = Vector2.ZERO) -> void:
 	# Validation
 	assert(item_type in ItemType.values(), "Invalid item type %s" % [item_type])
 
-	super.setup(grid_pos_)
+	# super.setup(grid_pos_)
 
 	# Position
 	global_position = Global.level.get_cell(grid_pos).get_floor_point()

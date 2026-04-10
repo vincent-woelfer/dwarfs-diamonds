@@ -3,8 +3,8 @@ extends Node2D
 
 # SCENES
 var dwarf_scene := preload('res://scenes/Dwarf.tscn')
-var rubble_scene := preload('res://scenes/objects/Rubble.tscn')
-var gemstone_scene := preload('res://scenes/objects/Gemstone.tscn')
+var rubble_scene := load('res://scenes/objects/Rubble.tscn')
+var gemstone_scene := load('res://scenes/objects/Gemstone.tscn')
 
 # DATA
 var cells: Array[Array] = []
