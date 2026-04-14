@@ -11,15 +11,22 @@ enum ItemType {
 # Scene Components - Required
 @onready var sprite: Sprite2D = $Sprite
 @onready var movement_comp: MovementComponent = $MovementComponent
-@onready var carryable_item_comp: CarryableItemComponent = $CarryableItemComponent
 @onready var stacking_shape: CollisionShape2D = $StackingShape
 
 # Scene Components - Optional
 @onready var light: PointLight2D = $PointLight
 
-# Used to set CarryableItemComponent weight
+# Used to set Item weight
 @export var weight: float = 1.0
 @export var item_type: ItemType
+
+# Storage state
+var is_in_storage: bool = false
+var storage: AbstractStorage = null
+
+# Pick-up animation state
+var pick_up_animation_finished: bool = false
+var pick_up_animation_start_time: float = 0.0
 
 # Sounds
 @export var on_spawned_audio: AudioStream
@@ -32,6 +39,7 @@ var pickup_job: Job = null
 # Further Config
 var light_energy_default: float = 0.25
 
+
 # Spawn offset y must be negative to be placed above floor
 func setup(grid_pos_: Vector2i, spawn_offset: Vector2 = Vector2.ZERO) -> void:
 	# Validation
@@ -42,16 +50,14 @@ func setup(grid_pos_: Vector2i, spawn_offset: Vector2 = Vector2.ZERO) -> void:
 
 func _ready() -> void:
 	self.z_index = Enum.ZIndex.GEMSTONE if item_type == ItemType.GEMSTONE else Enum.ZIndex.RUBBLE
+	add_to_group(Global.GROUP_CARRYABLE_ITEMS)
+
 
 	# Setup MovementComponent
 	movement_comp.movement_stats.can_use_ladders = false
 	movement_comp.movement_stats.can_use_ladders_falling = false
 
 	movement_comp.set_parent_width(get_stacking_size().x)
-
-	# Setup CarryableItemComponent
-	carryable_item_comp.item_type = item_type
-	carryable_item_comp.weight = weight
 
 	# Gemstone color
 	var gem_color: Color = [Color.HOT_PINK, Color.CYAN, Color.YELLOW_GREEN].pick_random()
@@ -69,33 +75,39 @@ func _ready() -> void:
 	# SIGNALS
 	movement_comp.Signal_OnStartedFalling.connect(_on_started_falling)
 	movement_comp.Signal_OnLanded.connect(_on_landed)
-	carryable_item_comp.Signal_OnPickedUp.connect(movement_comp.on_picked_up)
-	carryable_item_comp.Signal_OnDropped.connect(movement_comp.on_dropped)
-	carryable_item_comp.Signal_OnPickedUp.connect(_on_picked_up)
-	carryable_item_comp.Signal_OnDropped.connect(_on_dropped)
 
 	######
 	_add_pickup_job()
-
 	Audio.play_at_pos_stream(on_spawned_audio, global_position)
-	
 	_spawn_animation()
 
 
-# Add/remove pickup job on pick up / drop
-func _on_picked_up() -> void:
+func on_picked_up(new_storage: AbstractStorage) -> void:
+	is_in_storage = true
+	storage = new_storage
+	
+	pick_up_animation_finished = false
+	pick_up_animation_start_time = Util.now()
+
 	Actions.archive_job(pickup_job, true)
 	pickup_job = null
 
 	# reduce light energy when carried
 	light.energy = 0.0
 
-func _on_dropped() -> void:
+	movement_comp.on_picked_up()
+
+func on_dropped() -> void:
+	is_in_storage = false
+	storage = null
+
 	_add_pickup_job()
 
 	# restore light energy when dropped
 	if light != null:
 		light.energy = light_energy_default
+
+	movement_comp.on_dropped()
 
 
 func _process(delta: float) -> void:
@@ -109,19 +121,21 @@ func _add_pickup_job() -> void:
 		return
 
 	pickup_job = Job.new(Job.Type.PICKUP, curr_cell)
-	pickup_job.carryable_item = carryable_item_comp
+	pickup_job.carryable_item = self
 	Global.level.job_manager.add_job(pickup_job)
 
-# used by CarryableItemComponent to check whether this rubble can be picked up
-func _can_be_picked_up() -> bool:
-	return not movement_comp.is_falling()
+func can_be_picked_up_right_now() -> bool:
+	if is_in_storage or movement_comp.is_falling():
+		return false
+
+	return true
 
 
 func get_stacking_size() -> Vector2:
 	return stacking_shape.shape.get_rect().size
 
 func _on_new_cell_entered(new_cell: Cell) -> void:
-	if new_cell == null or carryable_item_comp.is_in_storage:
+	if new_cell == null or is_in_storage:
 		return
 
 	if pickup_job != null:

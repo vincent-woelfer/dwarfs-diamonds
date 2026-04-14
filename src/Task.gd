@@ -57,7 +57,7 @@ var job: Job = null
 var building: BuildingBase = null
 
 # PICKUP
-var carryable_item: CarryableItemComponent = null
+var carryable_item: Item = null
 
 # ACTION_POINT
 var action_point: ActionPoint = null
@@ -118,7 +118,7 @@ static func create_construct_task(target_grid_pos_: Vector2i, building_: Buildin
 	task.building = building_
 	return task
 
-static func create_pickup_task(target_grid_pos_: Vector2i, carryable_item_: CarryableItemComponent) -> Task:
+static func create_pickup_task(target_grid_pos_: Vector2i, carryable_item_: Item) -> Task:
 	var task := Task.new(Task.Type.PICKUP)
 	task.target_grid_pos = target_grid_pos_
 	task.carryable_item = carryable_item_

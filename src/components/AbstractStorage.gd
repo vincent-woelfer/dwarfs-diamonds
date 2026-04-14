@@ -10,7 +10,7 @@ extends RefCounted
 @export var capacity_max_count: int = 10
 
 # internal
-var _curr_carried_items: Array[CarryableItemComponent] = []
+var _curr_carried_items: Array[Item] = []
 var _curr_total_weight: float = 0.0
 var _curr_total_count: int = 0
 
@@ -25,30 +25,30 @@ var _item_type_group_sizes: Dictionary[Item.ItemType, int]
 ###################################
 # Picks up all pickupable items in range until capacity is full, prioritizing the given items first.
 # Returns true if ALL priority items were picked up
-func pickup_all_in_range(carrier_pos: Vector2i, priority_items: Array[CarryableItemComponent]) -> bool:
-	var items: Array[CarryableItemComponent] = get_all_pickupable_items_in_range(carrier_pos)
-	var picked_up: Array[CarryableItemComponent] = []
+func pickup_all_in_range(carrier_pos: Vector2i, priority_items: Array[Item]) -> bool:
+	var items: Array[Item] = get_all_pickupable_items_in_range(carrier_pos)
+	var picked_up: Array[Item] = []
 
 	# Sort so that priority items come first
-	items.sort_custom(func(a: CarryableItemComponent, b: CarryableItemComponent) -> bool:
+	items.sort_custom(func(a: Item, b: Item) -> bool:
 		var a_prio: bool = priority_items.has(a)
 		var b_prio: bool = priority_items.has(b)
 		return a_prio and not b_prio
 	)
 
-	for item: CarryableItemComponent in items:
+	for item: Item in items:
 		if pickup(carrier_pos, item):
 			picked_up.append(item)
 
 	# Check if all priority items were picked up
-	for prio_item: CarryableItemComponent in priority_items:
+	for prio_item: Item in priority_items:
 		if not picked_up.has(prio_item):
 			return false
 
 	return true
 
 ## Actually picks up the item if possible, returns false otherwise
-func pickup(carrier_pos: Vector2i, item: CarryableItemComponent) -> bool:
+func pickup(carrier_pos: Vector2i, item: Item) -> bool:
 	if not can_pickup(carrier_pos, item):
 		return false
 
@@ -67,7 +67,7 @@ func pickup(carrier_pos: Vector2i, item: CarryableItemComponent) -> bool:
 ###################################
 # DROP
 ###################################
-func drop(item: CarryableItemComponent) -> CarryableItemComponent:
+func drop(item: Item) -> Item:
 	if item == null or not _curr_carried_items.has(item):
 		return null
 
@@ -83,11 +83,11 @@ func drop(item: CarryableItemComponent) -> CarryableItemComponent:
 	return item
 
 
-func drop_all() -> Array[CarryableItemComponent]:
+func drop_all() -> Array[Item]:
 	# Duplicate the array to allow modification during iteration
-	var dropped_items: Array[CarryableItemComponent] = []
+	var dropped_items: Array[Item] = []
 
-	for item: CarryableItemComponent in _curr_carried_items.duplicate():
+	for item: Item in _curr_carried_items.duplicate():
 		dropped_items.append(drop(item))
 
 	return dropped_items
@@ -96,7 +96,7 @@ func drop_all() -> Array[CarryableItemComponent]:
 ###################################
 # DELETE
 ###################################
-func delete(item: CarryableItemComponent) -> void:
+func delete(item: Item) -> void:
 	if item == null or not _curr_carried_items.has(item):
 		return
 
@@ -106,21 +106,20 @@ func delete(item: CarryableItemComponent) -> void:
 
 	_update_item_type_group_sizes()
 
-	# Delete parent (since item is a component, we assume the whole object should be deleted)
-	item.delete_self()
+	item.queue_free()
 
 
 ###################################
 # CAN CARRY / PICKUP CHECKS
 ###################################
 ## Can this carrier pick up the given item right now
-func can_pickup(carrier_pos: Vector2i, item: CarryableItemComponent) -> bool:
+func can_pickup(carrier_pos: Vector2i, item: Item) -> bool:
 	# Perform basic checks on item
 	if item == null or not item.can_be_picked_up_right_now() or not does_fit_into_capacity(item):
 		return false
 
 	# Check pickup range (currently same cell)
-	if item.parent_item.grid_pos != carrier_pos:
+	if item.grid_pos != carrier_pos:
 		return false
 
 	return true
@@ -128,7 +127,7 @@ func can_pickup(carrier_pos: Vector2i, item: CarryableItemComponent) -> bool:
 
 ## Can this carry component carry the given item at all (ignoring range etc)
 ## Used to filter jobs
-func does_fit_into_capacity(item: CarryableItemComponent) -> bool:
+func does_fit_into_capacity(item: Item) -> bool:
 	# Check capacity
 	if _curr_total_weight + item.weight > capacity_max_weight:
 		return false
@@ -158,7 +157,7 @@ func get_item_type_group_sizes() -> Dictionary[Item.ItemType, int]:
 	return _item_type_group_sizes
 
 
-func get_item_by_index(index: int) -> CarryableItemComponent:
+func get_item_by_index(index: int) -> Item:
 	if index < 0 or index >= _curr_carried_items.size():
 		return null
 	return _curr_carried_items[index]
@@ -166,11 +165,11 @@ func get_item_by_index(index: int) -> CarryableItemComponent:
 
 ## Returns all pickupable items in range (currently same cell)
 ## The weight is only checked for each item alone, this doesnt mean all items can be picked up together
-func get_all_pickupable_items_in_range(carrier_pos: Vector2i) -> Array[CarryableItemComponent]:
-	var items: Array[CarryableItemComponent] = []
-	for item: CarryableItemComponent in Global.get_group(Global.GROUP_CARRYABLE_ITEMS):
+func get_all_pickupable_items_in_range(carrier_pos: Vector2i) -> Array[Item]:
+	var items: Array[Item] = []
+	for item: Item in Global.get_group(Global.GROUP_CARRYABLE_ITEMS):
 		# For performance, first check grid pos
-		if item.parent_item.grid_pos != carrier_pos:
+		if item.grid_pos != carrier_pos:
 			continue
 		if can_pickup(carrier_pos, item):
 			items.append(item)
@@ -179,14 +178,14 @@ func get_all_pickupable_items_in_range(carrier_pos: Vector2i) -> Array[Carryable
 
 
 func is_carrying_item_of_type(item_type: Item.ItemType) -> bool:
-	for item: CarryableItemComponent in _curr_carried_items:
+	for item: Item in _curr_carried_items:
 		if item.item_type == item_type:
 			return true
 	return false
 
 
-func get_items_of_type(item_type: Item.ItemType) -> Array[CarryableItemComponent]:
-	return _curr_carried_items.filter(func(item: CarryableItemComponent) -> bool: return item.item_type == item_type)
+func get_items_of_type(item_type: Item.ItemType) -> Array[Item]:
+	return _curr_carried_items.filter(func(item: Item) -> bool: return item.item_type == item_type)
 
 ########################################################################################################################
 # PRIVATE METHODS
@@ -194,7 +193,7 @@ func get_items_of_type(item_type: Item.ItemType) -> Array[CarryableItemComponent
 ## Internal helper to efficiently keep track of items per type, used for placement logic
 func _update_item_type_group_sizes() -> void:
 	_item_type_group_sizes = {}
-	for item: CarryableItemComponent in _curr_carried_items:
+	for item: Item in _curr_carried_items:
 		if not _item_type_group_sizes.has(item.item_type):
 			_item_type_group_sizes[item.item_type] = 0
 		_item_type_group_sizes[item.item_type] += 1

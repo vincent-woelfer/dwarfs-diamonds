@@ -72,7 +72,7 @@ func abort_path() -> void:
 		sm.transition_to(State.NOT_MOVING)
 
 
-# used by CarryableItemComponent when picked up / on_dropped
+# used by Item when picked up / on_dropped
 func on_picked_up() -> void:
 	sm.transition_to(State.CARRIED)
 func on_dropped() -> void:

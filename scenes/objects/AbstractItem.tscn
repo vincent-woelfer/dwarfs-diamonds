@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://dvfuodfhfjb43" path="res://src/objects/Item.gd" id="1_y15ht"]
 [ext_resource type="Script" uid="uid://12nby18asb05" path="res://src/components/MovementComponent.gd" id="4_cfd8v"]
-[ext_resource type="Script" uid="uid://byab8uhnbyngm" path="res://src/components/CarryableItemComponent.gd" id="5_0pm2f"]
 
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_dqtck"]
 load_path = "res://.godot/imported/MousePointerBuildingDestroy.svg-b103a0e2fe9f39262efd41b261d26703.ctex"
@@ -20,9 +19,6 @@ texture = SubResource("CompressedTexture2D_dqtck")
 
 [node name="MovementComponent" type="Node2D" parent="." unique_id=1711957421]
 script = ExtResource("4_cfd8v")
-
-[node name="CarryableItemComponent" type="Node2D" parent="." unique_id=1879016142]
-script = ExtResource("5_0pm2f")
 
 [node name="StackingShape" type="CollisionShape2D" parent="." unique_id=1208221848]
 position = Vector2(0, -13)

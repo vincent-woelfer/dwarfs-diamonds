@@ -17,9 +17,9 @@ position = Vector2(0, -26)
 scale = Vector2(0.08, 0.08)
 texture = ExtResource("2_dy5u4")
 
-[node name="StackingShape" parent="." index="3" unique_id=1208221848]
+[node name="StackingShape" parent="." index="2" unique_id=1208221848]
 position = Vector2(0, -26)
 shape = SubResource("RectangleShape2D_be3li")
 
-[node name="PointLight" parent="." index="4" unique_id=1069997814]
+[node name="PointLight" parent="." index="3" unique_id=1069997814]
 visible = false

@@ -19,7 +19,7 @@ func _update_item_placement(delta: float) -> void:
 	var idx_by_type: Dictionary[Item.ItemType, int] = {}
 
 	for i in _storage.get_carried_total_count():
-		var item: CarryableItemComponent = _storage.get_item_by_index(i)
+		var item: Item = _storage.get_item_by_index(i)
 
 		# Idx by type and group idx
 		if not idx_by_type.has(item.item_type):
@@ -32,19 +32,19 @@ func _update_item_placement(delta: float) -> void:
 
 		# Lerp if animation not finished, snap once securely attached
 		if item.pick_up_animation_finished:
-			item.parent_item.global_position = target_pos
+			item.global_position = target_pos
 		else:
 			var max_pickup_time: float = 0.5 # seconds
 			var time_since_pickup: float = Util.now() - item.pick_up_animation_start_time
 			var animation_progress: float = clamp(time_since_pickup / max_pickup_time, 0.0, 1.0)
 
 			# Move item
-			item.parent_item.global_position = item.parent_item.global_position.lerp(target_pos, animation_progress)
+			item.global_position = item.global_position.lerp(target_pos, animation_progress)
 			if animation_progress >= 1.0:
 				item.pick_up_animation_finished = true
 		
 		# Also update item-parent grid pos to match carrier - even though this is probaly not required in most cases.
-		item.parent_item.update_grid_pos(parent.grid_pos)
+		item.update_grid_pos(parent.grid_pos)
 	
 
 ## Returns global position
@@ -82,25 +82,25 @@ func _physics_process(delta: float) -> void:
 ########################################################################################################################
 # TODO DROP/TRansfer to other container/storage/disposal
 
-func pickup_all_in_range(priority_items: Array[CarryableItemComponent]) -> bool:
+func pickup_all_in_range(priority_items: Array[Item]) -> bool:
 	return _storage.pickup_all_in_range(parent.grid_pos, priority_items)
 
-func pickup(item: CarryableItemComponent) -> bool:
+func pickup(item: Item) -> bool:
 	return _storage.pickup(parent.grid_pos, item)
 
-func drop(item: CarryableItemComponent) -> void:
+func drop(item: Item) -> void:
 	_storage.drop(item)
 
 func drop_all() -> void:
 	_storage.drop_all()
 
-func delete(item: CarryableItemComponent) -> void:
+func delete(item: Item) -> void:
 	_storage.delete(item)
 
-func can_pickup(item: CarryableItemComponent) -> bool:
+func can_pickup(item: Item) -> bool:
 	return _storage.can_pickup(parent.grid_pos, item)
 
-func can_carry_ignoring_position(item: CarryableItemComponent) -> bool:
+func can_carry_ignoring_position(item: Item) -> bool:
 	return _storage.does_fit_into_capacity(item)
 
 func is_carrying_anything() -> bool:
@@ -112,11 +112,11 @@ func get_carried_total_weight() -> float:
 func get_carried_weight_percentage() -> float:
 	return _storage.get_carried_weight_percentage()
 
-func get_all_pickupable_items_in_range() -> Array[CarryableItemComponent]:
+func get_all_pickupable_items_in_range() -> Array[Item]:
 	return _storage.get_all_pickupable_items_in_range(parent.grid_pos)
 
 func is_carrying_item_of_type(item_type: Item.ItemType) -> bool:
 	return _storage.is_carrying_item_of_type(item_type)
 
-func get_items_of_type(item_type: Item.ItemType) -> Array[CarryableItemComponent]:
+func get_items_of_type(item_type: Item.ItemType) -> Array[Item]:
 	return _storage.get_items_of_type(item_type)

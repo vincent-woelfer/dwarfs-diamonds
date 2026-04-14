@@ -43,7 +43,7 @@ var success: bool
 ###################################
 # For PICKUP jobs
 ###################################
-var carryable_item: CarryableItemComponent = null
+var carryable_item: Item = null
 
 ###################################
 # For BUILD jobs
