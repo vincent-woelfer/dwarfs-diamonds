@@ -9,18 +9,22 @@ enum ItemType {
 
 # THIS IS A SCENE
 # Scene Components - Required
-@onready var sprite: Sprite2D = $Sprite2D
+@onready var sprite: Sprite2D = $Sprite
 @onready var movement_comp: MovementComponent = $MovementComponent
 @onready var carryable_item_comp: CarryableItemComponent = $CarryableItemComponent
+@onready var stacking_shape: CollisionShape2D = $StackingShape
 
 # Scene Components - Optional
-@onready var light: PointLight2D = $PointLight2D
+@onready var light: PointLight2D = $PointLight
 
 # Used to set CarryableItemComponent weight
 @export var weight: float = 1.0
 @export var item_type: ItemType
 
-@export var on_landed_audio: String = ""
+# Sounds
+@export var on_spawned_audio: AudioStream
+@export var on_landed_audio: AudioStream
+
 
 # The pickup job associated with this item
 var pickup_job: Job = null
@@ -28,24 +32,22 @@ var pickup_job: Job = null
 # Further Config
 var light_energy_default: float = 0.25
 
-
 # Spawn offset y must be negative to be placed above floor
 func setup(grid_pos_: Vector2i, spawn_offset: Vector2 = Vector2.ZERO) -> void:
 	# Validation
 	assert(item_type in ItemType.values(), "Invalid item type %s" % [item_type])
+	super.setup(grid_pos_)
+	global_position = Global.level.get_cell(grid_pos).get_floor_point() + spawn_offset
 
-	# super.setup(grid_pos_)
 
-	# Position
-	global_position = Global.level.get_cell(grid_pos).get_floor_point()
-	global_position += spawn_offset
-
-	# General setup
+func _ready() -> void:
 	self.z_index = Enum.ZIndex.GEMSTONE if item_type == ItemType.GEMSTONE else Enum.ZIndex.RUBBLE
 
 	# Setup MovementComponent
 	movement_comp.movement_stats.can_use_ladders = false
 	movement_comp.movement_stats.can_use_ladders_falling = false
+
+	movement_comp.set_parent_width(get_stacking_size().x)
 
 	# Setup CarryableItemComponent
 	carryable_item_comp.item_type = item_type
@@ -72,8 +74,12 @@ func setup(grid_pos_: Vector2i, spawn_offset: Vector2 = Vector2.ZERO) -> void:
 	carryable_item_comp.Signal_OnPickedUp.connect(_on_picked_up)
 	carryable_item_comp.Signal_OnDropped.connect(_on_dropped)
 
-func _ready() -> void:
+	######
 	_add_pickup_job()
+
+	Audio.play_at_pos_stream(on_spawned_audio, global_position)
+	
+	_spawn_animation()
 
 
 # Add/remove pickup job on pick up / drop
@@ -111,6 +117,9 @@ func _can_be_picked_up() -> bool:
 	return not movement_comp.is_falling()
 
 
+func get_stacking_size() -> Vector2:
+	return stacking_shape.shape.get_rect().size
+
 func _on_new_cell_entered(new_cell: Cell) -> void:
 	if new_cell == null or carryable_item_comp.is_in_storage:
 		return
@@ -129,11 +138,24 @@ func _on_landed(fall_height_cells: int) -> void:
 	_on_new_cell_entered(curr_cell)
 
 	if fall_height_cells >= 0:
-		if on_landed_audio != "":
-			Audio.play_at_pos(on_landed_audio, global_position)
+		Audio.play_at_pos_stream(on_landed_audio, global_position)
 
 
 func _to_string() -> String:
 	var color := Colors.to_print_color(sprite.modulate)
 	var print_name: String = "Rubble" if item_type == ItemType.RUBBLE else "Gemstone"
 	return Util.color_string("%s @%s" % [print_name, self._grid_pos], color)
+
+
+func _spawn_animation() -> void:
+	# Start scaled to zero and bright white
+	scale = Vector2.ZERO
+	modulate = Color(8.0, 8.0, 8.0, 1.0) # HDR white flash
+
+	var tween: Tween = create_tween().set_parallel(true)
+
+	# Plop: scale from 0 to 1 with slight overshoot
+	tween.tween_property(self , "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	# White flash: fade modulate back to normal color
+	tween.tween_property(self , "modulate", Color.WHITE, 0.25).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)

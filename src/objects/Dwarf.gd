@@ -636,7 +636,7 @@ func _perform_stationary_task(task: Task) -> void:
 	
 	### PICKUP TASK ###
 	elif task.type == Task.Type.PICKUP:
-		print_rich("%s reached %s and starts picking up %s" % [ self , task.target_grid_pos, task.carryable_item.parent])
+		print_rich("%s reached %s and starts picking up %s" % [ self , task.target_grid_pos, task.carryable_item.parent_item])
 
 		# No pickup-state, simply try to pick up item. Success -> goes into idle directly, failure -> abandon job.
 		if not carry_comp.pickup_all_in_range([task.carryable_item]):
@@ -644,7 +644,7 @@ func _perform_stationary_task(task: Task) -> void:
 			_abort_tasks_enter_idle()
 			return
 
-		print_rich("%s successfully picked up %s, finishing task" % [ self , task.carryable_item.parent])
+		print_rich("%s successfully picked up %s, finishing task" % [ self , task.carryable_item.parent_item])
 		_finish_task_and_start_next(Task.Type.PICKUP)
 		return
 

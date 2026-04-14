@@ -1,20 +1,25 @@
-[gd_scene format=3 uid="uid://d2vaim21rg5dc"]
+[gd_scene format=3 uid="uid://bqes8a8wavves"]
 
-[ext_resource type="Script" uid="uid://dvfuodfhfjb43" path="res://src/objects/Item.gd" id="1_be3li"]
+[ext_resource type="PackedScene" uid="uid://dc7r7h43ryu63" path="res://scenes/objects/AbstractItem.tscn" id="1_yeild"]
+[ext_resource type="AudioStream" uid="uid://cymcg1erv8bt3" path="res://assets/audio/spawn_plop.mp3" id="2_71jnj"]
 [ext_resource type="Texture2D" uid="uid://cr4mqv8fdinsj" path="res://assets/sprites/sack.png" id="2_dy5u4"]
-[ext_resource type="Script" uid="uid://byab8uhnbyngm" path="res://src/components/CarryableItemComponent.gd" id="4_cnnc0"]
-[ext_resource type="Script" uid="uid://12nby18asb05" path="res://src/components/MovementComponent.gd" id="5_ogmlh"]
+[ext_resource type="AudioStream" uid="uid://blv2wr7exr7eq" path="res://assets/audio/rubble_impact.wav" id="3_be3li"]
 
-[node name="Rubble" type="Node2D" unique_id=1896315996]
-script = ExtResource("1_be3li")
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_be3li"]
+size = Vector2(54, 54)
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=758708384]
+[node name="AbstractItem" unique_id=1896315996 instance=ExtResource("1_yeild")]
+on_spawned_audio = ExtResource("2_71jnj")
+on_landed_audio = ExtResource("3_be3li")
+
+[node name="Sprite" parent="." index="0" unique_id=758708384]
 position = Vector2(0, -26)
 scale = Vector2(0.08, 0.08)
 texture = ExtResource("2_dy5u4")
 
-[node name="MovementComponent" type="Node2D" parent="." unique_id=1711957421]
-script = ExtResource("5_ogmlh")
+[node name="StackingShape" parent="." index="3" unique_id=1208221848]
+position = Vector2(0, -26)
+shape = SubResource("RectangleShape2D_be3li")
 
-[node name="CarryableItemComponent" type="Node2D" parent="." unique_id=1879016142]
-script = ExtResource("4_cnnc0")
+[node name="PointLight" parent="." index="4" unique_id=1069997814]
+visible = false

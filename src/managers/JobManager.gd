@@ -32,7 +32,7 @@ func add_job(job: Job) -> void:
 			assert(job.carryable_item != null)
 			for existing_job in _jobs:
 				if existing_job.job_type == Job.Type.PICKUP and existing_job.carryable_item == job.carryable_item:
-					assert(false, "JobManager: Not adding duplicate pickup job for object %s" % job.carryable_item.parent)
+					assert(false, "JobManager: Not adding duplicate pickup job for object %s" % job.carryable_item.parent_item)
 					return
 	
 

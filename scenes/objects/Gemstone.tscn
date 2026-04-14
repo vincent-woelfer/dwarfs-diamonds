@@ -1,27 +1,32 @@
 [gd_scene format=3 uid="uid://dt5kqlg5jmdr8"]
 
-[ext_resource type="Script" uid="uid://dvfuodfhfjb43" path="res://src/objects/Item.gd" id="1_e03ft"]
-[ext_resource type="Texture2D" uid="uid://cy35sr548440v" path="res://assets/sprites/gemstone_1.png" id="2_268gt"]
-[ext_resource type="Texture2D" uid="uid://ivritkqyttia" path="res://assets/sprites/gradient_light_flares.png" id="2_e03ft"]
-[ext_resource type="Script" uid="uid://12nby18asb05" path="res://src/components/MovementComponent.gd" id="3_eodmy"]
-[ext_resource type="Script" uid="uid://byab8uhnbyngm" path="res://src/components/CarryableItemComponent.gd" id="4_y6d6v"]
+[ext_resource type="PackedScene" uid="uid://dc7r7h43ryu63" path="res://scenes/objects/AbstractItem.tscn" id="1_k2h34"]
+[ext_resource type="AudioStream" uid="uid://cymcg1erv8bt3" path="res://assets/audio/spawn_plop.mp3" id="2_ty5o6"]
+[ext_resource type="AudioStream" uid="uid://po657cp7mruf" path="res://assets/audio/gemstone_drop.wav" id="3_268gt"]
 
-[node name="Gemstone" type="Node2D" unique_id=1896315996]
-script = ExtResource("1_e03ft")
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_k2h34"]
+load_path = "res://.godot/imported/gemstone_1.png-7e4ea598f092dbb99e1cf0ebfe202fe8.ctex"
 
-[node name="PointLight2D" type="PointLight2D" parent="." unique_id=1069997814]
-position = Vector2(0, -14)
-shadow_enabled = true
-texture = ExtResource("2_e03ft")
-texture_scale = 0.4
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ty5o6"]
+size = Vector2(30, 26)
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=758708384]
+[sub_resource type="CompressedTexture2D" id="CompressedTexture2D_aj0ih"]
+load_path = "res://.godot/imported/gradient_light_flares.png-3b95c20205bf3fddcaa6796d3ceae588.ctex"
+
+[node name="AbstractItem" unique_id=1896315996 instance=ExtResource("1_k2h34")]
+weight = 0.2
+item_type = 1
+on_spawned_audio = ExtResource("2_ty5o6")
+on_landed_audio = ExtResource("3_268gt")
+
+[node name="Sprite" parent="." index="0" unique_id=758708384]
 position = Vector2(0, -14)
 scale = Vector2(0.02, 0.02)
-texture = ExtResource("2_268gt")
+texture = SubResource("CompressedTexture2D_k2h34")
 
-[node name="MovementComponent" type="Node2D" parent="." unique_id=1711957421]
-script = ExtResource("3_eodmy")
+[node name="StackingShape" parent="." index="3" unique_id=1208221848]
+shape = SubResource("RectangleShape2D_ty5o6")
 
-[node name="CarryableItemComponent" type="Node2D" parent="." unique_id=1879016142]
-script = ExtResource("4_y6d6v")
+[node name="PointLight" parent="." index="4" unique_id=1069997814]
+position = Vector2(0, -13)
+texture = SubResource("CompressedTexture2D_aj0ih")

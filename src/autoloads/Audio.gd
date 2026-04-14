@@ -39,15 +39,41 @@ static var sounds_volume_db: Dictionary[String, float] = {
 # General volume adjustment in dB applied to all sounds
 static var general_sounds_volume_db: float = 5.0
 
+########################################################################################################################
+# PUBLIC API - Utility
+########################################################################################################################
+func get_audio_stream(audio_name: String) -> AudioStream:
+	if audio_name in sounds:
+		return sounds[audio_name]
+
+	push_error("AudioManager: No sound found with name '%s'" % audio_name)
+	return null
+
 
 ########################################################################################################################
 # PUBLIC API - Positional
 ########################################################################################################################
+func play_at_pos_stream(audio_stream: AudioStream, pos: Vector2) -> AudioStreamPlayer2D:
+	return play_at_pos_with_pitch_stream(audio_stream, pos, 1.0)
+
+func play_at_pos_with_pitch_stream(audio_stream: AudioStream, pos: Vector2, pitch: float) -> AudioStreamPlayer2D:
+	if audio_stream == null:
+		return
+
+	var player := _get_free_player()
+	player.stream = audio_stream
+	player.global_position = pos
+	player.pitch_scale = pitch
+	player.volume_db = _get_volume_db()
+	player.play()
+
+	return player
+
 func play_at_pos(audio_name: String, pos: Vector2) -> AudioStreamPlayer2D:
 	return play_at_pos_with_pitch(audio_name, pos, 1.0)
 
 func play_at_pos_with_pitch(audio_name: String, pos: Vector2, pitch: float) -> AudioStreamPlayer2D:
-	var stream := _get_audio_stream(audio_name)
+	var stream := get_audio_stream(audio_name)
 	if stream == null:
 		return
 
@@ -60,13 +86,11 @@ func play_at_pos_with_pitch(audio_name: String, pos: Vector2, pitch: float) -> A
 
 	return player
 
-
 func stop_player(player: AudioStreamPlayer2D) -> void:
 	if player == null or player not in _player_pool:
 		return
 
 	player.stop()
-
 
 func update_player_position(player: AudioStreamPlayer2D, new_pos: Vector2) -> void:
 	if player == null or player not in _player_pool:
@@ -78,11 +102,25 @@ func update_player_position(player: AudioStreamPlayer2D, new_pos: Vector2) -> vo
 ########################################################################################################################
 # PUBLIC API - Global
 ########################################################################################################################
+func play_global_stream(audio_stream: AudioStream) -> AudioStreamPlayer:
+	return play_global_with_pitch_stream(audio_stream, 1.0)
+
+func play_global_with_pitch_stream(audio_stream: AudioStream, pitch: float) -> AudioStreamPlayer:
+	if audio_stream == null:
+		return
+		
+	var player := _get_free_global_player()
+	player.stream = audio_stream
+	player.pitch_scale = pitch
+	player.volume_db = _get_volume_db()
+	player.play()
+	return player
+
 func play_global(audio_name: String) -> AudioStreamPlayer:
 	return play_global_with_pitch(audio_name, 1.0)
 
 func play_global_with_pitch(audio_name: String, pitch: float) -> AudioStreamPlayer:
-	var stream := _get_audio_stream(audio_name)
+	var stream := get_audio_stream(audio_name)
 	if stream == null:
 		return null
 
@@ -118,14 +156,6 @@ func _ready() -> void:
 	add_child(Util.timer(1.0, _cleanup_idle_player_pools))
 
 
-func _get_audio_stream(audio_name: String) -> AudioStream:
-	if audio_name in sounds:
-		return sounds[audio_name]
-
-	push_error("AudioManager: No sound found with name '%s'" % audio_name)
-	return null
-
-
 func _get_free_player() -> AudioStreamPlayer2D:
 	# Return idle player or create a new one
 	for p in _player_pool:
@@ -153,7 +183,7 @@ func _create_new_global_player() -> AudioStreamPlayer:
 	return p
 
 
-func _get_volume_db(audio_name: String) -> float:
+func _get_volume_db(audio_name: String = "") -> float:
 	return general_sounds_volume_db + sounds_volume_db.get(audio_name, 0.0)
 
 

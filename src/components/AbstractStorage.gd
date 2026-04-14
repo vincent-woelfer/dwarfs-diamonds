@@ -120,7 +120,7 @@ func can_pickup(carrier_pos: Vector2i, item: CarryableItemComponent) -> bool:
 		return false
 
 	# Check pickup range (currently same cell)
-	if item.parent.grid_pos != carrier_pos:
+	if item.parent_item.grid_pos != carrier_pos:
 		return false
 
 	return true
@@ -170,7 +170,7 @@ func get_all_pickupable_items_in_range(carrier_pos: Vector2i) -> Array[Carryable
 	var items: Array[CarryableItemComponent] = []
 	for item: CarryableItemComponent in Global.get_group(Global.GROUP_CARRYABLE_ITEMS):
 		# For performance, first check grid pos
-		if item.parent.grid_pos != carrier_pos:
+		if item.parent_item.grid_pos != carrier_pos:
 			continue
 		if can_pickup(carrier_pos, item):
 			items.append(item)

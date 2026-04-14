@@ -26,7 +26,7 @@ func _update_item_placement(delta: float) -> void:
 		idx_by_type[item.item_type] += 1
 		var group_idx: int = item.item_type as int
 
-		var target_pos: Vector2 = _get_carried_item_position(item.item_type, idx_in_group, group_idx)
+		var target_pos: Vector2 = _get_carried_item_position(item.parent_item, idx_in_group, group_idx)
 
 		# Lerp if animation not finished, snap once securely attached
 		if item.pick_up_animation_finished:
@@ -37,7 +37,7 @@ func _update_item_placement(delta: float) -> void:
 			var animation_progress: float = clamp(time_since_pickup / max_pickup_time, 0.0, 1.0)
 
 			# Move item
-			item.move_parent(item.parent.global_position.lerp(target_pos, animation_progress))
+			item.move_parent(item.parent_item.global_position.lerp(target_pos, animation_progress))
 			if animation_progress >= 1.0:
 				item.pick_up_animation_finished = true
 		
@@ -47,7 +47,7 @@ func _update_item_placement(delta: float) -> void:
 
 ## Returns global position
 ## Assumes all objects have their origin at center bottom. -Y is up.
-func _get_carried_item_position(item_type: Item.ItemType, index_in_group: int, group_index: int) -> Vector2:
+func _get_carried_item_position(item: Item, index_in_group: int, group_index: int) -> Vector2:
 	# Flip horizontal offset based on look dir if available
 	var flip_horizontal: float = -1.0 if _get_parent_look_dir().x < 0 else 1.0
 
@@ -61,9 +61,9 @@ func _get_carried_item_position(item_type: Item.ItemType, index_in_group: int, g
 	var group_offset := Vector2(offset_for_groups[group_index] * flip_horizontal, 0.0)
 
 	# Item offset - not flipped, just stacks up vertically per item in the same group
-	var offset_y_per_item := Vector2(0.0, -Global.CELL_SIZE * 0.15)
+	# var offset_y_per_item := Vector2(0.0, -Global.CELL_SIZE * 0.15)
 
-	return base_pos + group_offset + index_in_group * offset_y_per_item
+	return base_pos + group_offset + index_in_group * item.get_stacking_size()
 
 
 ########################################################################################################################

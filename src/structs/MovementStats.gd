@@ -16,7 +16,7 @@ var speed_climbing_wall_down: float = 150.0
 
 # Falling Speeds (pixels per second)
 const falling_acceleration: float = 600.0 # pixels per second squared
-const falling_starting_speed: float = 220.0
+const falling_starting_speed: float = 180.0
 const falling_max_speed: float = 2000.0
 
 
