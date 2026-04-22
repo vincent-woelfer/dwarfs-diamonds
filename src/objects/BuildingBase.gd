@@ -24,7 +24,7 @@ var action_points: Array[ActionPoint] = []
 var building_color: Color
 
 
-@onready var building_sprite: Sprite2D = $Sprite2D
+@onready var building_visual_base: BuildingVisualBase = $BuildingVisualBase
 
 
 ########################################################################################################################
@@ -62,19 +62,19 @@ func _setup_action_points() -> void:
 
 
 func _ready() -> void:
-	if Engine.is_editor_hint():
-		return
+	# Only for Game
+	if not Engine.is_editor_hint():
+		# Add build job
+		build_job = Job.new(Job.Type.BUILD, curr_cell)
+		build_job.building = self
+		Global.level.job_manager.add_job(build_job)
 		
-	# Add build job
-	build_job = Job.new(Job.Type.BUILD, curr_cell)
-	build_job.building = self
-	Global.level.job_manager.add_job(build_job)
+		# Signals
+		EventBus.Signal_CellDestroyed.connect(_check_solid_ground)
 
-	# Signals
-	EventBus.Signal_CellDestroyed.connect(_check_solid_ground)
+	# For Editor and Game
+	# building_visual_base.
 
-	# Sprite
-	building_sprite.texture = building_data.get_building_texture(0.0)
 
 ########################################################################################################################
 # Public API
@@ -86,10 +86,7 @@ func update_build_process(building_speed_with_delta: float) -> void:
 	var building_with_duration := building_speed_with_delta / building_data.build_time
 	build_process = clamp(build_process + building_with_duration, 0.0, 1.0)
 
-	# Update texture
-	var new_texture := building_data.get_building_texture(build_process)
-	if new_texture != building_sprite.texture:
-		building_sprite.texture = new_texture
+	building_visual_base.update_building_progress(build_process)
 
 	if build_process >= 1.0:
 		_complete_construction()

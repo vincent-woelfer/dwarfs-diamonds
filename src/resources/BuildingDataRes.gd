@@ -36,13 +36,6 @@ var build_time: float = 1.0
 
 
 ########################################################################################################################
-# Visuals
-########################################################################################################################
-@export var final_texture: Texture2D
-@export var construction_textures: Array[Texture2D] = []
-
-
-########################################################################################################################
 # Grid Patterns
 ########################################################################################################################
 @export_group("Grid Patterns")
@@ -180,16 +173,6 @@ func name() -> String:
 	return BUILDING_TYPE_NAMES.get(type, "Unknown")
 
 
-func get_building_texture(construction_progress: float) -> Texture2D:
-	construction_progress = clampf(construction_progress, 0.0, 1.0)
-	var count: int = construction_textures.size()
-
-	if construction_progress >= 1.0 or count == 0:
-		return final_texture
-
-	var index: int = mini(int(floori(construction_progress * count)), count - 1)
-	return construction_textures[index]	
-
 ########################################################################################################################
 # Scene Instantiation
 ########################################################################################################################
@@ -231,9 +214,6 @@ func instantiate_building_data(grid_pos: Vector2i) -> BuildingDataRes:
 			instance.set(prop_name, GridPatternRes.init_from_pattern(pattern, grid_pos))
 
 	# TODO remove instancing completely, building data is static and does not change. Rework pattern instantiation
-
-	instance.final_texture = self.final_texture.duplicate()
-	instance.construction_textures = self.construction_textures.duplicate()
 
 	return instance
 
