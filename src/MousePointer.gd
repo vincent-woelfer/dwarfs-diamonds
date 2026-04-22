@@ -138,21 +138,21 @@ func _actions_mode_change() -> bool:
 
 	# PLACE BUILDINGS
 	elif Input.is_action_just_pressed("mouse_place_building_ladder"):
-		sm.transition_to(State.BUILDING_PLACEMENT, BuildingManager.ladder_building_data)
+		sm.transition_to(State.BUILDING_PLACEMENT, Util.get_building_data(Enum.BuildingType.LADDER))
 		return true
 
 	elif Input.is_action_just_pressed("mouse_place_building_outpost"):
-		sm.transition_to(State.BUILDING_PLACEMENT, BuildingManager.outpost_building_data)
+		sm.transition_to(State.BUILDING_PLACEMENT, Util.get_building_data(Enum.BuildingType.OUTPOST))
 		return true
 
 	elif Input.is_action_just_pressed("mouse_place_platform"):
-		if building_preview.building_data == BuildingManager.platform_bridge_building_data:
-			sm.transition_to(State.BUILDING_PLACEMENT, BuildingManager.platform_blocking_building_data)
-		elif building_preview.building_data == BuildingManager.platform_blocking_building_data:
-			sm.transition_to(State.BUILDING_PLACEMENT, BuildingManager.platform_bridge_building_data)
+		if building_preview.building_data.type == Enum.BuildingType.PLATFORM_BRIDGE:
+			sm.transition_to(State.BUILDING_PLACEMENT, Util.get_building_data(Enum.BuildingType.PLATFORM_BLOCKING))
+		elif building_preview.building_data.type == Enum.BuildingType.PLATFORM_BLOCKING:
+			sm.transition_to(State.BUILDING_PLACEMENT, Util.get_building_data(Enum.BuildingType.PLATFORM_BRIDGE))
 		else:
 			# Default
-			sm.transition_to(State.BUILDING_PLACEMENT, BuildingManager.platform_blocking_building_data)
+			sm.transition_to(State.BUILDING_PLACEMENT, Util.get_building_data(Enum.BuildingType.PLATFORM_BLOCKING))
 
 		return true
 

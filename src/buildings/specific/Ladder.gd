@@ -1,6 +1,6 @@
-@tool # because BuildingBase is @tool
+@tool # because Building is @tool
 class_name Ladder
-extends BuildingBase
+extends Building
 
 
 ## Ladders cant be placed "in the sky" -> under ground or adjacent to at least one solid ground cell

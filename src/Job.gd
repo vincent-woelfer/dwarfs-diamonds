@@ -48,7 +48,7 @@ var carryable_item: Item = null
 ###################################
 # For BUILD jobs
 ###################################
-var building: BuildingBase = null
+var building: Building = null
 
 
 ########################################################################################################################
@@ -84,7 +84,7 @@ func calculate_capacity() -> int:
 		Job.Type.BUILD:
 			# Only allow multiple dwarfs for big buildings
 			const big_building_build_time_threshold := 3.0 # seconds
-			if building.building_data.build_time >= big_building_build_time_threshold and building.build_process == 0.0 and workable_from_poses.size() >= 2:
+			if building.building_data.build_time >= big_building_build_time_threshold and building.build_progress == 0.0 and workable_from_poses.size() >= 2:
 				return 2
 			return 1
 
@@ -164,7 +164,7 @@ func update_workable_from_cells() -> void:
 			workable_from_poses.append(n_cell.grid_pos)
 
 		# For ladders, only allow building from outside center cell if it isnt possible from there.
-		if building.building_data.type == BuildingDataRes.Type.LADDER:
+		if building.building_data.type == Enum.BuildingType.LADDER:
 			if building.grid_pos in workable_from_poses:
 				workable_from_poses.clear()
 				workable_from_poses.append(building.grid_pos)
@@ -207,7 +207,7 @@ func estimate_remaining_time() -> float:
 			for dwarf in assigned_dwarfs:
 				# If at least one dwarf is already building -> use its speed
 				if dwarf.sm.state == Dwarf.State.BUILDING:
-					var remaining_process: float = 1.0 - building.build_process
+					var remaining_process: float = 1.0 - building.build_progress
 					var time := remaining_process / dwarf.construction_comp.building_speed
 					remaining_time = min(remaining_time, time)
 

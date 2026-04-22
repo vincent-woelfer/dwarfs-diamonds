@@ -1,27 +1,17 @@
 class_name BuildingManager
 extends Node2D
 
-var buildings: Array[BuildingBase] = []
-
+var buildings: Array[Building] = []
 var action_points: Array[ActionPoint] = []
-
-########################################################################################################################
-# ALL BUILDING DATA PRELOADS
-########################################################################################################################
-static var ladder_building_data: BuildingDataRes = preload("res://scenes/buildings/LadderBuildingData.tres") as BuildingDataRes
-static var outpost_building_data: BuildingDataRes = preload("res://scenes/buildings/OutpostBuildingData.tres") as BuildingDataRes
-static var platform_blocking_building_data: BuildingDataRes = preload("res://scenes/buildings/PlatformBlockingBuildingData.tres") as BuildingDataRes
-static var platform_bridge_building_data: BuildingDataRes = preload("res://scenes/buildings/PlatformBridgeBuildingData.tres") as BuildingDataRes
 
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################
-
 ###################################
 # REGISTRATION
 ###################################
-## Called by BuildingBase to register itself when created
-func register_building(building: BuildingBase) -> void:
+## Called by Building to register itself when created
+func register_building(building: Building) -> void:
 	if building in buildings:
 		push_error("BuildingManager: Trying to register building that is already registered: %s" % building)
 		return
@@ -30,8 +20,8 @@ func register_building(building: BuildingBase) -> void:
 	add_child(building)
 
 
-## Called by BuildingBase to unregister itself when removed
-func unregister_building(building: BuildingBase) -> void:
+## Called by Building to unregister itself when removed
+func unregister_building(building: Building) -> void:
 	if not building in buildings:
 		push_error("BuildingManager: Trying to remove building that is not registered: %s" % building)
 		return
@@ -41,7 +31,7 @@ func unregister_building(building: BuildingBase) -> void:
 	
 
 ## Called by building itself to finally be removes from scene
-func remove_building(building: BuildingBase) -> void:
+func remove_building(building: Building) -> void:
 	if building == null:
 		return
 		
@@ -49,8 +39,8 @@ func remove_building(building: BuildingBase) -> void:
 	building.queue_free()
 
 
-## Called by BuildingBase to register its action points when construction is complete
-func register_action_points(building: BuildingBase) -> void:
+## Called by Building to register its action points when construction is complete
+func register_action_points(building: Building) -> void:
 	if not building in buildings:
 		push_error("BuildingManager: Trying to add action points for building that is not registered: %s" % building)
 		return
@@ -96,7 +86,7 @@ func get_all_action_points(type: ActionPoint.ActionType) -> Array[ActionPoint]:
 # PRIVATE METHODS
 ########################################################################################################################
 ## Only called from unregister_building()
-func _unregister_action_points(building: BuildingBase) -> void:
+func _unregister_action_points(building: Building) -> void:
 	for ap: ActionPoint in building.action_points:
 		if ap not in action_points:
 			push_error("BuildingManager: Trying to unregister action point that is not registered: %s" % ap)

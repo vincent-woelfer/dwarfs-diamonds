@@ -1,5 +1,5 @@
 @tool
-class_name BuildingVisual
+class_name BuildingVisualSprite
 extends Sprite2D
 
 @export var final_texture: Texture2D:
@@ -14,12 +14,12 @@ extends Sprite2D
 
 
 func update_building_progress(progress: float) -> void:
-	var new_texture: Texture2D = get_building_texture(progress)
+	var new_texture: Texture2D = _get_building_texture(progress)
 	if new_texture != self.texture:
 		self.texture = new_texture
 		
 
-func get_building_texture(construction_progress: float) -> Texture2D:
+func _get_building_texture(construction_progress: float) -> Texture2D:
 	construction_progress = clampf(construction_progress, 0.0, 1.0)
 	var count: int = construction_textures.size()
 
@@ -29,7 +29,7 @@ func get_building_texture(construction_progress: float) -> Texture2D:
 	var index: int = mini(int(floori(construction_progress * count)), count - 1)
 	return construction_textures[index]
 
-
+## Shared Visual-Child Method
 func _request_parent_update() -> void:
-	if get_parent() is BuildingVisualBase:
-		(get_parent() as BuildingVisualBase).refresh_child_nodes()
+	if get_parent() is BuildingVisualRoot:
+		(get_parent() as BuildingVisualRoot).refresh_child_node(self )

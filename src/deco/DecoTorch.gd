@@ -2,8 +2,12 @@
 class_name DecoTorch
 extends DecoBase
 
+########################################################################################################################
+# Scene Nodes
+########################################################################################################################
 @onready var light: Light2D = $PointLight2D
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
+
 @onready var sprite_sheet: SpriteFrames = animated_sprite.sprite_frames as SpriteFrames
 
 # Hardcoded torch sizes from sprite sheet

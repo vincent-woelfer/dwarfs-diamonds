@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://bis3k6oo3c7js"]
+
+[ext_resource type="Script" uid="uid://bjxwyh818jd2s" path="res://src/buildings/BuildingVisualRoot.gd" id="1_cbwr2"]
+[ext_resource type="Script" uid="uid://ctwni6qk5jexr" path="res://src/buildings/BuildingVisualSprite.gd" id="3_nxyyc"]
+[ext_resource type="Texture2D" uid="uid://cw3nrk3w7gerg" path="res://assets/textures/platform_blocking.png" id="4_li7g6"]
+
+[node name="BuildingVisualRoot" type="Node2D" unique_id=1252315716]
+script = ExtResource("1_cbwr2")
+
+[node name="BuildingVisualSprite" type="Sprite2D" parent="." unique_id=1256471092]
+position = Vector2(0, -64)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("4_li7g6")
+script = ExtResource("3_nxyyc")
+final_texture = ExtResource("4_li7g6")

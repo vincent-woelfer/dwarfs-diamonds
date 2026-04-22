@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://chdft8rydes8j"]
+
+[ext_resource type="Script" uid="uid://bjxwyh818jd2s" path="res://src/buildings/BuildingVisualRoot.gd" id="3_r5l33"]
+[ext_resource type="Texture2D" uid="uid://lotg8jqf047v" path="res://assets/textures/outpost_1.png" id="4_uh53p"]
+[ext_resource type="Script" uid="uid://ctwni6qk5jexr" path="res://src/buildings/BuildingVisualSprite.gd" id="5_1fkkh"]
+[ext_resource type="PackedScene" uid="uid://d3x634elrvv2b" path="res://scenes/deco/DecoTorch.tscn" id="6_gbwb3"]
+[ext_resource type="Script" uid="uid://brwl57cbeiwsq" path="res://src/buildings/BuildingVisualWrapper.gd" id="6_rktaw"]
+[ext_resource type="Texture2D" uid="uid://ubanxys3w60x" path="res://assets/textures/outpost_construction_0.png" id="6_wsaph"]
+[ext_resource type="Texture2D" uid="uid://ce1ehmjdsyu3b" path="res://assets/textures/outpost_construction_1.png" id="7_5vanr"]
+
+[node name="BuildingVisualRoot" type="Node2D" unique_id=373040601]
+script = ExtResource("3_r5l33")
+
+[node name="BuildingVisualSprite" type="Sprite2D" parent="." unique_id=1712704159]
+position = Vector2(64.00001, -132.7125)
+scale = Vector2(0.42812502, 0.4337295)
+texture = ExtResource("4_uh53p")
+script = ExtResource("5_1fkkh")
+final_texture = ExtResource("4_uh53p")
+construction_textures = Array[Texture2D]([ExtResource("6_wsaph"), ExtResource("7_5vanr")])
+
+[node name="GroundPoly" type="Polygon2D" parent="." unique_id=249616805]
+z_index = -1
+z_as_relative = false
+color = Color(0.093125604, 0.07686857, 0.07144936, 1)
+polygon = PackedVector2Array(288, -8, -160, -8, -176, 16, 304, 16)
+
+[node name="BuildingVisualWrapper" type="Node2D" parent="." unique_id=560109985]
+script = ExtResource("6_rktaw")
+visible_after_progress = 1.0
+metadata/_custom_type_script = "uid://brwl57cbeiwsq"
+
+[node name="DecoTorch" parent="BuildingVisualWrapper" unique_id=1431447347 instance=ExtResource("6_gbwb3")]
+position = Vector2(270, -66)
+
+[node name="DecoTorch2" parent="BuildingVisualWrapper" unique_id=1230627757 instance=ExtResource("6_gbwb3")]
+position = Vector2(-143, -67)

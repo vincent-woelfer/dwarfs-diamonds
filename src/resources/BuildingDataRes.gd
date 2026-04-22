@@ -2,33 +2,19 @@
 class_name BuildingDataRes
 extends Resource
 
-########################################################################################################################
-# ENUM DEFINITIONS BUILDING TYPES
-########################################################################################################################
-enum Type {
-	INVALID,
-	LADDER,
-	OUTPOST,
-	PLATFORM_BLOCKING,
-	PLATFORM_BRIDGE,
-}
-
-const BUILDING_TYPE_NAMES: Dictionary[Type, String] = {
-	Type.INVALID: "INVALID",
-	Type.LADDER: "Ladder",
-	Type.OUTPOST: "Outpost",
-	Type.PLATFORM_BLOCKING: "PlatformBlocking",
-	Type.PLATFORM_BRIDGE: "PlatformBridge",
-}
 
 ########################################################################################################################
 # Building Properties
 # -> manually add new ones in instantiate_building_data
 ########################################################################################################################
-@export_group("Building Properties")
+@export_group("Building Type")
+## BuildingType of the building
+@export var type: Enum.BuildingType
 
-## Type of the building, determines name aswell.
-@export var type: Type
+
+@export_group("Building Properties")
+## Visual / UI Name, must never affect gameplay / logic!!!
+@export var name: String
 
 ## Build time in seconds (without modifiers)
 @export_range(0.0, 20.0, 0.01, "or_greater", "suffix:s")
@@ -87,10 +73,10 @@ func is_placeable_at(building_grid_pos: Vector2i) -> bool:
 
 	# Additional custom checks - for now hardcoded here.
 	# TODO override has_solid_ground check in child class
-	if self.type == Type.LADDER:
+	if self.type == Enum.BuildingType.LADDER:
 		if not Ladder.is_placement_valid_for_ladder(building_grid_pos):
 			return false
-	elif self.type == Type.PLATFORM_BRIDGE:
+	elif self.type == Enum.BuildingType.PLATFORM_BRIDGE:
 		if not PlatformBridge.is_placement_valid_for_platform_bridge(building_grid_pos):
 			return false
 
@@ -169,32 +155,11 @@ func is_blocking_pattern_clear_at(building_grid_pos: Vector2i) -> bool:
 ########################################################################################################################
 # Utility functions
 ########################################################################################################################
-func name() -> String:
-	return BUILDING_TYPE_NAMES.get(type, "Unknown")
 
 
 ########################################################################################################################
 # Scene Instantiation
 ########################################################################################################################
-func instantiate_scene() -> Node2D:
-	return _load_scene_internal("res://scenes/buildings/%s.tscn" % name())
-
-func instantiate_preview_scene() -> Node2D:
-	return _load_scene_internal("res://scenes/buildings/%sPreview.tscn" % name())
-
-func _load_scene_internal(path: String) -> Node2D:
-	var res: Resource = load(path)
-	if res == null:
-		push_error("BuildingDataRes: Could not load scene at path: %s" % path)
-		return null
-
-	if res is not PackedScene:
-		push_error("BuildingDataRes: Resource at path %s is not a PackedScene." % path)
-		return null
-
-	return (res as PackedScene).instantiate()
-
-
 ## Instantiate copy of building data, instantiates all grid-patterns at given grid position
 func instantiate_building_data(grid_pos: Vector2i) -> BuildingDataRes:
 	# Copy building data itself
@@ -241,22 +206,16 @@ func _validate_property(property: Dictionary) -> void:
 	var prop_name: String = property.name
 	var prop_variant: Variant = self.get(prop_name)
 
-	# Validate that type is set to a valid value
-	if prop_name == "type" and prop_variant is Type:
-		var prop_type: Type = prop_variant
-		if prop_type == Type.INVALID:
-			push_warning("BuildingDataRes: Invalid building type '%s' for building '%s'." % [Enum.to_str(Type, prop_type), name()])
-
 	# Validate GridPatternRes properties
 	if prop_name.begins_with("pattern_") and prop_variant is GridPatternRes:
 		var prop_pattern: GridPatternRes = prop_variant
 
 		if prop_pattern == null:
-			push_warning("BuildingDataRes: '%s' is not set for building '%s'." % [property.name, name()])
+			push_warning("BuildingDataRes: '%s' is not set for building '%s'." % [property.name, name])
 			return
 
 		# Empty patterns are a warning, depending on which pattern it is. Check manually here.
 		var patterns_should_not_be_empty := ["pattern_building", "pattern_build_from"]
 		if prop_pattern.cells.is_empty():
 			if prop_name in patterns_should_not_be_empty:
-				push_warning("BuildingDataRes: '%s' has an empty pattern for building '%s'." % [property.name, name()])
+				push_warning("BuildingDataRes: '%s' has an empty pattern for building '%s'." % [property.name, name])

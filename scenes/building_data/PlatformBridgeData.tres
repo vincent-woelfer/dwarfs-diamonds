@@ -21,7 +21,8 @@ metadata/_custom_type_script = "uid://qrjawossld3p"
 
 [resource]
 script = ExtResource("3_epdga")
-type = 4
+type = 3
+name = "Platform"
 build_time = 3.0
 pattern_building = SubResource("Resource_vwinv")
 pattern_build_from = SubResource("Resource_4a6mf")

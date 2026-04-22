@@ -147,7 +147,7 @@ func _exit_mining() -> void:
 ###################################
 # BUILDING
 ###################################
-func _enter_building(building: BuildingBase) -> void:
+func _enter_building(building: Building) -> void:
 	if building == null:
 		print_rich("%s cannot enter building state with null building, aborting" % [ self ])
 		sm.transition_to(State.IDLE)
@@ -283,7 +283,7 @@ func _on_mining_completed(mined_cell: Cell) -> void:
 
 	
 ## Triggered by ConstructionComponent
-func _on_construction_completed(building: BuildingBase) -> void:
+func _on_construction_completed(building: Building) -> void:
 	# For buildings this is the normal case since this callback is triggered AFTER the building has completed itself and finished the task.
 	if !task_queue.has_current_task() or task_queue.curr_task.type != Task.Type.CONSTRUCT or task_queue.curr_task.building != building:
 		print_rich("%s completed construction of %s but doesnt match current task %s, ignoring!" % [ self , building, task_queue.curr_task])

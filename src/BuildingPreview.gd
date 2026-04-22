@@ -12,11 +12,11 @@ var curr_cell: Cell = null
 var prev_cell: Cell = null
 
 # State
-var building_data: BuildingDataRes = null # Actts as is_active flag, null = inactive
+var building_data: BuildingDataRes = null # Acts as is_active flag, null = inactive
 var is_valid_placement: bool = true
 
-# Preview Sprite
-var preview_scene: Node2D = null
+# Preview Scene
+var preview_visual_base: BuildingVisualRoot = null
 var preview_tween: Tween = null
 
 # Constant Colors
@@ -60,10 +60,10 @@ func _process(delta: float) -> void:
 			curr_modulate_red_offset = Color(0.0, 0.0, 0.0, 0.0)
 
 	# Snap Preview Scene to cell position
-	preview_scene.global_position = curr_cell.global_position + Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR + curr_shake_offset
+	preview_visual_base.global_position = curr_cell.global_position + Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR + curr_shake_offset
 
 	# Apply red flash modulate
-	preview_scene.modulate = curr_modulate_validity + curr_modulate_red_offset
+	preview_visual_base.modulate = curr_modulate_validity + curr_modulate_red_offset
 
 	# Update validity
 	_update_is_valid_placement(building_data.is_placeable_at(grid_pos))
@@ -93,8 +93,8 @@ func set_building_data(building_data_new: BuildingDataRes) -> void:
 	building_data = building_data_new
 
 	# Clear previous preview scene
-	if preview_scene != null:
-		preview_scene.queue_free()
+	if preview_visual_base != null:
+		preview_visual_base.queue_free()
 
 	# Disable if no building data
 	if building_data == null:
@@ -104,14 +104,16 @@ func set_building_data(building_data_new: BuildingDataRes) -> void:
 		visible = true
 
 	# Instantiate new preview scene
-	preview_scene = building_data.instantiate_preview_scene()
-	if preview_scene == null:
+	preview_visual_base = Util.instantiate_building_visual_base(building_data.type)
+	if preview_visual_base == null:
 		visible = false
 		building_data = null
 		return
 
-	add_child(preview_scene)
-	preview_scene.top_level = true
+	add_child(preview_visual_base)
+	preview_visual_base.top_level = true
+	# Always show as fully built, the red flash will indicate invalid placement
+	preview_visual_base.update_building_progress(1.0)
 
 
 func _update_is_valid_placement(is_valid: bool) -> void:
@@ -134,9 +136,9 @@ func _shake_and_flash_red(duration: float, strength: float) -> void:
 	var angle_rad := deg_to_rad(-20) # towards top-right
 	var max_offset := (Vector2(1, 0) * strength).rotated(angle_rad)
 	self.curr_shake_offset = max_offset
-	preview_tween.tween_property(self, "curr_shake_offset", Vector2.ZERO, duration)
+	preview_tween.tween_property(self , "curr_shake_offset", Vector2.ZERO, duration)
 
 	# Red flash
 	const modulate_red_flash: Color = Color(0.45, 0.0, 0.0, 0.0)
 	self.curr_modulate_red_offset = modulate_red_flash
-	preview_tween.parallel().tween_property(self, "curr_modulate_red_offset", Color(0.0, 0.0, 0.0, 0.0), duration)
+	preview_tween.parallel().tween_property(self , "curr_modulate_red_offset", Color(0.0, 0.0, 0.0, 0.0), duration)

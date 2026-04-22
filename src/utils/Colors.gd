@@ -47,7 +47,7 @@ static var dwarf_colors := [
 # BUILDING COLORS
 ########################################################################################################################
 static var building_id: int = 0
-static func get_rand_building_color() -> Color:
+static func get_rand_building_dev_color() -> Color:
 	# Shuffle each time the game is started to get different color assignments
 	# if building_id == 0:
 		# building_colors.shuffle()

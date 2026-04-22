@@ -1,6 +1,6 @@
-@tool # because BuildingBase is @tool
+@tool # because Building is @tool
 class_name PlatformBridge
-extends BuildingBase
+extends Building
 
 
 ## PlatformBridge requires solid ground on either side or below but not on both

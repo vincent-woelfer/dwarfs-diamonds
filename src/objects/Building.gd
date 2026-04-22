@@ -1,13 +1,12 @@
-@abstract
 @tool
-class_name BuildingBase
+class_name Building
 extends GridObject2D
 
 ## Set in editor for actual buildings to define type, gets instantiated for actual building pos when placed.
-@export var building_data: BuildingDataRes
+var building_data: BuildingDataRes
 
 ## Building construction process
-var build_process: float = 0.0
+var build_progress: float = 0.0
 var is_complete: bool = false
 
 # Color modulation for unfinished vs finished buildings and highlighted-for-destroy 
@@ -20,34 +19,75 @@ var build_job: Job = null
 # Action Points
 var action_points: Array[ActionPoint] = []
 
-# For dev
-var building_color: Color
+# For dev - only for logging
+var dev_color: Color
 
+########################################################################################################################
+# DEV / EDITOR ONLY
+########################################################################################################################
+@export var _editor_building_type: Enum.BuildingType:
+	set(value):
+		if Engine.is_editor_hint():
+			_editor_building_type = value
+			setup_building_type(_editor_building_type)
 
-@onready var building_visual_base: BuildingVisualBase = $BuildingVisualBase
+########################################################################################################################
+# Scene Nodes
+########################################################################################################################
+@onready var grid_pattern_visualization: GridPatternVisualization = $GridPatternVisualization
+var visual_base: BuildingVisualRoot = null
 
 
 ########################################################################################################################
 # SETUP
 ########################################################################################################################
+func setup_building_type(building_type_: Enum.BuildingType) -> void:
+	# Update visual base
+	if visual_base != null:
+		remove_child(visual_base)
+		visual_base.free()
+	
+	visual_base = Util.instantiate_building_visual_base(building_type_)
+	add_child(visual_base)
+
+	# Update building data
+	building_data = Util.get_building_data(building_type_)
+
+
 # Called from Actions.place_building
-func setup_building_as_uncompleted(grid_pos_: Vector2i, building_data_: BuildingDataRes) -> void:
+func setup_at_pos(grid_pos_: Vector2i) -> void:
 	super.setup(grid_pos_, Vector2.ZERO)
 
-	building_color = Colors.get_rand_building_color()
-
 	# Instantiate building data (incl patterns) at position
-	self.building_data = building_data_.instantiate_building_data(grid_pos)
-
-	self.z_index = Enum.ZIndex.BUILDINGS
-	self.light_mask = Colors.building_light_mask_unfinished
-	_set_modulate_internal(Colors.building_modulate_unfinished)
+	# TODO DEV remove instantiate at compeltely
+	self.building_data = building_data.instantiate_building_data(grid_pos)
 
 	# Initial Position
 	global_position = Global.level.get_cell(grid_pos).global_position + Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
 
-	# Play sound effect
-	Audio.play_at_pos("building_placed", global_position)
+
+func _ready() -> void:
+	# Editor only:
+	if Engine.is_editor_hint():
+		setup_building_type(Enum.BuildingType.OUTPOST) # as  default for editor only
+		setup_at_pos(Vector2.ZERO)
+
+	# Only for Game
+	if not Engine.is_editor_hint():
+		# Add build job
+		build_job = Job.new(Job.Type.BUILD, curr_cell)
+		build_job.building = self
+		Global.level.job_manager.add_job(build_job)
+		
+		# Signals
+		EventBus.Signal_CellDestroyed.connect(_check_solid_ground)
+
+	# For Editor and Game
+	dev_color = Colors.get_rand_building_dev_color()
+
+	self.z_index = Enum.ZIndex.BUILDINGS
+	self.light_mask = Colors.building_light_mask_unfinished
+	_set_modulate_internal(Colors.building_modulate_unfinished)
 
 
 # Called internally when building is completed
@@ -61,38 +101,23 @@ func _setup_action_points() -> void:
 		action_points.append(ap)
 
 
-func _ready() -> void:
-	# Only for Game
-	if not Engine.is_editor_hint():
-		# Add build job
-		build_job = Job.new(Job.Type.BUILD, curr_cell)
-		build_job.building = self
-		Global.level.job_manager.add_job(build_job)
-		
-		# Signals
-		EventBus.Signal_CellDestroyed.connect(_check_solid_ground)
-
-	# For Editor and Game
-	# building_visual_base.
-
-
 ########################################################################################################################
 # Public API
 ########################################################################################################################
-func update_build_process(building_speed_with_delta: float) -> void:
+func update_build_progress(building_speed_with_delta: float) -> void:
 	if is_complete:
 		return
 
 	var building_with_duration := building_speed_with_delta / building_data.build_time
-	build_process = clamp(build_process + building_with_duration, 0.0, 1.0)
+	build_progress = clamp(build_progress + building_with_duration, 0.0, 1.0)
 
-	building_visual_base.update_building_progress(build_process)
+	visual_base.update_building_progress(build_progress)
 
-	if build_process >= 1.0:
+	if build_progress >= 1.0:
 		_complete_construction()
 
 
-# Called from Actions.remove_building which handles most logic
+# Called from Actions.remove_building which handles most logic (like calling building_manager.unregister_building() and removing from cells)
 func on_destroy() -> void:
 	Actions.archive_job(build_job, false)
 
@@ -169,5 +194,5 @@ func _flash(color: Color, duration: float) -> void:
 
 
 func _to_string() -> String:
-	var print_color := Colors.to_print_color(building_color)
-	return Util.color_string("%s @%s" % [building_data.name(), grid_pos], print_color)
+	var print_color := Colors.to_print_color(dev_color)
+	return Util.color_string("%s @%s" % [building_data.name, grid_pos], print_color)

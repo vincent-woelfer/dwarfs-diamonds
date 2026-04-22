@@ -54,7 +54,7 @@ var job: Job = null
 # (uses target_grid_pos)
 
 # CONSTRUCT
-var building: BuildingBase = null
+var building: Building = null
 
 # PICKUP
 var carryable_item: Item = null
@@ -112,7 +112,7 @@ static func create_mine_task(target_grid_pos_: Vector2i) -> Task:
 	task.target_grid_pos = target_grid_pos_
 	return task
 
-static func create_construct_task(target_grid_pos_: Vector2i, building_: BuildingBase) -> Task:
+static func create_construct_task(target_grid_pos_: Vector2i, building_: Building) -> Task:
 	var task := Task.new(Task.Type.CONSTRUCT)
 	task.target_grid_pos = target_grid_pos_
 	task.building = building_

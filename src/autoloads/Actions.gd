@@ -44,7 +44,7 @@ func mark_cell_for_mining(cell: Cell, is_marked_for_mining: bool) -> void:
 
 
 ## Verification takes place before calling this
-func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly: bool = false) -> BuildingBase:
+func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly: bool = false) -> Building:
 	# Validate - actual validation already took place, just to catch any issues here
 	assert(cell != null)
 	assert(building_data != null)
@@ -52,11 +52,15 @@ func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly
 
 	# Log
 	var finish_instant_string := " (instantly)" if finish_instantly else ""
-	print_action("Placing building: %s at %s%s" % [building_data.name(), cell.grid_pos, finish_instant_string])
+	print_action("Placing building: %s at %s%s" % [building_data.name, cell.grid_pos, finish_instant_string])
 
 	# Instantiate building
-	var building_instance := building_data.instantiate_scene() as BuildingBase
-	building_instance.setup_building_as_uncompleted(cell.grid_pos, building_data)
+	var building_instance: Building = Building.new()
+	building_instance.setup_building_type(building_data.type)
+	building_instance.setup_at_pos(cell.grid_pos)
+
+	# Play sound effect
+	Audio.play_at_pos("building_placed", building_instance.global_position)
 
 	# Also adds as child
 	Global.level.building_manager.register_building(building_instance)
@@ -73,13 +77,13 @@ func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly
 	return building_instance
 
 
-func remove_building(building: BuildingBase) -> void:
+func remove_building(building: Building) -> void:
 	# Validate - actual validation already took place, just to catch any issues here
 	assert(building != null)
 
 	# Log
 	var building_status := " (was under construction)" if not building.is_complete else ""
-	print_action("Removing building: %s at %s%s" % [building.building_data.name(), building.grid_pos, building_status])
+	print_action("Removing building: %s at %s%s" % [building.building_data.name, building.grid_pos, building_status])
 
 	# Call building destroy logic
 	building.on_destroy()

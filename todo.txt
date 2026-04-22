@@ -83,7 +83,7 @@ Storage-Component: Shared by ActionPoints, similar (same?) like dwarfs carryingc
 
 
 ===== OLD: =====
-One BuildingBase (fixed pos) contains:
+One Building (fixed pos) contains:
 - Entrances (fixed i guess). No own sprite
 - moving platforms (elevators, mining cards ...). Contains own sprite
 

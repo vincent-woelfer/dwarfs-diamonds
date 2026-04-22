@@ -2,12 +2,16 @@
 @tool
 extends Node
 
+# Functions not static since this is an autoload and "Enum" is its global name
+
+## Given the Enum Class, convert enum value (int) to string name (contained in Enum Class)
 func to_str(enum_dict: Dictionary, value: int) -> String:
 	for n: String in enum_dict:
 		if enum_dict[n] == value:
 			return n
 	return "Unknown"
 
+## Given the Enum Class, return an array of all enum entries as string
 func to_string_array(enum_dict: Dictionary) -> Array[String]:
 	var names: Array[String] = []
 	for n: String in enum_dict:
@@ -34,7 +38,8 @@ enum ProcessPriority {
 }
 
 enum ZIndex {
-	CELL = 0,
+	CELL_SKY = -10,
+	CELL_SOLID = 0,
 	GRID_PATTERN_VISUALIZATION = 10,
 	DECO = 50,
 	BUILDINGS = 100,
@@ -59,10 +64,21 @@ enum PolyPoint {
 
 # Movement Mode of path
 enum MoveMode {
-	WALK,	
+	WALK,
 	CLIMB_WALL_UP,
 	CLIMB_WALL_DOWN,
 	CLIMB_LADDER_UP,
 	CLIMB_LADDER_DOWN,
 	WALK_NO_FALLING_SPECIAL, # Used for pathfinding to ignore falling special case when walking (e.g. when already falling or climbing)
 }
+
+########################################################################################################################
+# ENUM DEFINITIONS BUILDING TYPES
+########################################################################################################################
+enum BuildingType {
+	LADDER,
+	OUTPOST,
+	PLATFORM_BLOCKING,
+	PLATFORM_BRIDGE,
+}
+

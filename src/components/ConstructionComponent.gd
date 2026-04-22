@@ -2,7 +2,7 @@ class_name ConstructionComponent
 extends Node2D
 
 ## Emitted when building completed
-signal Signal_OnConstructionCompleted(building: BuildingBase)
+signal Signal_OnConstructionCompleted(building: Building)
 
 # per second
 @export var building_speed: float = 1.0
@@ -15,7 +15,7 @@ var _curr_building_cell: Cell = null
 var _curr_building_from_cell: Cell = null
 
 ## The building instance being constructed
-var _curr_building_building: BuildingBase = null
+var _curr_building_building: Building = null
 
 # Reference to the used audio player
 var _audio_player: AudioStreamPlayer2D = null
@@ -23,7 +23,7 @@ var _audio_player: AudioStreamPlayer2D = null
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################
-func start_building(cell: Cell, cell_from: Cell, building: BuildingBase) -> bool:
+func start_building(cell: Cell, cell_from: Cell, building: Building) -> bool:
 	# Check for errors
 	if is_currently_building() or (cell == null or cell_from == null or building == null):
 		assert(false)
@@ -63,7 +63,7 @@ func is_currently_building() -> bool:
 
 ## Can this building component build this building at all?
 ## Used to filter jobs
-func can_build_at_all(building: BuildingBase) -> bool:
+func can_build_at_all(building: Building) -> bool:
 	if building == null:
 		return false
 
@@ -90,10 +90,10 @@ func _physics_process(delta: float) -> void:
 		stop_building()
 		return
 	
-	# Actual Building, if this is part of job and update_build_process completes the building, _curr_building_building will be null!
+	# Actual Building, if this is part of job and update_build_progress completes the building, _curr_building_building will be null!
 	# -> store reference for later
 	var temp_reference_building := _curr_building_building
-	_curr_building_building.update_build_process(building_speed * delta)
+	_curr_building_building.update_build_progress(building_speed * delta)
 	
 	# Check if building completed - this works for multiple dwarfs building the same building, each is calling this method for themselfes
 	if temp_reference_building.is_complete:

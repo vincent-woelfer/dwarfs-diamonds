@@ -41,7 +41,7 @@ func _init(_parent_cell: Cell) -> void:
 func _ready() -> void:
 	# Required for chilren to be able to use these layers
 	self.visibility_layer = Util.LAYER_1 | Util.LAYER_2
-	self.z_index = Enum.ZIndex.CELL
+	self.z_index = Enum.ZIndex.CELL_SOLID
 
 	EventBus.Signal_LightDepthUpdated.connect(set_dirty)
 

@@ -257,3 +257,31 @@ static func unhash(n: int) -> Vector2i:
 	else:
 		# Case where x >= y
 		return Vector2i(sqrt_n, n - sq - sqrt_n)
+
+
+########################################################################################################################
+# Building Specific
+########################################################################################################################
+static func instantiate_building_visual_base(building_type: Enum.BuildingType) -> BuildingVisualRoot:
+	var path_name: String = _internal_get_building_path_name(building_type)
+	var visual_scene: PackedScene = load("res://scenes/building_visuals/%sVisual.tscn" % [path_name]) as PackedScene
+	assert(visual_scene != null, "Visual scene not found for building type %s" % [Enum.to_str(Enum.BuildingType, building_type)])
+	var visual_base: BuildingVisualRoot = visual_scene.instantiate()
+	return visual_base
+
+
+static func get_building_data(building_type: Enum.BuildingType) -> BuildingDataRes:
+	var path_name: String = _internal_get_building_path_name(building_type)
+	var building_data: BuildingDataRes = load("res://scenes/building_data/%sData.tres" % [path_name]) as BuildingDataRes
+	assert(building_data != null, "BuildingDataRes not found for building type %s" % [Enum.to_str(Enum.BuildingType, building_type)])
+	assert(building_data.type == building_type, "BuildingDataRes type %s does not match requested type %s" % [Enum.to_str(Enum.BuildingType, building_data.type), Enum.to_str(Enum.BuildingType, building_type)])
+	return building_data
+
+
+static func _internal_get_building_path_name(building_type: Enum.BuildingType) -> String:
+	var parts: PackedStringArray = Enum.to_str(Enum.BuildingType, building_type).split("_")
+	var result: String = ""
+	for part in parts:
+		if part.length() > 0:
+			result += part.capitalize()
+	return result

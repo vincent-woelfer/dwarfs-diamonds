@@ -107,6 +107,7 @@ func destroy_cell() -> void:
 	mining_process = 0.0
 	if Global.level.is_sky(grid_pos):
 		type = Enum.CellType.SKY
+		z_index = Enum.ZIndex.CELL_SKY
 	
 	Audio.play_at_pos("cell_on_destroy", global_position)
 
@@ -121,7 +122,7 @@ func destroy_cell() -> void:
 ###################################
 # Building Management - Called by Global Actions add/remove building
 ###################################
-func add_building(building: BuildingBase) -> void:
+func add_building(building: Building) -> void:
 	if not buildings.add(building):
 		return
 	# also delete deco
@@ -131,17 +132,17 @@ func add_building(building: BuildingBase) -> void:
 	visual.set_dirty()
 	queue_nav_update()
 
-func remove_building(building: BuildingBase) -> void:
+func remove_building(building: Building) -> void:
 	if not buildings.remove(building):
 		return
 	visual.set_dirty()
 	queue_nav_update()
 
-func on_building_completed(building: BuildingBase) -> void:
+func on_building_completed(building: Building) -> void:
 	visual.set_dirty()
 	_update_mining_hardness()
 
-func get_buildings() -> Array[BuildingBase]:
+func get_buildings() -> Array[Building]:
 	return buildings.get_buildings()
 
 ###################################
@@ -237,6 +238,8 @@ func _init(_grid_pos: Vector2i, _type: Enum.CellType, _is_solid: bool, _has_mine
 	self.is_marked_for_mining = false
 	self.is_highlighted = false
 	self.mining_process = 0.0
+
+	self.z_index = Enum.ZIndex.CELL_SKY if type == Enum.CellType.SKY else Enum.ZIndex.CELL_SOLID
 	
 	_update_mining_hardness()
 

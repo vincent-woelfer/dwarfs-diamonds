@@ -16,7 +16,7 @@ func _update_item_placement(delta: float) -> void:
 	var item_type_group_sizes: Dictionary[Item.ItemType, int] = _storage.get_item_type_group_sizes()
 	var idx_by_type: Dictionary[Item.ItemType, int] = {}
 
-	for i in _storage.get_carried_total_count():
+	for i: int in range(_storage.get_carried_total_count()):
 		var item: Item = _storage.get_item_by_index(i)
 
 		# Idx by type and group idx
@@ -63,7 +63,7 @@ func _get_carried_item_position(item: Item, index_in_group: int, group_index: in
 	# Item offset - not flipped, just stacks up vertically per item in the same group
 	# var offset_y_per_item := Vector2(0.0, -Global.CELL_SIZE * 0.15)
 
-	return base_pos + group_offset + index_in_group * item.get_stacking_size()
+	return base_pos + group_offset + (index_in_group * item.get_stacking_size() * Vector2.UP)
 
 
 ########################################################################################################################

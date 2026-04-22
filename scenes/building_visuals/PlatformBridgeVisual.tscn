@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://cqo8eewimjduo"]
+
+[ext_resource type="Script" uid="uid://bjxwyh818jd2s" path="res://src/buildings/BuildingVisualRoot.gd" id="1_3r2xo"]
+[ext_resource type="Texture2D" uid="uid://brj80s8sk6b3m" path="res://assets/textures/platform_bridge.png" id="2_3r2xo"]
+[ext_resource type="Script" uid="uid://ctwni6qk5jexr" path="res://src/buildings/BuildingVisualSprite.gd" id="3_e32r4"]
+
+[node name="BuildingVisualRoot" type="Node2D" unique_id=1252315716]
+script = ExtResource("1_3r2xo")
+
+[node name="BuildingVisualSprite" type="Sprite2D" parent="." unique_id=1256471092]
+position = Vector2(0, -64)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("2_3r2xo")
+script = ExtResource("3_e32r4")
+final_texture = ExtResource("2_3r2xo")

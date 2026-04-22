@@ -30,7 +30,8 @@ cells = Array[Vector2i]([Vector2i(-1, 1), Vector2i(0, 1), Vector2i(1, 1), Vector
 
 [resource]
 script = ExtResource("2_416t3")
-type = 2
+type = 1
+name = "Outpost"
 build_time = 4.0
 pattern_building = SubResource("Resource_4ifjn")
 pattern_build_from = SubResource("Resource_eniya")

@@ -2,9 +2,9 @@ class_name Level
 extends Node2D
 
 # SCENES
-var dwarf_scene := preload('res://scenes/Dwarf.tscn')
-var rubble_scene := load('res://scenes/objects/Rubble.tscn')
-var gemstone_scene := load('res://scenes/objects/Gemstone.tscn')
+var dwarf_scene: PackedScene = preload('res://scenes/Dwarf.tscn') as PackedScene
+var rubble_scene: PackedScene = load('res://scenes/objects/Rubble.tscn') as PackedScene
+var gemstone_scene: PackedScene = load('res://scenes/objects/Gemstone.tscn') as PackedScene
 
 # DATA
 var cells: Array[Array] = []

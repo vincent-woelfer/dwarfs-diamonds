@@ -18,7 +18,7 @@ func _update_item_placement(delta: float) -> void:
 	var item_type_group_sizes: Dictionary[Item.ItemType, int] = _storage.get_item_type_group_sizes()
 	var idx_by_type: Dictionary[Item.ItemType, int] = {}
 
-	for i in _storage.get_carried_total_count():
+	for i: int in range(_storage.get_carried_total_count()):
 		var item: Item = _storage.get_item_by_index(i)
 
 		# Idx by type and group idx

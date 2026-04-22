@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://cdo861127yy5g"]
+
+[ext_resource type="Texture2D" uid="uid://b8geavf5qgxbi" path="res://assets/textures/ladder.png" id="1_0b2n0"]
+[ext_resource type="Script" uid="uid://bjxwyh818jd2s" path="res://src/buildings/BuildingVisualRoot.gd" id="1_bfx2m"]
+[ext_resource type="Script" uid="uid://ctwni6qk5jexr" path="res://src/buildings/BuildingVisualSprite.gd" id="2_p31j6"]
+
+[node name="BuildingVisualRoot" type="Node2D" unique_id=58948183]
+script = ExtResource("1_bfx2m")
+
+[node name="BuildingVisualSprite" type="Sprite2D" parent="." unique_id=1037120418]
+position = Vector2(0, -64)
+scale = Vector2(0.6, 0.5)
+texture = ExtResource("1_0b2n0")
+script = ExtResource("2_p31j6")
+final_texture = ExtResource("1_0b2n0")

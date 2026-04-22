@@ -8,7 +8,7 @@ extends RefCounted
 func has_ladder() -> bool:
     var _has_ladder := false
     for building in _buildings:
-        if building.building_data.type == BuildingDataRes.Type.LADDER and building.is_complete:
+        if building.building_data.type == Enum.BuildingType.LADDER and building.is_complete:
             _has_ladder = true
 
     return _has_ladder
@@ -27,7 +27,7 @@ func is_blocked() -> bool:
 func has_platform() -> bool:
     var _has_platform := false
     for building in _buildings:
-        if building.building_data.type in [BuildingDataRes.Type.PLATFORM_BLOCKING, BuildingDataRes.Type.PLATFORM_BRIDGE ] and building.is_complete:
+        if building.building_data.type in [Enum.BuildingType.PLATFORM_BLOCKING, Enum.BuildingType.PLATFORM_BRIDGE ] and building.is_complete:
             _has_platform = true
             
     return _has_platform
@@ -35,14 +35,14 @@ func has_platform() -> bool:
 ########################################################################################################################
 # Main API
 ########################################################################################################################
-func add(building: BuildingBase) -> bool:
+func add(building: Building) -> bool:
     if building in _buildings:
         return false
     _buildings.append(building)
     return true
 
 
-func remove(building: BuildingBase) -> bool:
+func remove(building: Building) -> bool:
     if building not in _buildings:
         return false
     _buildings.erase(building)
@@ -54,23 +54,23 @@ func remove(building: BuildingBase) -> bool:
 func is_empty() -> bool:
     return _buildings.is_empty()
 
-func get_buildings() -> Array[BuildingBase]:
+func get_buildings() -> Array[Building]:
     return _buildings
 
-func has_this_specific_building(building: BuildingBase) -> bool:
+func has_this_specific_building(building: Building) -> bool:
     return building in _buildings
 
 # TODO improve per platform type
 func get_platform_mining_hardness() -> float:
     for building in _buildings:
-        if building.building_data.type == BuildingDataRes.Type.PLATFORM_BLOCKING and building.is_complete:
+        if building.building_data.type == Enum.BuildingType.PLATFORM_BLOCKING and building.is_complete:
             return 3.0
     return 1.0
 
 ########################################################################################################################
 # Internal Logic
 ########################################################################################################################
-var _buildings: Array[BuildingBase] = []
+var _buildings: Array[Building] = []
 var _parent: Cell
 
 func _init(_parent_cell: Cell) -> void:
