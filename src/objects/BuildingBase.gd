@@ -24,6 +24,9 @@ var action_points: Array[ActionPoint] = []
 var building_color: Color
 
 
+@onready var building_sprite: Sprite2D = $Sprite2D
+
+
 ########################################################################################################################
 # SETUP
 ########################################################################################################################
@@ -70,6 +73,9 @@ func _ready() -> void:
 	# Signals
 	EventBus.Signal_CellDestroyed.connect(_check_solid_ground)
 
+	# Sprite
+	building_sprite.texture = building_data.get_building_texture(0.0)
+
 ########################################################################################################################
 # Public API
 ########################################################################################################################
@@ -79,6 +85,11 @@ func update_build_process(building_speed_with_delta: float) -> void:
 
 	var building_with_duration := building_speed_with_delta / building_data.build_time
 	build_process = clamp(build_process + building_with_duration, 0.0, 1.0)
+
+	# Update texture
+	var new_texture := building_data.get_building_texture(build_process)
+	if new_texture != building_sprite.texture:
+		building_sprite.texture = new_texture
 
 	if build_process >= 1.0:
 		_complete_construction()

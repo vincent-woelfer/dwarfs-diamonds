@@ -34,6 +34,14 @@ const BUILDING_TYPE_NAMES: Dictionary[Type, String] = {
 @export_range(0.0, 20.0, 0.01, "or_greater", "suffix:s")
 var build_time: float = 1.0
 
+
+########################################################################################################################
+# Visuals
+########################################################################################################################
+@export var final_texture: Texture2D
+@export var construction_textures: Array[Texture2D] = []
+
+
 ########################################################################################################################
 # Grid Patterns
 ########################################################################################################################
@@ -171,6 +179,17 @@ func is_blocking_pattern_clear_at(building_grid_pos: Vector2i) -> bool:
 func name() -> String:
 	return BUILDING_TYPE_NAMES.get(type, "Unknown")
 
+
+func get_building_texture(construction_progress: float) -> Texture2D:
+	construction_progress = clampf(construction_progress, 0.0, 1.0)
+	var count: int = construction_textures.size()
+
+	if construction_progress >= 1.0 or count == 0:
+		return final_texture
+
+	var index: int = mini(int(floori(construction_progress * count)), count - 1)
+	return construction_textures[index]	
+
 ########################################################################################################################
 # Scene Instantiation
 ########################################################################################################################
@@ -210,6 +229,11 @@ func instantiate_building_data(grid_pos: Vector2i) -> BuildingDataRes:
 		if prop_name.begins_with("pattern_") and property.type != TYPE_COLOR:
 			var pattern: GridPatternRes = self.get(prop_name)
 			instance.set(prop_name, GridPatternRes.init_from_pattern(pattern, grid_pos))
+
+	# TODO remove instancing completely, building data is static and does not change. Rework pattern instantiation
+
+	instance.final_texture = self.final_texture.duplicate()
+	instance.construction_textures = self.construction_textures.duplicate()
 
 	return instance
 

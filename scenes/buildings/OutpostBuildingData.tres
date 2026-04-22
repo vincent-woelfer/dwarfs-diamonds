@@ -2,7 +2,10 @@
 
 [ext_resource type="Script" uid="uid://dg7m75nftn2bc" path="res://src/resources/ActionPointRes.gd" id="1_416t3"]
 [ext_resource type="Script" uid="uid://qrjawossld3p" path="res://src/resources/GridPatternRes.gd" id="1_j0kbs"]
+[ext_resource type="Texture2D" uid="uid://ubanxys3w60x" path="res://assets/textures/outpost_construction_0.png" id="2_3j3sb"]
 [ext_resource type="Script" uid="uid://582fgtaaib5v" path="res://src/resources/BuildingDataRes.gd" id="2_416t3"]
+[ext_resource type="Texture2D" uid="uid://ce1ehmjdsyu3b" path="res://assets/textures/outpost_construction_1.png" id="3_3hxyb"]
+[ext_resource type="Texture2D" uid="uid://lotg8jqf047v" path="res://assets/textures/outpost_1.png" id="4_5r7jv"]
 
 [sub_resource type="Resource" id="Resource_416t3"]
 script = ExtResource("1_416t3")
@@ -32,6 +35,8 @@ cells = Array[Vector2i]([Vector2i(-1, 1), Vector2i(0, 1), Vector2i(1, 1), Vector
 script = ExtResource("2_416t3")
 type = 2
 build_time = 4.0
+final_texture = ExtResource("4_5r7jv")
+construction_textures = Array[Texture2D]([ExtResource("2_3j3sb"), ExtResource("3_3hxyb")])
 pattern_building = SubResource("Resource_4ifjn")
 pattern_build_from = SubResource("Resource_eniya")
 pattern_solid_ground = SubResource("Resource_og48x")
