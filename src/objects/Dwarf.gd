@@ -465,7 +465,7 @@ func _create_action_point_tasks_for_type(ap_type: ActionPoint.ActionType) -> voi
 	var aps: Array[ActionPoint] = Global.level.building_manager.get_all_action_points(ap_type)
 
 	if aps.is_empty():
-		HexLog.throttled(self , "%s found no AP of type %s, not creating action point task" % [ self , Enum.to_str(ActionPoint.ActionType, ap_type)], HexLog.AP_MISSING_INTERVALL)
+		# HexLog.throttled(self , "%s found no AP of type %s, not creating action point task" % [ self , Enum.to_str(ActionPoint.ActionType, ap_type)], HexLog.AP_MISSING_INTERVALL)
 		return
 
 	var target_positions: Array[Vector2i] = []
@@ -500,7 +500,7 @@ func _look_into_dir(dir: Vector2) -> void:
 ## Called when nav is updated while dwarf is following a path
 func _validate_current_path() -> void:
 	if curr_path != null and task_queue.has_current_task() and task_queue.curr_task.is_move_to_task():
-		print_rich("%s validating/updating current path to task %s" % [ self , task_queue.curr_task])
+		# print_rich("%s validating/updating current path to task %s" % [ self , task_queue.curr_task])
 
 		# Just start movement task again for now
 		_perform_move_to_task(task_queue.curr_task)
@@ -509,15 +509,10 @@ func _validate_current_path() -> void:
 func _place_torch(cell: Cell) -> bool:
 	assert(cell != null)
 
-	if num_torches <= 0:
-		print_rich("%s tried to place torch at %s but has no torches left!" % [ self , cell])
+	if num_torches <= 0 or not cell.deco_elements.is_empty():
 		return false
 
-	if not cell.deco_elements.is_empty():
-		print_rich("%s tried to place torch at %s but cell is not empty!" % [ self , cell])
-		return false
-
-	print_rich("%s placing torch at %s" % [ self , grid_pos])
+	# print_rich("%s placing torch at %s" % [ self , grid_pos])
 	num_torches -= 1
 	cell.add_deco_element(DecoTorch.instantiate())
 	Audio.play_at_pos("item_placing", cell.get_floor_point())

@@ -110,12 +110,12 @@ func _score_jobs_for_dwarf(dwarf: Dwarf) -> Array[ScoredJob]:
 
 	# Debug Print
 	# if not scored_jobs.is_empty():
-	var print_color := Colors.to_print_color(dwarf.dwarf_color)
-	HexLog.print("\nJobManager: Scoring jobs for %s (lower is better):" % [dwarf], print_color)
-	for scored_job: ScoredJob in scored_jobs:
-		# Use print_rich to manually format color of score only
-		print_rich(Util.color_string("- Score: %6.1f" % [scored_job.score], print_color) + (" - %s" % [scored_job.job]))
-	print() # New line as separator
+	# var print_color := Colors.to_print_color(dwarf.dwarf_color)
+	# HexLog.print("\nJobManager: Scoring jobs for %s (lower is better):" % [dwarf], print_color)
+	# for scored_job: ScoredJob in scored_jobs:
+	# 	# Use print_rich to manually format color of score only
+	# 	print_rich(Util.color_string("- Score: %6.1f" % [scored_job.score], print_color) + (" - %s" % [scored_job.job]))
+	# print() # New line as separator
 
 	# Return job
 	return scored_jobs
@@ -131,7 +131,7 @@ func _distribute_jobs_to_dwarfs() -> void:
 	for dwarf in Global.level.dwarfs:
 		if dwarf.sm.state == Dwarf.State.FALLING and dwarf.est_fall_height_cells <= max_fall_height_for_job_application:
 			if dwarf not in _dwarfs_looking_for_jobs:
-				HexLog.print("Jobs  => Adding falling dwarf %s" % [dwarf], Colors.JOBS_PRINT_COLOR)
+				# HexLog.print("Jobs  => Adding falling dwarf %s" % [dwarf], Colors.JOBS_PRINT_COLOR)
 				_dwarfs_looking_for_jobs.append(dwarf)
 
 	if _dwarfs_looking_for_jobs.is_empty() or _jobs.is_empty():
@@ -141,7 +141,7 @@ func _distribute_jobs_to_dwarfs() -> void:
 	for job in _jobs:
 		job.update_workable_from_cells()
 
-	HexLog.print("Jobs  => Starting job distribution to %d dwarfs..." % [_dwarfs_looking_for_jobs.size()], Colors.JOBS_PRINT_COLOR)
+	# HexLog.print("Jobs  => Starting job distribution to %d dwarfs..." % [_dwarfs_looking_for_jobs.size()], Colors.JOBS_PRINT_COLOR)
 
 	# Hungarian Algorithm to distribute jobs optimally according to scores
 	var job_set: Dictionary[Job, bool] = {}
@@ -163,14 +163,14 @@ func _distribute_jobs_to_dwarfs() -> void:
 
 	# Build nxn cost matrix, Indexing is [dwarf_idx][slot_idx]
 	var matrix_size: int = max(_dwarfs_looking_for_jobs.size(), job_slots.size())
-	const no_job_penalty: float = 1e9
+	const NO_JOB_PENALTY: float = 1e9
 
 	# Type = Array[Array[float]], Indexing is [dwarf_idx][slot_idx]
 	var cost_matrix: Array[Array] = []
 	for i: int in matrix_size:
 		cost_matrix.append([])
 		for j: int in matrix_size:
-			cost_matrix[i].append(no_job_penalty)
+			cost_matrix[i].append(NO_JOB_PENALTY)
 
 	# Populate matrix - all slots belonging to the same job share the same score
 	for dwarf_idx: int in _dwarfs_looking_for_jobs.size():
@@ -183,24 +183,30 @@ func _distribute_jobs_to_dwarfs() -> void:
 	var assignment: Array[int] = _hungarian_job_caluclation(cost_matrix, matrix_size)
 
 	# slot_idx maps directly back to a Job reference via job_slots
+	var jobs_assigned: int = 0
 	for dwarf_idx: int in dwarfs_with_scored_jobs.size():
 		var slot_idx: int = assignment[dwarf_idx]
 		var job: Job = null
-		if slot_idx < job_slots.size() and cost_matrix[dwarf_idx][slot_idx] < no_job_penalty:
+		if slot_idx < job_slots.size() and cost_matrix[dwarf_idx][slot_idx] < NO_JOB_PENALTY:
 			job = job_slots[slot_idx]
 
 		# Assign job to dwarf (including null for no job) - except the dwarf was not actually looking but got added as a dummy
 		var dwarf: Dwarf = _dwarfs_looking_for_jobs[dwarf_idx]
 		if dwarf.sm.state == Dwarf.State.FALLING:
 			continue
+		if job != null:
+			jobs_assigned += 1
+
+		# Assign null aswell (means no job assigned, none available)
 		dwarf._on_job_assigned(job)
+
 
 	# Clear
 	_dwarfs_looking_for_jobs.clear()
 
 	var duration := Time.get_ticks_msec() - start_time
-	if duration > 1:
-		HexLog.print("Jobs  => Distributed jobs to %d dwarfs in: %d ms" % [dwarfs_with_scored_jobs.size(), duration], Colors.JOBS_PRINT_COLOR)
+	if jobs_assigned > 0:
+		HexLog.print("Jobs  => Distributed jobs to %d dwarfs in: %d ms" % [jobs_assigned, duration], Colors.JOBS_PRINT_COLOR)
 
 
 # cost_matrix type is Array[Array[float]], Indexing is [dwarf_idx][job_idx]
