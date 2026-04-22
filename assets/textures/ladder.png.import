@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://lotg8jqf047v"
-path="res://.godot/imported/outpost_1.png-f2550fecb18fa350d0ef972d7ebfb261.ctex"
+uid="uid://b8geavf5qgxbi"
+path="res://.godot/imported/ladder.png-3d2d393147044cdca070f3c3c57f6ab4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/outpost_1.png"
-dest_files=["res://.godot/imported/outpost_1.png-f2550fecb18fa350d0ef972d7ebfb261.ctex"]
+source_file="res://assets/textures/ladder.png"
+dest_files=["res://.godot/imported/ladder.png-3d2d393147044cdca070f3c3c57f6ab4.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ivritkqyttia"
-path="res://.godot/imported/gradient_light_flares.png-3b95c20205bf3fddcaa6796d3ceae588.ctex"
+uid="uid://1ugg66bw4erc"
+path="res://.godot/imported/gradient.png-6b444d13f43f452b4947f50846516ae6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/gradient_light_flares.png"
-dest_files=["res://.godot/imported/gradient_light_flares.png-3b95c20205bf3fddcaa6796d3ceae588.ctex"]
+source_file="res://assets/textures/gradient.png"
+dest_files=["res://.godot/imported/gradient.png-6b444d13f43f452b4947f50846516ae6.ctex"]
 
 [params]
 

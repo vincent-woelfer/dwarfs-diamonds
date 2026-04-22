@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b8geavf5qgxbi"
-path="res://.godot/imported/ladder.png-4343d2ed67229959149f44641e7ed9fb.ctex"
+uid="uid://cy35sr548440v"
+path="res://.godot/imported/gemstone_1.png-7b3c29e513d0a412553a8e2ad29384f3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/ladder.png"
-dest_files=["res://.godot/imported/ladder.png-4343d2ed67229959149f44641e7ed9fb.ctex"]
+source_file="res://assets/textures/gemstone_1.png"
+dest_files=["res://.godot/imported/gemstone_1.png-7b3c29e513d0a412553a8e2ad29384f3.ctex"]
 
 [params]
 

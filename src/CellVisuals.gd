@@ -11,7 +11,7 @@ var cell_global_texture_shader: ShaderMaterial = preload("res://assets/materials
 var sky_global_texture_shader: ShaderMaterial = preload("res://assets/materials/sky_global_texture_material.tres")
 
 var dummy_1x1_texture: Texture2D = preload("res://assets/textures/dummy_1x1.png")
-var mineral_texture: Texture2D = preload("res://assets/sprites/minerals_1.png")
+var mineral_texture: Texture2D = preload("res://assets/textures/minerals_1.png")
 
 # Shadow Material
 var shadow_material: ShaderMaterial = preload("res://assets/materials/CellShadow.tres")
@@ -60,15 +60,15 @@ func _ready() -> void:
 
 	# Add material
 	if c.type == Enum.CellType.SKY:
-		background_poly.material = sky_global_texture_shader		
+		background_poly.material = sky_global_texture_shader
 	else:
 		background_poly.material = cell_global_texture_shader
 		background_poly.set_instance_shader_parameter("is_solid", c.is_solid)
-		
+
 	# with shader sky does not get dark at night
 	# if c.type == Enum.CellType.SKY:
 		# background_poly.material = unshaded_material
-		
+
 	add_child(background_poly)
 
 	###################################
@@ -90,7 +90,7 @@ func _ready() -> void:
 	mineral_poly.modulate = [Color.ORANGE_RED, Color.DARK_VIOLET, Color.DARK_CYAN].pick_random()
 	mineral_poly.modulate *= 2.0
 	mineral_poly.modulate.a = 1.0
-	
+
 	add_child(mineral_poly)
 
 	###################################
@@ -115,7 +115,7 @@ func _ready() -> void:
 	for i in range(8):
 		shadow_poly.set_instance_shader_parameter("uvs_%d" % i, uv_points[i])
 
-	
+
 	add_child(shadow_poly)
 
 	###################################
@@ -196,7 +196,7 @@ func _update_light_depth_visuals() -> void:
 				neighbour_lit_bits |= (1 << idx)
 			idx += 1
 
-		# Assign to shader		
+		# Assign to shader
 		shadow_poly.set_instance_shader_parameter("neighbour_lit_bits", neighbour_lit_bits)
 
 

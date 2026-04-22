@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dcx52fqb37frj"
-path="res://.godot/imported/Dwarf Sprite Sheet 1.3v.png-7dcdeff5757f45c76c4105a0cfcfcddf.ctex"
+uid="uid://ivritkqyttia"
+path="res://.godot/imported/gradient_light_flares.png-d2a2a91c325b24fddf71d6074fca60b5.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/Dwarf Sprite Sheet 1.3v.png"
-dest_files=["res://.godot/imported/Dwarf Sprite Sheet 1.3v.png-7dcdeff5757f45c76c4105a0cfcfcddf.ctex"]
+source_file="res://assets/textures/gradient_light_flares.png"
+dest_files=["res://.godot/imported/gradient_light_flares.png-d2a2a91c325b24fddf71d6074fca60b5.ctex"]
 
 [params]
 

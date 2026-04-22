@@ -44,7 +44,7 @@ var needs_rescan: bool
 ########################################################################################################################
 func _draw() -> void:
 	# Setup once
-	self.z_index = Enum.ZIndex.GRID_PATTERN_VISUALIZATION # Draw above grid/sprites
+	self.z_index = Enum.ZIndex.GRID_PATTERN_VISUALIZATION # Draw above grid/textures
 
 	###################################
 	# GRID PATTERNS

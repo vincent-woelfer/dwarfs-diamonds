@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://3ixlrt5toiw3" path="res://src/buildings/Outpost.gd" id="1_s2aw1"]
 [ext_resource type="Script" uid="uid://uaku1nl7twil" path="res://src/utils/GridPatternVisualization.gd" id="2_uh53p"]
 [ext_resource type="Resource" uid="uid://db45xsffb66e5" path="res://scenes/buildings/OutpostBuildingData.tres" id="2_wkd27"]
-[ext_resource type="Texture2D" uid="uid://lotg8jqf047v" path="res://assets/sprites/outpost_1.png" id="4_uh53p"]
+[ext_resource type="Texture2D" uid="uid://lotg8jqf047v" path="res://assets/textures/outpost_1.png" id="4_uh53p"]
 
 [node name="Outpost" type="Node2D" unique_id=27426480]
 script = ExtResource("1_s2aw1")

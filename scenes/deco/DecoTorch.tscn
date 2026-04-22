@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://d3x634elrvv2b"]
 
 [ext_resource type="Script" uid="uid://cyubjvdr14qwd" path="res://src/deco/DecoTorch.gd" id="1_j5u86"]
-[ext_resource type="Texture2D" uid="uid://1ugg66bw4erc" path="res://assets/sprites/gradient.png" id="2_bposk"]
-[ext_resource type="SpriteFrames" uid="uid://bm6t0ves04cib" path="res://assets/sprites/torch-8bit_sprite_frames.tres" id="3_mylgo"]
+[ext_resource type="Texture2D" uid="uid://1ugg66bw4erc" path="res://assets/textures/gradient.png" id="2_bposk"]
+[ext_resource type="SpriteFrames" uid="uid://bm6t0ves04cib" path="res://assets/textures/torch-8bit_sprite_frames.tres" id="3_mylgo"]
 
 [node name="DecoTorch" type="Node2D" unique_id=1431447347]
 script = ExtResource("1_j5u86")

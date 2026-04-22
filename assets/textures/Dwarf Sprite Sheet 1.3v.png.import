@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cndt8sldx6m8n"
-path="res://.godot/imported/torch-8bit.png-37018c68a13a7e1e005d3690cbcf9255.ctex"
+uid="uid://dcx52fqb37frj"
+path="res://.godot/imported/Dwarf Sprite Sheet 1.3v.png-9fe490ecb56a093b226f7fc6a4d3ea52.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/torch-8bit.png"
-dest_files=["res://.godot/imported/torch-8bit.png-37018c68a13a7e1e005d3690cbcf9255.ctex"]
+source_file="res://assets/textures/Dwarf Sprite Sheet 1.3v.png"
+dest_files=["res://.godot/imported/Dwarf Sprite Sheet 1.3v.png-9fe490ecb56a093b226f7fc6a4d3ea52.ctex"]
 
 [params]
 

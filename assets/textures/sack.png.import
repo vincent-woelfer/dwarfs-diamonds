@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://sfcy5dr5kamp"
-path="res://.godot/imported/minerals_1.png-2bd42e0164833b0dbed734cf04e3ecfb.ctex"
+uid="uid://cr4mqv8fdinsj"
+path="res://.godot/imported/sack.png-eeea0214ff016daaf77eabc65fe58e55.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/minerals_1.png"
-dest_files=["res://.godot/imported/minerals_1.png-2bd42e0164833b0dbed734cf04e3ecfb.ctex"]
+source_file="res://assets/textures/sack.png"
+dest_files=["res://.godot/imported/sack.png-eeea0214ff016daaf77eabc65fe58e55.ctex"]
 
 [params]
 
