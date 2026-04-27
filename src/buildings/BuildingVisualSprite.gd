@@ -2,18 +2,25 @@
 class_name BuildingVisualSprite
 extends Sprite2D
 
+var progress: float
+
 @export var final_texture: Texture2D:
 	set(value):
 		final_texture = value
-		_request_parent_update()
+		update_building_progress(progress)
 
 @export var construction_textures: Array[Texture2D] = []:
 	set(value):
 		construction_textures = value
-		_request_parent_update()
+		update_building_progress(progress)
 
 
-func update_building_progress(progress: float) -> void:
+func _ready() -> void:
+	(get_parent() as BuildingVisualRoot).building_progress_updated.connect(update_building_progress)
+
+
+func update_building_progress(progress_: float) -> void:
+	progress = progress_
 	var new_texture: Texture2D = _get_building_texture(progress)
 	if new_texture != self.texture:
 		self.texture = new_texture
@@ -28,8 +35,3 @@ func _get_building_texture(construction_progress: float) -> Texture2D:
 
 	var index: int = mini(int(floori(construction_progress * count)), count - 1)
 	return construction_textures[index]
-
-## Shared Visual-Child Method
-func _request_parent_update() -> void:
-	if get_parent() is BuildingVisualRoot:
-		(get_parent() as BuildingVisualRoot).refresh_child_node(self )
