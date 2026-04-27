@@ -225,7 +225,7 @@ func _calculate_floor_points_and_move_modes() -> void:
 
 	# We go through pairs and connect from ground-center to ground-center.
 	# We always assume from-center is already in follow_points, thats why we add it for the inital cell before the loop
-	p.append(Global.level.get_cell(_grid_points[0]).get_floor_point())
+	p.append(Global.level.get_cell(_grid_points[0]).get_center_floor_point())
 	map.append(0)
 	# Dummy first point, use this to make sure dwarf does not fall if starting path while climbing
 	move_modes.append(Enum.MoveMode.WALK_NO_FALLING_SPECIAL)

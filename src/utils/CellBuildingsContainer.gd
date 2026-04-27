@@ -17,9 +17,10 @@ func has_ladder() -> bool:
 func is_blocked() -> bool:
     var _is_blocked := false
     for building in _buildings:
-        if building.building_data.pattern_blocking.get_world_positions().has(_parent.grid_pos):
-            _is_blocked = true
-            break
+        if building.building_data.pattern_blocking != null:
+            if building.building_data.pattern_blocking.get_positions(building.grid_pos).has(_parent.grid_pos):
+                _is_blocked = true
+                break
 
     return _is_blocked
 
@@ -27,7 +28,7 @@ func is_blocked() -> bool:
 func has_platform() -> bool:
     var _has_platform := false
     for building in _buildings:
-        if building.building_data.type in [Enum.BuildingType.PLATFORM_BLOCKING, Enum.BuildingType.PLATFORM_BRIDGE ] and building.is_complete:
+        if building.building_data.type in [Enum.BuildingType.PLATFORM_BLOCKING, Enum.BuildingType.PLATFORM_BRIDGE] and building.is_complete:
             _has_platform = true
             
     return _has_platform
@@ -76,24 +77,3 @@ var _parent: Cell
 func _init(_parent_cell: Cell) -> void:
     _buildings = []
     _parent = _parent_cell
-
-func _update_flags() -> void:
-    return
-#     # _has_ladder
-#     _has_ladder = false
-#     for building in _buildings:
-#         if building.building_data.type == BuildingDataRes.Type.LADDER and building.is_complete:
-#             _has_ladder = true
-
-#     # _is_blocked
-#     _is_blocked = false
-#     for building in _buildings:
-#         if building.building_data.type == BuildingDataRes.Type.PLATFORM_BLOCKING:
-#             _is_blocked = true
-
-#     # _has_platform
-#     _has_platform = false
-#     for building in _buildings:
-#         if building.building_data.type == BuildingDataRes.Type.PLATFORM_BLOCKING and building.is_complete:
-#             _has_platform = true
-#             print("CellBuildingsContainer %s: has complete platform", building.grid_pos)

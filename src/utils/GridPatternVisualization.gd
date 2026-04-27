@@ -43,9 +43,6 @@ var needs_rescan: bool
 # DRAWING
 ########################################################################################################################
 func _draw() -> void:
-	# Setup once
-	self.z_index = Enum.ZIndex.GRID_PATTERN_VISUALIZATION # Draw above grid/textures
-
 	###################################
 	# GRID PATTERNS
 	###################################
@@ -58,7 +55,7 @@ func _draw() -> void:
 			var color_border := Colors.with_alpha(color, alpha_border)
 			idx += 1
 
-			for grid_pos: Vector2i in grid_pattern.get_local_positions():
+			for grid_pos: Vector2i in grid_pattern.get_positions():
 				_draw_rect_with_border(grid_pos, color_fill, color_border)
 
 	###################################
@@ -103,6 +100,8 @@ func _draw_rect_with_border(grid_pos: Vector2i, color_fill: Color, color_border:
 # SETUP
 ########################################################################################################################
 func _ready() -> void:
+	self.z_index = Enum.ZIndex.GRID_PATTERN_VISUALIZATION
+
 	grid_patterns.clear()
 	grid_colors.clear()
 	action_points.clear()
@@ -115,23 +114,28 @@ func _ready() -> void:
 	_update_is_visible()
 
 
+func refresh() -> void:
+	needs_rescan = true
+
 func _process(_delta: float) -> void:
 	# Update grid pattern from parent if rescan needed
 	if needs_rescan:
 		# Only need to rescan in editor, in-game patterns are static once created
-		needs_rescan = Engine.is_editor_hint()
+		needs_rescan = Engine.is_editor_hint() # Only rescan in editor, in-game patterns are static once created
 		var old_patterns := grid_patterns.duplicate()
 		var old_action_points := action_points.duplicate()
 		var parent_node := get_parent()
 
 		if parent_node:
-			_scan_node(parent_node)
+			grid_patterns.clear()
+			grid_colors.clear()
+			action_points.clear()
 
-			if old_patterns != grid_patterns and Engine.is_editor_hint():
-				print("%s: GridPatternVisualization updated with %d pattern(s)" % [parent_node.name, grid_patterns.size()])
+			_scan_node_recursively(parent_node)
 
-			if old_action_points != action_points and Engine.is_editor_hint():
-				print("%s: GridPatternVisualization updated with %d action point(s)" % [parent_node.name, action_points.size()])
+			if Engine.is_editor_hint():
+				if old_patterns != grid_patterns or old_action_points != action_points:
+					print("%s: GridPatternVisualization updated with %d patterns and %d APs" % [parent_node.name, grid_patterns.size(), action_points.size()])
 
 		_update_is_visible()
 	
@@ -143,7 +147,7 @@ func _process(_delta: float) -> void:
 ########################################################################################################################
 # SCANNING
 ########################################################################################################################
-func _scan_node(node: Object) -> void:
+func _scan_node_recursively(node: Object) -> void:
 	# check this node's script variables
 	for prop in node.get_property_list():
 		if prop.type == TYPE_OBJECT:
@@ -170,7 +174,7 @@ func _scan_node(node: Object) -> void:
 	# recurse into children (only if it's a Node)
 	if node is Node:
 		for child: Node in (node as Node).get_children():
-			_scan_node(child)
+			_scan_node_recursively(child)
 
 
 func _add_grid_pattern(grid_pattern: GridPatternRes, color: Color = Color.BLACK) -> void:

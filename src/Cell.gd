@@ -138,9 +138,11 @@ func remove_building(building: Building) -> void:
 	visual.set_dirty()
 	queue_nav_update()
 
+## Called by building when construction is completed
 func on_building_completed(building: Building) -> void:
 	visual.set_dirty()
 	_update_mining_hardness()
+
 
 func get_buildings() -> Array[Building]:
 	return buildings.get_buildings()
@@ -202,8 +204,12 @@ func get_poly_point(point: Enum.PolyPoint) -> Vector2:
 	return visual.get_poly_point(point) + global_position
 
 ## Returns the center floor point in world-space absolute
-func get_floor_point() -> Vector2:
+func get_center_floor_point() -> Vector2:
 	return get_poly_point(Enum.PolyPoint.BOT)
+
+
+func get_building_origin_point() -> Vector2:
+	return global_position + Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
 
 
 ## Returns floor point at given world-space x, interpolated over BOT_LEFT -> BOT -> BOT_RIGHT

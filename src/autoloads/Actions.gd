@@ -48,7 +48,7 @@ func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly
 	# Validate - actual validation already took place, just to catch any issues here
 	assert(cell != null)
 	assert(building_data != null)
-	assert(building_data.is_placeable_at(cell.grid_pos))
+	assert(PlacementChecks.is_placeable_at(building_data, cell.grid_pos))
 
 	# Log
 	var finish_instant_string := " (instantly)" if finish_instantly else ""
@@ -56,8 +56,7 @@ func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly
 
 	# Instantiate building
 	var building_instance: Building = Building.new()
-	building_instance.setup_building_type(building_data.type)
-	building_instance.setup_at_pos(cell.grid_pos)
+	building_instance.setup_building(building_data.type, cell.grid_pos)
 
 	# Play sound effect
 	Audio.play_at_pos("building_placed", building_instance.global_position)
@@ -66,7 +65,7 @@ func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly
 	Global.level.building_manager.register_building(building_instance)
 
 	# Add to all cells covered by building -> this updates their navmesh
-	for pos in building_instance.building_data.pattern_building.get_world_positions():
+	for pos in building_instance.building_data.pattern_building.get_positions(cell.grid_pos):
 		var covered_cell: Cell = Global.level.get_cell(pos)
 		assert(covered_cell != null) # This should never happen
 		covered_cell.add_building(building_instance)
@@ -92,7 +91,7 @@ func remove_building(building: Building) -> void:
 	Global.level.building_manager.unregister_building(building)
 
 	# Remove from all cells covered by building -> updates their navmesh
-	for pos in building.building_data.pattern_building.get_world_positions():
+	for pos in building.building_data.pattern_building.get_positions(building.grid_pos):
 		var covered_cell: Cell = Global.level.get_cell(pos)
 		if covered_cell != null:
 			covered_cell.remove_building(building)

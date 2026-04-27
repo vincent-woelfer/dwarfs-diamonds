@@ -265,7 +265,11 @@ static func unhash(n: int) -> Vector2i:
 static func instantiate_building_visual_base(building_type: Enum.BuildingType) -> BuildingVisualRoot:
 	var path_name: String = _internal_get_building_path_name(building_type)
 	var visual_scene: PackedScene = load("res://scenes/building_visuals/%sVisual.tscn" % [path_name]) as PackedScene
-	assert(visual_scene != null, "Visual scene not found for building type %s" % [Enum.to_str(Enum.BuildingType, building_type)])
+
+	# Verification
+	var type_name_requested: String = Enum.to_str(Enum.BuildingType, building_type)
+	assert(visual_scene != null, "Visual scene not found for building type %s" % [type_name_requested])
+
 	var visual_base: BuildingVisualRoot = visual_scene.instantiate()
 	return visual_base
 
@@ -273,8 +277,13 @@ static func instantiate_building_visual_base(building_type: Enum.BuildingType) -
 static func get_building_data(building_type: Enum.BuildingType) -> BuildingDataRes:
 	var path_name: String = _internal_get_building_path_name(building_type)
 	var building_data: BuildingDataRes = load("res://scenes/building_data/%sData.tres" % [path_name]) as BuildingDataRes
-	assert(building_data != null, "BuildingDataRes not found for building type %s" % [Enum.to_str(Enum.BuildingType, building_type)])
-	assert(building_data.type == building_type, "BuildingDataRes type %s does not match requested type %s" % [Enum.to_str(Enum.BuildingType, building_data.type), Enum.to_str(Enum.BuildingType, building_type)])
+
+	# Verification
+	var type_name_requested: String = Enum.to_str(Enum.BuildingType, building_type)
+	var type_name_actual: String = Enum.to_str(Enum.BuildingType, building_data.type)
+	assert(building_data != null, "BuildingDataRes not found for building type %s" % [type_name_requested])
+	assert(building_data.type == building_type, "BuildingDataRes type %s does not match requested type %s" % [type_name_actual, type_name_requested])
+
 	return building_data
 
 

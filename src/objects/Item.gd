@@ -41,11 +41,12 @@ var light_energy_default: float = 0.25
 
 
 # Spawn offset y must be negative to be placed above floor
-func setup(grid_pos_: Vector2i, spawn_offset: Vector2 = Vector2.ZERO) -> void:
+func setup_item(grid_pos_: Vector2i, spawn_offset: Vector2 = Vector2.ZERO) -> void:
 	# Validation
 	assert(item_type in ItemType.values(), "Invalid item type %s" % [item_type])
-	super.setup(grid_pos_)
-	global_position = Global.level.get_cell(grid_pos).get_floor_point() + spawn_offset
+	setup_grid_object(grid_pos_)
+	
+	global_position = Global.level.get_cell(grid_pos).get_center_floor_point() + spawn_offset
 
 
 func _ready() -> void:

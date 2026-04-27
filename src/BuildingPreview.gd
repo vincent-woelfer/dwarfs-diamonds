@@ -60,20 +60,20 @@ func _process(delta: float) -> void:
 			curr_modulate_red_offset = Color(0.0, 0.0, 0.0, 0.0)
 
 	# Snap Preview Scene to cell position
-	preview_visual_base.global_position = curr_cell.global_position + Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR + curr_shake_offset
+	preview_visual_base.global_position = curr_cell.get_building_origin_point() + curr_shake_offset
 
 	# Apply red flash modulate
 	preview_visual_base.modulate = curr_modulate_validity + curr_modulate_red_offset
 
 	# Update validity
-	_update_is_valid_placement(building_data.is_placeable_at(grid_pos))
+	_update_is_valid_placement(PlacementChecks.is_placeable_at(building_data, grid_pos))
 
 
 func attempt_to_place_preview_building(finish_instantly: bool = false) -> bool:
 	if building_data == null:
 		return false
 
-	_update_is_valid_placement(building_data.is_placeable_at(grid_pos))
+	_update_is_valid_placement(PlacementChecks.is_placeable_at(building_data, grid_pos))
 	if not is_valid_placement:
 		# Visual feedback for invalid placement
 		_shake_and_flash_red(0.3, 20.0)

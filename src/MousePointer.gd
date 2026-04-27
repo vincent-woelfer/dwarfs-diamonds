@@ -272,7 +272,7 @@ func _sample_cells_at_mouse_pos(world_pos: Vector2) -> Array[Cell]:
 	Util.array_append_unique_not_null(selected_cells, cell)
 
 	# Apply pattern
-	for offset: Vector2i in selection_pattern.get_local_positions():
+	for offset: Vector2i in selection_pattern.get_positions():
 		if offset == Vector2i.ZERO:
 			continue
 

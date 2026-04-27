@@ -2,19 +2,17 @@
 
 [ext_resource type="Script" uid="uid://dnsap6lgy16wo" path="res://src/objects/Building.gd" id="1_auia7"]
 [ext_resource type="Script" uid="uid://uaku1nl7twil" path="res://src/utils/GridPatternVisualization.gd" id="2_brh4v"]
-[ext_resource type="Script" uid="uid://bjxwyh818jd2s" path="res://src/buildings/BuildingVisualRoot.gd" id="3_2ueak"]
+[ext_resource type="PackedScene" uid="uid://chdft8rydes8j" path="res://scenes/building_visuals/OutpostVisual.tscn" id="3_jnfu6"]
+[ext_resource type="Script" uid="uid://bjxwyh818jd2s" path="res://src/buildings/BuildingVisualRoot.gd" id="4_jnfu6"]
 
 [node name="AbstractBuilding" type="Node2D" unique_id=1514088603]
-modulate = Color(1.2, 0.2, 0.2, 0.8)
-light_mask = 0
 z_index = 100
 script = ExtResource("1_auia7")
-_editor_building_type = 1
 
 [node name="GridPatternVisualization" type="Node2D" parent="." unique_id=602342838]
-z_index = 10
+z_index = 300
 script = ExtResource("2_brh4v")
 metadata/_custom_type_script = "uid://uaku1nl7twil"
 
-[node name="BuildingVisualRoot" type="Node2D" parent="." unique_id=80258020]
-script = ExtResource("3_2ueak")
+[node name="BuildingVisualRoot" type="Node2D" parent="." unique_id=373040601 instance=ExtResource("3_jnfu6")]
+script = ExtResource("4_jnfu6")

@@ -84,7 +84,7 @@ func spawn_dwarf(x: int) -> void:
 
 		# Found a valid spawn position for the dwarf
 		var dwarf: Dwarf = dwarf_scene.instantiate()
-		dwarf.setup(grid_pos)
+		dwarf.setup_grid_object(grid_pos)
 		add_child(dwarf)
 		dwarfs.append(dwarf)
 		return
@@ -325,6 +325,9 @@ func _process(delta: float) -> void:
 ########################################################################################################################
 func get_cell(grid_pos: Vector2i) -> Cell:
 	if not Util.is_grid_pos_valid(grid_pos):
+		return null
+
+	if Engine.is_editor_hint():
 		return null
 
 	@warning_ignore("unsafe_cast")

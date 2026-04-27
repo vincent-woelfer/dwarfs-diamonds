@@ -4,35 +4,36 @@ extends Resource
 
 @export var cells: Array[Vector2i] = []
 
-# internal variable
-var _world_offset: Vector2i = Vector2i.ZERO
+
+func get_positions(offset: Vector2i = Vector2i.ZERO) -> Array[Vector2i]:
+	if offset == Vector2i.ZERO:
+		return cells
+		
+	var result: Array[Vector2i] = []
+	result.assign(cells.map(func(v: Vector2i) -> Vector2i: return v + offset))
+	return result
+	
+
+func get_cells(offset: Vector2i = Vector2i.ZERO) -> Array[Cell]:
+	var cells_result: Array[Cell] = []
+
+	for pos in get_positions(offset):
+		var cell: Cell = Global.level.get_cell(pos)
+		if cell != null:
+			cells_result.append(cell)
+	return cells_result
 
 
-static func init_from_pattern(other_pattern_: GridPatternRes, world_offset_: Vector2i = Vector2i.ZERO) -> GridPatternRes:
-    if other_pattern_ == null:
-        return GridPatternRes.new([], world_offset_)
-    else:
-        return GridPatternRes.new(other_pattern_.cells, world_offset_)
-
-func _init(cells_: Array[Vector2i] = [], world_offset_: Vector2i = Vector2i.ZERO) -> void:
-    assert(cells_ != null)
-    cells = _remove_duplicates(cells_)
-    _world_offset = world_offset_
+########################################################################################################################
+# INTERNAL
+########################################################################################################################
+func _init(cells_: Array[Vector2i] = []) -> void:
+	assert(cells_ != null)
+	cells = _remove_duplicates(cells_)
 
 
 func _remove_duplicates(array: Array[Vector2i]) -> Array[Vector2i]:
-    var unique_positions: Dictionary[Vector2i, bool] = {}
-    for pos in array:
-        unique_positions[pos] = true
-    return (unique_positions.keys() as Array[Vector2i])
-
-
-func get_local_positions() -> Array[Vector2i]:
-    return cells
-    
-
-func get_world_positions() -> Array[Vector2i]:
-    var world_positions: Array[Vector2i] = []
-    for local_pos in cells:
-        world_positions.append(local_pos + _world_offset)
-    return world_positions
+	var unique_positions: Dictionary[Vector2i, bool] = {}
+	for pos in array:
+		unique_positions[pos] = true
+	return (unique_positions.keys() as Array[Vector2i])

@@ -25,7 +25,7 @@ var in_cell_pos: Vector2 = Global.CELL_SIZE_VEC_HALF
 # SETUP
 ########################################################################################################################
 func setup_action_point(grid_pos_: Vector2i, type_: ActionType) -> void:
-	super.setup(grid_pos_, Vector2.ZERO)
+	setup_grid_object(grid_pos_, Vector2.ZERO)
 	self.type = type_
 
 func _ready() -> void:

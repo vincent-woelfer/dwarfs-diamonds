@@ -25,52 +25,57 @@ var dev_color: Color
 ########################################################################################################################
 # DEV / EDITOR ONLY
 ########################################################################################################################
-@export var _editor_building_type: Enum.BuildingType:
+@export var _editor_building_type: Enum.BuildingType = Enum.BuildingType.OUTPOST:
 	set(value):
-		if Engine.is_editor_hint():
-			_editor_building_type = value
-			setup_building_type(_editor_building_type)
+		_editor_building_type = value
+		if Engine.is_editor_hint() and self.is_inside_tree():
+			setup_building(_editor_building_type, Vector2i.ZERO)
 
 ########################################################################################################################
 # Scene Nodes
 ########################################################################################################################
-@onready var grid_pattern_visualization: GridPatternVisualization = $GridPatternVisualization
-var visual_base: BuildingVisualRoot = null
+# Not on ready since spawned dynamically when building is placed
+var visual_root: BuildingVisualRoot = null
+var visual_root_path: String = "BuildingVisualRoot"
 
 
 ########################################################################################################################
 # SETUP
 ########################################################################################################################
-func setup_building_type(building_type_: Enum.BuildingType) -> void:
-	# Update visual base
-	if visual_base != null:
-		remove_child(visual_base)
-		visual_base.free()
-	
-	visual_base = Util.instantiate_building_visual_base(building_type_)
-	add_child(visual_base)
+func setup_building(building_type_: Enum.BuildingType, grid_pos_: Vector2i) -> void:
+	if not Engine.is_editor_hint():
+		setup_grid_object(grid_pos_)
+		global_position = Global.level.get_cell(grid_pos).get_building_origin_point()
 
 	# Update building data
 	building_data = Util.get_building_data(building_type_)
 
+	var vis := get_node_or_null("GridPatternVisualization") as GridPatternVisualization
+	if vis != null:
+		vis.refresh()
 
-# Called from Actions.place_building
-func setup_at_pos(grid_pos_: Vector2i) -> void:
-	super.setup(grid_pos_, Vector2.ZERO)
-
-	# Instantiate building data (incl patterns) at position
-	# TODO DEV remove instantiate at compeltely
-	self.building_data = building_data.instantiate_building_data(grid_pos)
-
-	# Initial Position
-	global_position = Global.level.get_cell(grid_pos).global_position + Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
+	# Update visual base. This involves a lot of checks for editor scenes.
+	# Remove previous visual base if exists. Also check if by name if it exists already.
+	if visual_root != null:
+		remove_child(visual_root)
+		visual_root.queue_free()
+	if get_node_or_null(visual_root_path) != null:
+		visual_root = get_node_or_null(visual_root_path)
+		remove_child(visual_root)
+		visual_root.queue_free()
+	
+	# Update visual base +  building data
+	visual_root = Util.instantiate_building_visual_base(building_type_)
+	visual_root.name = visual_root_path
+	add_child(visual_root)
+	if Engine.is_editor_hint() and get_tree() != null and get_tree().edited_scene_root != null:
+		visual_root.owner = get_tree().edited_scene_root
 
 
 func _ready() -> void:
-	# Editor only:
+	# Editor setup
 	if Engine.is_editor_hint():
-		setup_building_type(Enum.BuildingType.OUTPOST) # as  default for editor only
-		setup_at_pos(Vector2.ZERO)
+		setup_building(_editor_building_type, Vector2i.ZERO)
 
 	# Only for Game
 	if not Engine.is_editor_hint():
@@ -84,10 +89,11 @@ func _ready() -> void:
 
 	# For Editor and Game
 	dev_color = Colors.get_rand_building_dev_color()
-
 	self.z_index = Enum.ZIndex.BUILDINGS
-	self.light_mask = Colors.building_light_mask_unfinished
-	_set_modulate_internal(Colors.building_modulate_unfinished)
+
+	if not Engine.is_editor_hint():
+		self.light_mask = Colors.building_light_mask_unfinished
+		_set_modulate_internal(Colors.building_modulate_unfinished)
 
 
 # Called internally when building is completed
@@ -111,7 +117,7 @@ func update_build_progress(building_speed_with_delta: float) -> void:
 	var building_with_duration := building_speed_with_delta / building_data.build_time
 	build_progress = clamp(build_progress + building_with_duration, 0.0, 1.0)
 
-	visual_base.update_building_progress(build_progress)
+	visual_root.update_building_progress(build_progress)
 
 	if build_progress >= 1.0:
 		_complete_construction()
@@ -162,7 +168,7 @@ func _complete_construction() -> void:
 	Audio.play_at_pos("building_complete", global_position)
 
 	# Update nav for all building cells
-	var building_cells := building_data.pattern_building.get_world_positions()
+	var building_cells := building_data.pattern_building.get_positions(grid_pos)
 	for pos in building_cells:
 		var cell: Cell = Global.level.get_cell(pos)
 		if cell != null:
@@ -180,8 +186,9 @@ func _complete_construction() -> void:
 	Global.level.building_manager.register_action_points(self )
 
 
+## Triggered by cell destruction signal
 func _check_solid_ground(destroyed_cell: Cell) -> void:
-	if not building_data.has_solid_ground_at(grid_pos):
+	if not PlacementChecks.has_solid_ground_at(building_data, grid_pos):
 		Actions.remove_building(self )
 
 

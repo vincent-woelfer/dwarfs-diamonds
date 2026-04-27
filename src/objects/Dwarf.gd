@@ -54,7 +54,7 @@ func _ready() -> void:
 	light.color = dwarf_color.lerp(light.color, 0.6)
 
 	# Initial Position
-	global_position = Global.level.get_cell(grid_pos).get_floor_point()
+	global_position = Global.level.get_cell(grid_pos).get_center_floor_point()
 
 	# Dev Signals
 	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
@@ -515,7 +515,7 @@ func _place_torch(cell: Cell) -> bool:
 	# print_rich("%s placing torch at %s" % [ self , grid_pos])
 	num_torches -= 1
 	cell.add_deco_element(DecoTorch.instantiate())
-	Audio.play_at_pos("item_placing", cell.get_floor_point())
+	Audio.play_at_pos("item_placing", cell.get_center_floor_point())
 	return true
 
 

@@ -155,7 +155,7 @@ func update_workable_from_cells() -> void:
 
 	# BUILD
 	elif job_type == Job.Type.BUILD:
-		for n_grid_pos: Vector2i in building.building_data.pattern_build_from.get_world_positions():
+		for n_grid_pos: Vector2i in building.building_data.pattern_build_from.get_positions(building.grid_pos):
 			var n_cell: Cell = Global.level.get_cell(n_grid_pos)
 
 			if !n_cell or not n_cell.is_standable(can_use_ladders):

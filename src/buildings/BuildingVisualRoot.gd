@@ -4,8 +4,9 @@ extends Node2D
 
 # scanned children - only those with update_building_progress method are stored and updated
 var _building_visuals: Array[Node2D] = []
-var _progress: float = -1.0
+var _progress: float = 1.0
 
+## Called on visual children via duck typing.
 var _update_function_name: StringName = "update_building_progress"
 
 ########################################################################################################################
@@ -45,17 +46,6 @@ func _ready() -> void:
 	else:
 		update_building_progress(0.0)
 
-	
-## Clear and add all children anew
-func refresh_all_child_nodes(changed_node: Node = null) -> void:
-	_building_visuals.clear()
-	for child in get_children():
-		if child.has_method(_update_function_name):
-			_building_visuals.append(child)
-
-			child.call(_update_function_name, _progress)
-			# child.update_building_progress(_progress)
-
 
 ## Only check changed node
 func refresh_child_node(changed_node: Node) -> void:
@@ -70,3 +60,14 @@ func refresh_child_node(changed_node: Node) -> void:
 			# changed_node.update_building_progress(_progress)
 		else:
 			_building_visuals.erase(changed_node)
+			
+	
+## Clear and add all children anew
+func refresh_all_child_nodes(changed_node: Node = null) -> void:
+	_building_visuals.clear()
+	for child in get_children():
+		if child.has_method(_update_function_name):
+			_building_visuals.append(child)
+
+			child.call(_update_function_name, _progress)
+			# child.update_building_progress(_progress)
