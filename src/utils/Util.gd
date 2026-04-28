@@ -3,8 +3,8 @@ class_name Util
 ########################################################################################################################
 # CONSTANTS
 ########################################################################################################################
-const LAYER_1 := 1 << 0
-const LAYER_2 := 1 << 1
+const LAYER_1 := 1 << 0 # Normal visual layer
+const LAYER_2 := 1 << 1 # Stencil buffer, used for passing data to shaders
 
 
 const EPSILON_LERP: float = 0.001
