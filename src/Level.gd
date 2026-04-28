@@ -211,7 +211,9 @@ func _generate_grid() -> void:
 				is_solid = false
 				type = Enum.CellType.SKY
 
-			var has_mineral: bool = (randf() < 0.2) if y >= Global.MAX_ELEVATION_BASELINE else false
+			var has_mineral: bool = (randf() < 0.1) if y >= Global.MAX_ELEVATION_BASELINE else false
+			has_mineral = has_mineral and is_solid
+
 			var cell := Cell.new(Vector2i(x, y), type, is_solid, has_mineral)
 			add_child(cell)
 			cells[x][y] = cell

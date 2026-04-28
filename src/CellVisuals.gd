@@ -85,7 +85,12 @@ func _ready() -> void:
 	mineral_poly.z_as_relative = true
 	mineral_poly.z_index = 1
 	mineral_poly.polygon = poly_points
-	mineral_poly.uv = uv_points
+
+	# DONT set UVs from uv-array, we apparently use a different format/mapping than godot expects and this messes it up.
+	# Use poly_points instead
+	# mineral_poly.uv = uv_points
+	mineral_poly.uv = poly_points
+
 	mineral_poly.visibility_layer = Util.LAYER_1
 	# mineral_poly.material = unshaded_material # TODO glow material?
 	mineral_poly.texture = mineral_texture
