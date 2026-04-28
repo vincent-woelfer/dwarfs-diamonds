@@ -18,6 +18,9 @@ signal Signal_CellDestroyed(destroyed_cell: Cell)
 # This is only for the one "central" cell
 signal Signal_MouseHoveredCellChanged(hovered_cell: Cell)
 
+## Send when placement-check data is updated and ALL cells should refresh their visuals
+signal Signal_TriggerVisualUpdateAllCells()
+
 
 ########################################################################################################################
 # DEV TOOLS SIGNALS

@@ -5,6 +5,7 @@ extends Resource
 @export var cells: Array[Vector2i] = []
 
 
+## Get all positions with offset applied. Does not check if in bounds.
 func get_positions(offset: Vector2i = Vector2i.ZERO) -> Array[Vector2i]:
 	if offset == Vector2i.ZERO:
 		return cells
@@ -13,7 +14,7 @@ func get_positions(offset: Vector2i = Vector2i.ZERO) -> Array[Vector2i]:
 	result.assign(cells.map(func(v: Vector2i) -> Vector2i: return v + offset))
 	return result
 	
-
+## Only get valid (in bounds) cells.
 func get_cells(offset: Vector2i = Vector2i.ZERO) -> Array[Cell]:
 	var cells_result: Array[Cell] = []
 

@@ -59,9 +59,6 @@ var is_marked_for_mining: bool = false
 # Yellow overlay, used for selection/highlight
 var is_highlighted: bool = false
 
-# Green overlay, used for building placement preview
-var has_placeable_highlight: bool = false
-
 # Always between 0.0 and 1.0
 var mining_process: float = 0.0
 
@@ -89,11 +86,6 @@ func queue_nav_update() -> void:
 
 func set_is_highlighted(highlighted: bool) -> void:
 	is_highlighted = highlighted
-	visual.set_dirty()
-
-
-func set_placeable_highlight(highlighted: bool) -> void:
-	has_placeable_highlight = highlighted
 	visual.set_dirty()
 
 
@@ -251,7 +243,6 @@ func _init(_grid_pos: Vector2i, _type: Enum.CellType, _is_solid: bool, _has_mine
 	
 	self.is_marked_for_mining = false
 	self.is_highlighted = false
-	self.has_placeable_highlight = false
 	self.mining_process = 0.0
 
 	self.z_index = Enum.ZIndex.CELL_SKY if type == Enum.CellType.SKY else Enum.ZIndex.CELL_SOLID

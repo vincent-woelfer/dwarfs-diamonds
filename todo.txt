@@ -7,6 +7,18 @@ merge item and carryable component
 Zwerg in Minecard/Lift nutzt anderes interface.
 
 
+Cell Clear Flags/Signals.
+
+is_solid
+is_occupied_by_building
+is_climbeable (= has ladder)
+
+get_build_upon_strenght 
+0 = cant build,
+higher = stronger, depends on building.
+max wert für is_solid ?
+
+
 ########################################################################################################################
 # IDEEN FUTURE
 ########################################################################################################################

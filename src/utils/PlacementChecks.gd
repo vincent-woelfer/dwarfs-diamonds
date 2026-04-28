@@ -16,9 +16,6 @@ static func is_placeable_at(building_data: BuildingDataRes, grid_pos: Vector2i) 
 	if not has_valid_build_from_cell(building_data, grid_pos):
 		return false
 	
-	if not is_blocking_pattern_clear_at(building_data, grid_pos):
-		return false
-
 	# Additional custom checks - for now hardcoded here.
 	# TODO override has_solid_ground check in child class
 	if building_data.type == Enum.BuildingType.LADDER:
@@ -70,23 +67,6 @@ static func has_solid_ground_at(building_data: BuildingDataRes, grid_pos: Vector
 	for pos: Vector2i in building_data.pattern_solid_ground.get_positions(grid_pos):
 		var cell: Cell = Global.level.get_cell(pos)
 		if not (cell != null and cell.is_solid_ground()):
-			return false
-
-	return true
-
-
-########################################################################################################################
-# This one is DYNAMIC and may change without the terrain being changed!!!
-########################################################################################################################
-static func is_blocking_pattern_clear_at(building_data: BuildingDataRes, grid_pos: Vector2i) -> bool:
-	if building_data.pattern_blocking == null:
-		return true
-		
-	# Check blocking pattern
-	for pos: Vector2i in building_data.pattern_blocking.get_positions(grid_pos):
-		# If any dwarf is in the blocking area, it's not clear
-		var dwarfs_in_cell: Array[Dwarf] = Global.level.get_dwarfs_in_cell(pos)
-		if not dwarfs_in_cell.is_empty():
 			return false
 
 	return true

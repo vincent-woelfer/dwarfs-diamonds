@@ -43,8 +43,15 @@ func _ready() -> void:
 	self.visibility_layer = Util.LAYER_1 | Util.LAYER_2
 	self.z_index = Enum.ZIndex.CELL_SOLID
 
+	###################################
+	# Signal Connections
+	###################################
 	EventBus.Signal_LightDepthUpdated.connect(set_dirty)
+	EventBus.Signal_TriggerVisualUpdateAllCells.connect(set_dirty)
 
+	###################################
+	# Base Polygons
+	###################################
 	poly_points = _compute_cell_polygon()
 	uv_points = _compute_cell_uvs()
 
@@ -153,6 +160,7 @@ func _process(delta: float) -> void:
 	if dirty:
 		dirty = false
 		_update()
+		
 		_update_light_depth_visuals()
 
 
@@ -173,7 +181,6 @@ func _update() -> void:
 	mineral_poly.visible = c.has_mineral and c.is_solid # and c.light_depth <= 1
 
 	_encode_stencil_buffer()
-	_update_light_depth_visuals()
 
 
 func _update_light_depth_visuals() -> void:
@@ -207,7 +214,9 @@ func _encode_stencil_buffer() -> void:
 	stencil_poly.color.r8 |= (1 << 0) if c.is_marked_for_mining else 0
 	stencil_poly.color.r8 |= (1 << 1) if c.is_solid else 0
 	stencil_poly.color.r8 |= (1 << 2) if c.is_highlighted else 0
-	stencil_poly.color.r8 |= (1 << 3) if c.has_placeable_highlight else 0
+
+	var has_placeable_highlight: bool = Global.level.building_placement_manager.is_cell_highlighted(c.grid_pos)
+	stencil_poly.color.r8 |= (1 << 3) if has_placeable_highlight else 0
 
 	# Encode numbers in GREEN channel
 	stencil_poly.color.g8 = 0

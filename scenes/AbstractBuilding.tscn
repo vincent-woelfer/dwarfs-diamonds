@@ -15,4 +15,5 @@ script = ExtResource("2_brh4v")
 metadata/_custom_type_script = "uid://uaku1nl7twil"
 
 [node name="BuildingVisualRoot" type="Node2D" parent="." unique_id=373040601 instance=ExtResource("3_jnfu6")]
+position = Vector2(1, 0)
 script = ExtResource("4_jnfu6")

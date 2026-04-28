@@ -17,6 +17,7 @@ var dwarfs: Array[Dwarf] = []
 var nav_manager: NavManager
 var job_manager: JobManager
 var building_manager: BuildingManager
+var building_placement_manager: BuildingPlacementManager
 var level_stats_manager: LevelStatsManager
 
 var sun_system: SunSystem
@@ -25,6 +26,24 @@ var sun_system: SunSystem
 # READY
 ########################################################################################################################
 func _ready() -> void:
+	# Preload assets
+	for building_type: Enum.BuildingType in Enum.BuildingType.values():
+		Util.instantiate_building_visual_base(building_type)
+
+	# Managers NOT depending on grid
+	job_manager = JobManager.new()
+	add_child(job_manager)
+
+	building_manager = BuildingManager.new()
+	add_child(building_manager)
+
+	building_placement_manager = BuildingPlacementManager.new()
+	add_child(building_placement_manager)
+
+	level_stats_manager = LevelStatsManager.new()
+	add_child(level_stats_manager)
+
+
 	# GRID
 	_generate_grid()
 
@@ -37,36 +56,16 @@ func _ready() -> void:
 	_full_light_depths_update()
 	EventBus.Signal_LightDepthUpdated.emit()
 
-	## Managers
+	# Managers depending on grid
 	nav_manager = NavManager.new()
 	add_child(nav_manager)
-
-	job_manager = JobManager.new()
-	add_child(job_manager)
-
-	building_manager = BuildingManager.new()
-	add_child(building_manager)
-
-	level_stats_manager = LevelStatsManager.new()
-	add_child(level_stats_manager)
 
 	# SUN / LIGHTING
 	sun_system = SunSystem.new()
 	add_child(sun_system)
 
 
-	# Pre-place Torches
-	for x in range(Global.LEVEL_WIDTH):
-		for y in range(Global.LEVEL_HEIGHT):
-			var grid_pos := Vector2i(x, y)
-			var cell: Cell = get_cell(grid_pos)
-			if cell == null:
-				continue
-
-			var percentage_with_preplaced_torch := 0.2
-			var place_torch := Util.rand_from_coords(grid_pos, 1) < percentage_with_preplaced_torch
-			if not cell.is_solid and place_torch and should_contain_torch(grid_pos):
-				cell.add_deco_element(DecoTorch.instantiate())
+	preplace_torches()
 
 	# DWARF
 	spawn_dwarf(8)
@@ -106,31 +105,53 @@ func spawn_item(grid_pos: Vector2i, item_scene: PackedScene) -> void:
 	add_child(item)
 
 
+func preplace_torches() -> void:
+	for x in range(Global.LEVEL_WIDTH):
+		for y in range(Global.LEVEL_HEIGHT):
+			var grid_pos := Vector2i(x, y)
+			var cell: Cell = get_cell(grid_pos)
+
+			# var percentage_with_preplaced_torch := 0.2
+			# var place_torch := Util.rand_from_coords(grid_pos, 1) < percentage_with_preplaced_torch
+			# if not cell.is_solid and place_torch and should_contain_torch(grid_pos):
+			if not cell.is_solid and should_contain_torch(grid_pos):
+				cell.add_deco_element(DecoTorch.instantiate())
+
 ## Deterministic torch placement
 func should_contain_torch(grid_pos: Vector2i) -> bool:
-	# Simple rule: place torch every 5 cells in x and y, avoid sky area
-	if grid_pos.y <= Global.MAX_ELEVATION_BASELINE + 2:
+	# Not in sky
+	if grid_pos.y <= Global.MAX_ELEVATION_BASELINE:
 		return false
 
-	var percentage_with_torch := 0.95
-	var random_disable := Util.rand_from_coords(grid_pos, 10) > percentage_with_torch
-	if random_disable:
-		return false
-
-	var grid_spacing := Vector2i(3, 1)
-
-	# Random offset, only horizontal and same for entire row. x must be 1 otherwise its on map border
-	var rand_offset := Vector2i.ZERO
-	if Util.rand_from_coords(grid_pos, 11) < 0.2:
-		rand_offset.x = Util.randi_from_coords(Vector2i(1, grid_pos.y), 0, grid_spacing.x, 12)
-
-	var alternating_offset := Vector2i(roundi(grid_pos.y / (grid_spacing.y as float)), 0)
-
-	var sample_pos := grid_pos + rand_offset + alternating_offset
-	if sample_pos.x % grid_spacing.x == 0 and sample_pos.y % grid_spacing.y == 0:
+	# Simply a checker pattern
+	var y_offset: int = 0 if grid_pos.y % 2 == 0 else 1
+	if (grid_pos.x + y_offset) % 2 == 0:
 		return true
-
 	return false
+
+	# # Simple rule: place torch every 5 cells in x and y, avoid sky area
+	# if grid_pos.y <= Global.MAX_ELEVATION_BASELINE + 2:
+	# 	return false
+
+	# var percentage_with_torch := 0.95
+	# var random_disable := Util.rand_from_coords(grid_pos, 10) > percentage_with_torch
+	# if random_disable:
+	# 	return false
+
+	# var grid_spacing := Vector2i(3, 1)
+
+	# # Random offset, only horizontal and same for entire row. x must be 1 otherwise its on map border
+	# var rand_offset := Vector2i.ZERO
+	# if Util.rand_from_coords(grid_pos, 11) < 0.2:
+	# 	rand_offset.x = Util.randi_from_coords(Vector2i(1, grid_pos.y), 0, grid_spacing.x, 12)
+
+	# var alternating_offset := Vector2i(roundi(grid_pos.y / (grid_spacing.y as float)), 0)
+
+	# var sample_pos := grid_pos + rand_offset + alternating_offset
+	# if sample_pos.x % grid_spacing.x == 0 and sample_pos.y % grid_spacing.y == 0:
+	# 	return true
+
+	# return false
 
 ########################################################################################################################
 # Max Elevation / Sky
