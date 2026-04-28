@@ -31,17 +31,16 @@ func _update_item_placement(delta: float) -> void:
 		var target_pos: Vector2 = _get_carried_item_position(item.item_type, idx_in_group, group_idx)
 
 		# Lerp if animation not finished, snap once securely attached
-		if item.pick_up_animation_finished:
+		if item.transition_animation_finished:
 			item.global_position = target_pos
-		else:
-			var max_pickup_time: float = 0.5 # seconds
-			var time_since_pickup: float = Util.now() - item.pick_up_animation_start_time
-			var animation_progress: float = clamp(time_since_pickup / max_pickup_time, 0.0, 1.0)
+		else:			
+			var time_since_pickup: float = Util.now() - item.transition_animation_start_time
+			var animation_progress: float = clamp(time_since_pickup / item.max_transition_duration, 0.0, 1.0)
 
 			# Move item
 			item.global_position = item.global_position.lerp(target_pos, animation_progress)
 			if animation_progress >= 1.0:
-				item.pick_up_animation_finished = true
+				item.transition_animation_finished = true
 		
 		# Also update item-parent grid pos to match carrier - even though this is probaly not required in most cases.
 		item.update_grid_pos(parent.grid_pos)

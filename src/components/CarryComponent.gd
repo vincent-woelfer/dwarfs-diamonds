@@ -32,17 +32,16 @@ func _update_item_placement(delta: float) -> void:
 		var target_pos: Vector2 = _get_carried_item_position(item, idx_in_group, group_idx)
 
 		# Lerp if animation not finished, snap once securely attached
-		if item.pick_up_animation_finished:
+		if item.transition_animation_finished:
 			item.global_position = target_pos
 		else:
-			var max_pickup_time: float = 0.5 # seconds
-			var time_since_pickup: float = Util.now() - item.pick_up_animation_start_time
-			var animation_progress: float = clamp(time_since_pickup / max_pickup_time, 0.0, 1.0)
+			var time_since_pickup: float = Util.now() - item.transition_animation_start_time
+			var animation_progress: float = clamp(time_since_pickup / item.max_transition_duration, 0.0, 1.0)
 
 			# Move item
 			item.global_position = item.global_position.lerp(target_pos, animation_progress)
 			if animation_progress >= 1.0:
-				item.pick_up_animation_finished = true
+				item.transition_animation_finished = true
 		
 		# Also update item-parent grid pos to match carrier - even though this is probaly not required in most cases.
 		item.update_grid_pos(parent.grid_pos)
@@ -66,7 +65,7 @@ func _get_carried_item_position(item: Item, index_in_group: int, group_index: in
 	# Item offset - not flipped, just stacks up vertically per item in the same group
 	# var offset_y_per_item := Vector2(0.0, -Global.CELL_SIZE * 0.15)
 
-	return base_pos + group_offset + (index_in_group * item.get_stacking_size() * Vector2.UP)
+	return base_pos + group_offset + (index_in_group * item.get_stacking_size() * _storage.in_storage_scaling * Vector2.UP)
 
 
 ########################################################################################################################
@@ -75,6 +74,8 @@ func _get_carried_item_position(item: Item, index_in_group: int, group_index: in
 func _ready() -> void:
 	assert(parent != null)
 	assert(parent is GridObject2D)
+
+	_storage.in_storage_scaling = 0.7
 
 
 func _physics_process(delta: float) -> void:

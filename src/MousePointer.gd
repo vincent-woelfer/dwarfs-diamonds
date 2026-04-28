@@ -168,11 +168,16 @@ func _actions_mode_change() -> bool:
 
 
 func _actions_neutral() -> void:
+	var ctrl_pressed: bool = Input.is_physical_key_pressed(KEY_CTRL)
+
 	# Mine Cells
 	if Input.is_action_just_pressed("mouse_right"):
 		for cell in curr_selected_cells:
-			mining_comp.start_mining(cell)
-
+			if not ctrl_pressed:
+				mining_comp.start_mining(cell)
+			else:
+				# Instant for testing
+				Actions.destroy_cell(cell)
 
 	######## DEBUG ########
 	if Input.is_action_just_pressed("dev_place_debug_path_start"):

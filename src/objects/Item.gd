@@ -18,14 +18,11 @@ extends GridObject2D
 var is_in_storage: bool = false
 var storage: AbstractStorage = null
 
-# Pick-up animation state - used by CarryComponent / StockpileComponent
-var pick_up_animation_finished: bool = false
-var pick_up_animation_start_time: float = 0.0
+# Pick-up animation state - used by CarryComponent / StockpileComponent to move to position
+var transition_animation_finished: bool = false
+var transition_animation_start_time: float = 0.0
 
-# Scale tween for pickup animation
-var scale_tween: Tween
-var target_scale: Vector2 = Vector2.ONE
-const in_storage_scale: Vector2 = Vector2.ONE * 0.7
+var max_transition_duration: float = 0.5 # seconds
 
 
 # Sounds
@@ -87,10 +84,9 @@ func on_picked_up(new_storage: AbstractStorage) -> void:
 	is_in_storage = true
 	storage = new_storage
 	
-	pick_up_animation_finished = false
-	pick_up_animation_start_time = Util.now()
-
-	tween_to_scale(Vector2.ONE * in_storage_scale)
+	# Trigger animation
+	transition_animation_finished = false
+	transition_animation_start_time = Util.now()
 
 	Actions.archive_job(pickup_job, true)
 	pickup_job = null
@@ -104,7 +100,9 @@ func on_dropped() -> void:
 	is_in_storage = false
 	storage = null
 
-	tween_to_scale(Vector2.ONE)
+	# Trigger animation
+	transition_animation_finished = false
+	transition_animation_start_time = Util.now()
 
 	_add_pickup_job()
 
@@ -116,9 +114,22 @@ func on_dropped() -> void:
 
 
 func _process(delta: float) -> void:
-	if light:
+	if not is_in_storage and light:
 		var light_rotation_speed_rad_per_sec := deg_to_rad(15)
 		light.rotate(light_rotation_speed_rad_per_sec * delta)
+
+	# Pickup / drop animation
+	if not transition_animation_finished:
+		var target_scale: Vector2 = Vector2.ONE
+
+		if is_in_storage:
+			target_scale *= storage.in_storage_scaling
+
+		var time_since_pickup: float = Util.now() - transition_animation_start_time
+		var animation_progress: float = clamp(time_since_pickup / max_transition_duration, 0.0, 1.0)
+		scale = scale.lerp(target_scale, animation_progress)
+		if animation_progress >= 1.0:
+			transition_animation_finished = true
 
 
 func _add_pickup_job() -> void:
@@ -138,7 +149,7 @@ func can_be_picked_up_right_now() -> bool:
 
 ## This always returns the in-inventory size!
 func get_stacking_size() -> Vector2:
-	return stacking_shape.shape.get_rect().size * in_storage_scale
+	return stacking_shape.shape.get_rect().size
 
 
 func _on_new_cell_entered(new_cell: Cell) -> void:
@@ -182,15 +193,3 @@ func _spawn_animation() -> void:
 
 	# White flash: fade modulate back to normal color
 	tween.tween_property(self , "modulate", prev_modulate, 0.25).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-
-
-func tween_to_scale(new_scale: Vector2, duration: float = 0.25) -> void:
-	target_scale = new_scale
-
-	if scale_tween:
-		scale_tween.kill()
-
-	scale_tween = create_tween()
-	scale_tween.set_trans(Tween.TRANS_SINE)
-	scale_tween.set_ease(Tween.EASE_OUT)
-	scale_tween.tween_property(self , "scale", target_scale, duration)

@@ -16,6 +16,9 @@ var _curr_total_weight: float = 0.0
 # for placement logic
 var _item_type_group_sizes: Dictionary[Enum.ItemType, int]
 
+# Overwrite in child classes!
+var in_storage_scaling: float = 1.0
+
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################
