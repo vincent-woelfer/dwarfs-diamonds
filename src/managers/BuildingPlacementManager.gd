@@ -57,8 +57,9 @@ func _ready() -> void:
 	for building_type: Enum.BuildingType in Enum.BuildingType.values():
 		placeable_highlight.append(GridBoolArray.new())
 
-	# Signals
-	EventBus.Signal_LightDepthUpdated.connect(_on_level_updated)
+	# Signals - maybe both?
+	#EventBus.Signal_LightDepthUpdated.connect(_on_level_updated)
+	EventBus.Signal_NavUpdated.connect(_on_level_updated)
 
 
 func _on_level_updated() -> void:

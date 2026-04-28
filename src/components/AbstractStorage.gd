@@ -6,16 +6,15 @@ extends RefCounted
 ########################################################################################################################
 
 # Storage capacity 
-@export var capacity_max_weight: float = 2.0
+@export var capacity_max_weight: float = 5.0
 @export var capacity_max_count: int = 10
 
 # internal
 var _curr_carried_items: Array[Item] = []
 var _curr_total_weight: float = 0.0
-var _curr_total_count: int = 0
 
 # for placement logic
-var _item_type_group_sizes: Dictionary[Item.ItemType, int]
+var _item_type_group_sizes: Dictionary[Enum.ItemType, int]
 
 ########################################################################################################################
 # PUBLIC METHODS
@@ -55,7 +54,6 @@ func pickup(carrier_pos: Vector2i, item: Item) -> bool:
 	# Modify self
 	_curr_carried_items.append(item)
 	_curr_total_weight += item.weight
-	_curr_total_count += 1
 	_update_item_type_group_sizes()
 
 	# Modify item
@@ -74,7 +72,6 @@ func drop(item: Item) -> Item:
 	# Modify self
 	_curr_carried_items.erase(item)
 	_curr_total_weight -= item.weight
-	_curr_total_count -= 1
 	_update_item_type_group_sizes()
 
 	# Modify item
@@ -132,7 +129,7 @@ func does_fit_into_capacity(item: Item) -> bool:
 	if _curr_total_weight + item.weight > capacity_max_weight:
 		return false
 
-	if _curr_total_count + 1 > capacity_max_count:
+	if _curr_carried_items.size() + 1 > capacity_max_count:
 		return false
 
 	return true
@@ -147,13 +144,13 @@ func get_carried_total_weight() -> float:
 	return _curr_total_weight
 
 func get_carried_total_count() -> int:
-	return _curr_total_count
+	return _curr_carried_items.size()
 
 func get_carried_weight_percentage() -> float:
 	return _curr_total_weight / capacity_max_weight
 
 
-func get_item_type_group_sizes() -> Dictionary[Item.ItemType, int]:
+func get_item_type_group_sizes() -> Dictionary[Enum.ItemType, int]:
 	return _item_type_group_sizes
 
 
@@ -177,14 +174,14 @@ func get_all_pickupable_items_in_range(carrier_pos: Vector2i) -> Array[Item]:
 	return items
 
 
-func is_carrying_item_of_type(item_type: Item.ItemType) -> bool:
+func is_carrying_item_of_type(item_type: Enum.ItemType) -> bool:
 	for item: Item in _curr_carried_items:
 		if item.item_type == item_type:
 			return true
 	return false
 
 
-func get_items_of_type(item_type: Item.ItemType) -> Array[Item]:
+func get_items_of_type(item_type: Enum.ItemType) -> Array[Item]:
 	return _curr_carried_items.filter(func(item: Item) -> bool: return item.item_type == item_type)
 
 ########################################################################################################################
@@ -197,4 +194,3 @@ func _update_item_type_group_sizes() -> void:
 		if not _item_type_group_sizes.has(item.item_type):
 			_item_type_group_sizes[item.item_type] = 0
 		_item_type_group_sizes[item.item_type] += 1
-

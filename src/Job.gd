@@ -274,11 +274,11 @@ func get_debug_info() -> Array:
 
 	# Override/modify with additional info
 	if job_type == Job.Type.PICKUP:
-		if carryable_item.item_type == Item.ItemType.RUBBLE:
+		if carryable_item.item_type == Enum.ItemType.RUBBLE:
 			info[0] += "-RUB"
 			@warning_ignore("unsafe_method_access")
 			info[2] = info[2].darkened(0.5)
-		elif carryable_item.item_type == Item.ItemType.GEMSTONE:
+		elif carryable_item.item_type == Enum.ItemType.GEMSTONE:
 			info[0] += "-GEM"
 			@warning_ignore("unsafe_method_access")
 			info[2] = info[2].lerp(Color.CYAN, 0.4)

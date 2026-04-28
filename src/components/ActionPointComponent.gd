@@ -110,11 +110,11 @@ func _dropoff_rubble() -> bool:
 	const after_last_time := 0.3
 
 	var carry_comp: CarryComponent = parent.carry_comp
-	var has_rubble := carry_comp.is_carrying_item_of_type(Item.ItemType.RUBBLE)
+	var has_rubble := carry_comp.is_carrying_item_of_type(Enum.ItemType.RUBBLE)
 
 	# Check for rubble disposal
 	if has_rubble and Util.has_time_passed(repeated_tick_timestamp, dispose_time):
-		carry_comp.delete(carry_comp.get_items_of_type(Item.ItemType.RUBBLE)[-1])
+		carry_comp.delete(carry_comp.get_items_of_type(Enum.ItemType.RUBBLE)[-1])
 		repeated_tick_timestamp = Util.now()
 
 		Audio.play_at_pos("dispose_trash", _curr_action_point.get_global_position())
@@ -131,11 +131,11 @@ func _dropoff_gemstone() -> bool:
 	const after_last_time := 0.5
 
 	var carry_comp: CarryComponent = parent.carry_comp
-	var has_gemstone := carry_comp.is_carrying_item_of_type(Item.ItemType.GEMSTONE)
+	var has_gemstone := carry_comp.is_carrying_item_of_type(Enum.ItemType.GEMSTONE)
 
 	# Check for gemstone disposal
 	if has_gemstone and Util.has_time_passed(repeated_tick_timestamp, dispose_time):
-		carry_comp.delete(carry_comp.get_items_of_type(Item.ItemType.GEMSTONE)[-1])
+		carry_comp.delete(carry_comp.get_items_of_type(Enum.ItemType.GEMSTONE)[-1])
 		repeated_tick_timestamp = Util.now()
 
 		Global.level.level_stats_manager.update_gemstones_collected(1)

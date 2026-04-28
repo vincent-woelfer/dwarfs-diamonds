@@ -82,3 +82,12 @@ enum BuildingType {
 	PLATFORM_BRIDGE,
 }
 
+
+########################################################################################################################
+# ENUM DEFINITIONS ITEM TYPES
+########################################################################################################################
+# Number is used to sort groups in inventory for now (TODO refactor)
+enum ItemType {
+	RUBBLE = 0,
+	GEMSTONE = 1,
+}

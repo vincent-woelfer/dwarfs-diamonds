@@ -13,11 +13,14 @@ var _storage: AbstractStorage = AbstractStorage.new()
 # ITEM PLACEMENT
 ########################################################################################################################
 func _update_item_placement(delta: float) -> void:
-	var item_type_group_sizes: Dictionary[Item.ItemType, int] = _storage.get_item_type_group_sizes()
-	var idx_by_type: Dictionary[Item.ItemType, int] = {}
+	var item_type_group_sizes: Dictionary[Enum.ItemType, int] = _storage.get_item_type_group_sizes()
+	var idx_by_type: Dictionary[Enum.ItemType, int] = {}
 
 	for i: int in range(_storage.get_carried_total_count()):
 		var item: Item = _storage.get_item_by_index(i)
+
+		if item == null:
+			continue # safety check, should not happen
 
 		# Idx by type and group idx
 		if not idx_by_type.has(item.item_type):
@@ -127,8 +130,8 @@ func get_carried_weight_percentage() -> float:
 func get_all_pickupable_items_in_range() -> Array[Item]:
 	return _storage.get_all_pickupable_items_in_range(parent.grid_pos)
 
-func is_carrying_item_of_type(item_type: Item.ItemType) -> bool:
+func is_carrying_item_of_type(item_type: Enum.ItemType) -> bool:
 	return _storage.is_carrying_item_of_type(item_type)
 
-func get_items_of_type(item_type: Item.ItemType) -> Array[Item]:
+func get_items_of_type(item_type: Enum.ItemType) -> Array[Item]:
 	return _storage.get_items_of_type(item_type)

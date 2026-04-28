@@ -1,12 +1,6 @@
 class_name Item
 extends GridObject2D
 
-# Number is used to sort groups in inventory for now (TODO refactor)
-enum ItemType {
-	RUBBLE = 0,
-	GEMSTONE = 1,
-}
-
 # THIS IS A SCENE
 # Scene Components - Required
 @onready var sprite: Sprite2D = $Sprite
@@ -18,15 +12,21 @@ enum ItemType {
 
 # Used to set Item weight
 @export var weight: float = 1.0
-@export var item_type: ItemType
+@export var item_type: Enum.ItemType
 
 # Storage state
 var is_in_storage: bool = false
 var storage: AbstractStorage = null
 
-# Pick-up animation state
+# Pick-up animation state - used by CarryComponent / StockpileComponent
 var pick_up_animation_finished: bool = false
 var pick_up_animation_start_time: float = 0.0
+
+# Scale tween for pickup animation
+var scale_tween: Tween
+var target_scale: Vector2 = Vector2.ONE
+const in_storage_scale: Vector2 = Vector2.ONE * 0.7
+
 
 # Sounds
 @export var on_spawned_audio: AudioStream
@@ -43,14 +43,14 @@ var light_energy_default: float = 0.25
 # Spawn offset y must be negative to be placed above floor
 func setup_item(grid_pos_: Vector2i, spawn_offset: Vector2 = Vector2.ZERO) -> void:
 	# Validation
-	assert(item_type in ItemType.values(), "Invalid item type %s" % [item_type])
+	assert(item_type in Enum.ItemType.values(), "Invalid item type %s" % [item_type])
 	setup_grid_object(grid_pos_)
 	
 	global_position = Global.level.get_cell(grid_pos).get_center_floor_point() + spawn_offset
 
 
 func _ready() -> void:
-	self.z_index = Enum.ZIndex.GEMSTONE if item_type == ItemType.GEMSTONE else Enum.ZIndex.RUBBLE
+	self.z_index = Enum.ZIndex.GEMSTONE if item_type == Enum.ItemType.GEMSTONE else Enum.ZIndex.RUBBLE
 	add_to_group(Global.GROUP_CARRYABLE_ITEMS)
 
 
@@ -62,14 +62,14 @@ func _ready() -> void:
 
 	# Gemstone color
 	var gem_color: Color = [Color.HOT_PINK, Color.CYAN, Color.YELLOW_GREEN].pick_random()
-	if item_type == ItemType.GEMSTONE:
+	if item_type == Enum.ItemType.GEMSTONE:
 		sprite.modulate = gem_color * 2.0
-	elif item_type == ItemType.RUBBLE:
+	elif item_type == Enum.ItemType.RUBBLE:
 		sprite.modulate = Colors.rand_rubble_color()
 
 	# Light
 	if light != null:
-		var light_color: Color = gem_color if item_type == ItemType.GEMSTONE else Color.WHITE
+		var light_color: Color = gem_color if item_type == Enum.ItemType.GEMSTONE else Color.WHITE
 		light.color = Color.WHITE.lerp(light_color, 0.5)
 		light.energy = light_energy_default
 
@@ -80,7 +80,7 @@ func _ready() -> void:
 	######
 	_add_pickup_job()
 	Audio.play_at_pos_stream(on_spawned_audio, global_position)
-	_spawn_animation()
+	# _spawn_animation()
 
 
 func on_picked_up(new_storage: AbstractStorage) -> void:
@@ -89,6 +89,8 @@ func on_picked_up(new_storage: AbstractStorage) -> void:
 	
 	pick_up_animation_finished = false
 	pick_up_animation_start_time = Util.now()
+
+	tween_to_scale(Vector2.ONE * in_storage_scale)
 
 	Actions.archive_job(pickup_job, true)
 	pickup_job = null
@@ -101,6 +103,8 @@ func on_picked_up(new_storage: AbstractStorage) -> void:
 func on_dropped() -> void:
 	is_in_storage = false
 	storage = null
+
+	tween_to_scale(Vector2.ONE)
 
 	_add_pickup_job()
 
@@ -132,8 +136,10 @@ func can_be_picked_up_right_now() -> bool:
 	return true
 
 
+## This always returns the in-inventory size!
 func get_stacking_size() -> Vector2:
-	return stacking_shape.shape.get_rect().size
+	return stacking_shape.shape.get_rect().size * in_storage_scale
+
 
 func _on_new_cell_entered(new_cell: Cell) -> void:
 	if new_cell == null or is_in_storage:
@@ -158,11 +164,13 @@ func _on_landed(fall_height_cells: int) -> void:
 
 func _to_string() -> String:
 	var color := Colors.to_print_color(sprite.modulate)
-	var print_name: String = "Rubble" if item_type == ItemType.RUBBLE else "Gemstone"
+	var print_name: String = "Rubble" if item_type == Enum.ItemType.RUBBLE else "Gemstone"
 	return Util.color_string("%s @%s" % [print_name, self._grid_pos], color)
 
 
 func _spawn_animation() -> void:
+	var prev_modulate := modulate
+
 	# Start scaled to zero and bright white
 	scale = Vector2.ZERO
 	modulate = Color(8.0, 8.0, 8.0, 1.0) # HDR white flash
@@ -173,4 +181,16 @@ func _spawn_animation() -> void:
 	tween.tween_property(self , "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 	# White flash: fade modulate back to normal color
-	tween.tween_property(self , "modulate", Color.WHITE, 0.25).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self , "modulate", prev_modulate, 0.25).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+
+
+func tween_to_scale(new_scale: Vector2, duration: float = 0.25) -> void:
+	target_scale = new_scale
+
+	if scale_tween:
+		scale_tween.kill()
+
+	scale_tween = create_tween()
+	scale_tween.set_trans(Tween.TRANS_SINE)
+	scale_tween.set_ease(Tween.EASE_OUT)
+	scale_tween.tween_property(self , "scale", target_scale, duration)

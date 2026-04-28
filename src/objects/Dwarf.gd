@@ -453,11 +453,11 @@ func _create_own_tasks() -> void:
 	var tasks: Array[Task] = []
 
 	# Dispose Gemstone
-	if carry_comp.is_carrying_item_of_type(Item.ItemType.GEMSTONE):
+	if carry_comp.is_carrying_item_of_type(Enum.ItemType.GEMSTONE):
 		_create_action_point_tasks_for_type(ActionPoint.ActionType.DROPOFF_GEMSTONE)
 
 	# Dispose Rubble
-	elif carry_comp.is_carrying_item_of_type(Item.ItemType.RUBBLE):
+	elif carry_comp.is_carrying_item_of_type(Enum.ItemType.RUBBLE):
 		_create_action_point_tasks_for_type(ActionPoint.ActionType.DROPOFF_RUBBLE)
 
 

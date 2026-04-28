@@ -326,7 +326,7 @@ func _score_job(job: Job, path: Path, dwarf: Dwarf) -> ScoredJob:
 			score += 2.0
 
 		# Prioritize gemstones over rubble
-		if job.carryable_item.item_type == Item.ItemType.GEMSTONE:
+		if job.carryable_item.item_type == Enum.ItemType.GEMSTONE:
 			score *= 0.5
 
 	return ScoredJob.new(job, path, score)
