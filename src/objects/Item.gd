@@ -113,6 +113,16 @@ func on_dropped() -> void:
 	movement_comp.on_dropped()
 
 
+func on_transfered_to_other_storage(new_storage: AbstractStorage) -> void:
+	assert(is_in_storage)
+	is_in_storage = true
+	storage = new_storage
+
+	# Trigger animation
+	transition_animation_finished = false
+	transition_animation_start_time = Util.now()
+
+
 func _process(delta: float) -> void:
 	if not is_in_storage and light:
 		var light_rotation_speed_rad_per_sec := deg_to_rad(15)
@@ -123,7 +133,7 @@ func _process(delta: float) -> void:
 		var target_scale: Vector2 = Vector2.ONE
 
 		if is_in_storage:
-			target_scale *= storage.in_storage_scaling
+			target_scale *= storage.item_scaling_in_storage
 
 		var time_since_pickup: float = Util.now() - transition_animation_start_time
 		var animation_progress: float = clamp(time_since_pickup / max_transition_duration, 0.0, 1.0)

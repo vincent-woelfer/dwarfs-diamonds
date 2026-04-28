@@ -9,8 +9,6 @@ extends Node2D
 
 var _storage: AbstractStorage = AbstractStorage.new()
 
-# TODO variables for storage space visualisation.
-
 ########################################################################################################################
 # ITEM PLACEMENT
 ########################################################################################################################
@@ -21,6 +19,9 @@ func _update_item_placement(delta: float) -> void:
 	for i: int in range(_storage.get_carried_total_count()):
 		var item: Item = _storage.get_item_by_index(i)
 
+		if item == null:
+			continue # safety check, should not happen
+
 		# Idx by type and group idx
 		if not idx_by_type.has(item.item_type):
 			idx_by_type[item.item_type] = 0
@@ -28,12 +29,12 @@ func _update_item_placement(delta: float) -> void:
 		idx_by_type[item.item_type] += 1
 		var group_idx: int = item.item_type as int
 
-		var target_pos: Vector2 = _get_carried_item_position(item.item_type, idx_in_group, group_idx)
+		var target_pos: Vector2 = _get_carried_item_position(item, idx_in_group, group_idx)
 
 		# Lerp if animation not finished, snap once securely attached
 		if item.transition_animation_finished:
 			item.global_position = target_pos
-		else:			
+		else:
 			var time_since_pickup: float = Util.now() - item.transition_animation_start_time
 			var animation_progress: float = clamp(time_since_pickup / item.max_transition_duration, 0.0, 1.0)
 
@@ -48,19 +49,25 @@ func _update_item_placement(delta: float) -> void:
 
 ## Returns global position
 ## Assumes all objects have their origin at center bottom. -Y is up.
-func _get_carried_item_position(item_type: Enum.ItemType, index_in_group: int, group_index: int) -> Vector2:
-	var vertical_offset_base: float = Global.CELL_SIZE * 0.285
-	var horizontal_offset_base: float = Global.CELL_SIZE * -0.3 # - so its slightly to the back of the dwarf
-	var base_pos: Vector2 = parent.global_position + Vector2(horizontal_offset_base, -vertical_offset_base)
+func _get_carried_item_position(item: Item, index_in_group: int, group_index: int) -> Vector2:
+	var width_per_group := Global.CELL_SIZE * 0.5
+	var left: bool = group_index % 2 == 0
+	var horizontal_offset: float = width_per_group * (-1.0 if left else 1.0)
 
-	# Group offset - also flipped
-	var offset_for_groups: Array[float] = [0.0, Global.CELL_SIZE * 0.2]
-	var group_offset := Vector2(offset_for_groups[group_index], 0.0)
+	# global_position should be floor center
+	var base_pos: Vector2 = parent.global_position + Vector2(horizontal_offset, 0.0)
 
-	# Item offset - not flipped, just stacks up vertically per item in the same group
-	var offset_y_per_item := Vector2(0.0, -Global.CELL_SIZE * 0.15)
+	# Include some overlap
+	var item_size: Vector2 = item.get_stacking_size() * _storage.item_scaling_in_storage * Vector2(0.6, 0.9)
 
-	return base_pos + group_offset + index_in_group * offset_y_per_item
+	# var items_per_row: int = max(floori((item_size.x / width_per_group)), 1)
+	var items_per_row := 3
+
+	# TODO does not work well
+	var x_idx: int = index_in_group % items_per_row
+	var y_idx: int = floori((index_in_group - x_idx as float) / items_per_row as float)
+
+	return base_pos + Vector2(x_idx, -y_idx) * item_size
 
 
 ########################################################################################################################
@@ -70,6 +77,8 @@ func _ready() -> void:
 	assert(parent != null)
 	assert(parent is GridObject2D)
 
+	_storage.item_scaling_in_storage = 0.8
+
 
 func _physics_process(delta: float) -> void:
 	if is_carrying_anything():
@@ -78,9 +87,8 @@ func _physics_process(delta: float) -> void:
 
 ########################################################################################################################
 # Overwritten methods from AbstractStorage - redirected to _storage
+# Same for CarryComponent and StockpileComponent
 ########################################################################################################################
-# TODO DROP/TRansfer to other container/storage/disposal
-
 func pickup_all_in_range(priority_items: Array[Item]) -> bool:
 	return _storage.pickup_all_in_range(parent.grid_pos, priority_items)
 
@@ -95,6 +103,9 @@ func drop_all() -> void:
 
 func delete(item: Item) -> void:
 	_storage.delete(item)
+
+func transfer_to_other_storage(item: Item, other_storage: AbstractStorage) -> bool:
+	return _storage.transfer_to_other_storage(item, other_storage)
 
 func can_pickup(item: Item) -> bool:
 	return _storage.can_pickup(parent.grid_pos, item)

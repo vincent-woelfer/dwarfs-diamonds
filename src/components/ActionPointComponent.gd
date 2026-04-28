@@ -114,10 +114,14 @@ func _dropoff_rubble() -> bool:
 
 	# Check for rubble disposal
 	if has_rubble and Util.has_time_passed(repeated_tick_timestamp, dispose_time):
-		carry_comp.delete(carry_comp.get_items_of_type(Enum.ItemType.RUBBLE)[-1])
+		var rubble: Item = carry_comp.get_items_of_type(Enum.ItemType.RUBBLE)[-1]
+
+		# Transfer
+		carry_comp.transfer_to_other_storage(rubble, _curr_action_point.storage._storage)
+
 		repeated_tick_timestamp = Util.now()
 
-		Audio.play_at_pos("dispose_trash", _curr_action_point.get_global_position())
+		Audio.play_at_pos("dispose_trash", _curr_action_point.global_position)
 
 	# Check for done - 0.5 after last rubble was deleted
 	if not has_rubble and Util.has_time_passed(repeated_tick_timestamp, after_last_time):

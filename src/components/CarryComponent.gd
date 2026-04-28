@@ -65,7 +65,7 @@ func _get_carried_item_position(item: Item, index_in_group: int, group_index: in
 	# Item offset - not flipped, just stacks up vertically per item in the same group
 	# var offset_y_per_item := Vector2(0.0, -Global.CELL_SIZE * 0.15)
 
-	return base_pos + group_offset + (index_in_group * item.get_stacking_size() * _storage.in_storage_scaling * Vector2.UP)
+	return base_pos + group_offset + (index_in_group * item.get_stacking_size() * _storage.item_scaling_in_storage * Vector2.UP)
 
 
 ########################################################################################################################
@@ -75,7 +75,7 @@ func _ready() -> void:
 	assert(parent != null)
 	assert(parent is GridObject2D)
 
-	_storage.in_storage_scaling = 0.7
+	_storage.item_scaling_in_storage = 0.7
 
 
 func _physics_process(delta: float) -> void:
@@ -95,9 +95,8 @@ func _get_parent_look_dir() -> Vector2:
 
 ########################################################################################################################
 # Overwritten methods from AbstractStorage - redirected to _storage
+# Same for CarryComponent and StockpileComponent
 ########################################################################################################################
-# TODO DROP/TRansfer to other container/storage/disposal
-
 func pickup_all_in_range(priority_items: Array[Item]) -> bool:
 	return _storage.pickup_all_in_range(parent.grid_pos, priority_items)
 
@@ -112,6 +111,9 @@ func drop_all() -> void:
 
 func delete(item: Item) -> void:
 	_storage.delete(item)
+
+func transfer_to_other_storage(item: Item, other_storage: AbstractStorage) -> bool:
+	return _storage.transfer_to_other_storage(item, other_storage)
 
 func can_pickup(item: Item) -> bool:
 	return _storage.can_pickup(parent.grid_pos, item)

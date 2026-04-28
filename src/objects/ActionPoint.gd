@@ -21,12 +21,20 @@ var type: ActionType
 var in_cell_pos: Vector2 = Global.CELL_SIZE_VEC_HALF
 
 
+## TODO DEV
+var storage: StockpileComponent = null
+
+
 ########################################################################################################################
 # SETUP
 ########################################################################################################################
 func setup_action_point(grid_pos_: Vector2i, type_: ActionType) -> void:
 	setup_grid_object(grid_pos_, Vector2.ZERO)
 	self.type = type_
+
+	storage = StockpileComponent.new()
+	add_child(storage)
+	storage.position = Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
 
 func _ready() -> void:
 	pass

@@ -32,7 +32,7 @@ static var sounds_volume_db: Dictionary[String, float] = {
 	"ohoh_1": + 4.0,
 	"ohoh_2": + 4.0,
 	"ohoh_3": + 4.0,
-	"dispose_trash": + 16.0,
+	"dispose_trash": + 8.0,
 	'gemstone_dropoff': + 8.0,
 }
 

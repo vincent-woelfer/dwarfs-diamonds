@@ -16,8 +16,8 @@ var _curr_total_weight: float = 0.0
 # for placement logic
 var _item_type_group_sizes: Dictionary[Enum.ItemType, int]
 
-# Overwrite in child classes!
-var in_storage_scaling: float = 1.0
+# Customize in wrapper class!
+var item_scaling_in_storage: float = 1.0
 
 ########################################################################################################################
 # PUBLIC METHODS
@@ -103,10 +103,44 @@ func delete(item: Item) -> void:
 	# Modify self
 	_curr_carried_items.erase(item)
 	_curr_total_weight -= item.weight
-
 	_update_item_type_group_sizes()
 
 	item.queue_free()
+
+
+###################################
+# TRANSFER
+###################################
+func transfer_to_other_storage(item: Item, other_storage: AbstractStorage) -> bool:
+	if item == null or other_storage == null or not _curr_carried_items.has(item):
+		return false
+
+	if other_storage == self:
+		return false
+
+	# For now no range check
+	if not other_storage.does_fit_into_capacity(item):
+		return false
+
+	# Modify self
+	_curr_carried_items.erase(item)
+	_curr_total_weight -= item.weight
+	_update_item_type_group_sizes()
+
+	# Add to other storage
+	other_storage.on_item_transfered_from_other_storage(item)
+
+	# Modify item
+	item.on_transfered_to_other_storage(other_storage)
+
+	return true
+
+
+func on_item_transfered_from_other_storage(item: Item) -> void:
+	# Modify self
+	_curr_carried_items.append(item)
+	_curr_total_weight += item.weight
+	_update_item_type_group_sizes()
 
 
 ###################################

@@ -117,10 +117,10 @@ func update_build_progress(building_speed_with_delta: float) -> void:
 	var building_with_duration := building_speed_with_delta / building_data.build_time
 	build_progress = clamp(build_progress + building_with_duration, 0.0, 1.0)
 
-	visual_root.update_building_progress(build_progress)
-
 	if build_progress >= 1.0:
 		_complete_construction()
+	else:
+		visual_root.update_building_progress(build_progress)
 
 
 # Called from Actions.remove_building which handles most logic (like calling building_manager.unregister_building() and removing from cells)
@@ -151,6 +151,8 @@ func set_modulate_external(color: Color) -> void:
 func _complete_construction() -> void:
 	if is_complete:
 		return
+
+	visual_root.update_building_progress(1.0)
 
 	is_complete = true
 	print_rich("%s completed" % [ self ])
