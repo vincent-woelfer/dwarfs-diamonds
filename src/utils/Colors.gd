@@ -135,6 +135,7 @@ static var NAV_UNIMPORTANT_PRINT_COLOR: Color = to_print_color(Color.RED.lerp(Co
 static var JOBS_PRINT_COLOR: Color = to_print_color(Color.GREEN)
 static var LIGHT_DEPTH_PRINT_COLOR: Color = to_print_color(Color.DARK_BLUE)
 static var TASK_PRINT_COLOR: Color = to_print_color(Color.DARK_CYAN)
+static var GENERIC_INFO_PRINT_COLOR: Color = to_print_color(Color.DARK_SALMON)
 
 
 ########################################################################################################################

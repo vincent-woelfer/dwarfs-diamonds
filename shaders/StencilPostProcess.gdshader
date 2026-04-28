@@ -18,7 +18,8 @@ const float angle = 0.7854; // radians
 
 // STATIC COLORS
 const vec4 mining_color = vec4(0.4, 0.18, 0.75, 0.8);
-const vec4 highlight_color = vec4(1.0, 1.0, 0.0, 0.2);
+const vec4 highlight_color = vec4(1.0, 1.0, 0.0, 0.25);
+const vec4 placebable_highlight_color = vec4(0.0, 1.0, 0.0, 0.5);
 
 const float is_solid_max_darken_factor = 0.5;
 const float is_solid_flat_offset = 0.10;
@@ -49,15 +50,17 @@ void fragment() {
     int stencil_b8 = int(round(stencil_color.b * 255.0));
 
     // --- RED channel flags ---
-    bool is_marked_for_mining = (stencil_r8 & (1 << 0)) != 0;
-    bool is_solid             = (stencil_r8 & (1 << 1)) != 0;
-    bool is_highlighted       = (stencil_r8 & (1 << 2)) != 0;
+    bool is_marked_for_mining       = (stencil_r8 & (1 << 0)) != 0;
+    bool is_solid                   = (stencil_r8 & (1 << 1)) != 0;
+    bool is_highlighted             = (stencil_r8 & (1 << 2)) != 0;
+    bool has_placeable_highlight    = (stencil_r8 & (1 << 3)) != 0;
 
     // --- GREEN channel fields ---
     // Extract 3-bit field starting at bit 0, then normalize to [0.0, 1.0]
     const int bitmask_3bits = (1 << 3) - 1; // 0b00000111
     int mining_process_bits = (stencil_g8 >> 0) & bitmask_3bits;
     float mining_process = float(mining_process_bits) / 7.0;
+    
 
     // --- BLUE channel fields ---
     // used for debugging
@@ -106,6 +109,10 @@ void fragment() {
     // IS HIGHLIGHTED (when hovered over)
     if (is_highlighted) {
         COLOR = mix(COLOR, highlight_color, highlight_color.a);
+    }
+    
+    if (has_placeable_highlight) {
+        COLOR = mix(COLOR, placebable_highlight_color, placebable_highlight_color.a);
     }
 
 }

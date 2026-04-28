@@ -207,6 +207,7 @@ func _encode_stencil_buffer() -> void:
 	stencil_poly.color.r8 |= (1 << 0) if c.is_marked_for_mining else 0
 	stencil_poly.color.r8 |= (1 << 1) if c.is_solid else 0
 	stencil_poly.color.r8 |= (1 << 2) if c.is_highlighted else 0
+	stencil_poly.color.r8 |= (1 << 3) if c.has_placeable_highlight else 0
 
 	# Encode numbers in GREEN channel
 	stencil_poly.color.g8 = 0

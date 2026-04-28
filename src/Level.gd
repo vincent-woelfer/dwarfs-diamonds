@@ -102,7 +102,7 @@ func spawn_item(grid_pos: Vector2i, item_scene: PackedScene) -> void:
 
 	var item: Item = item_scene.instantiate()
 	var spawn_offset := Vector2(0, -Global.CELL_SIZE * 0.3) # Spawn above floor
-	item.setup(grid_pos, spawn_offset)
+	item.setup_item(grid_pos, spawn_offset)
 	add_child(item)
 
 

@@ -83,9 +83,11 @@ func _physics_process_neutral(delta: float) -> void:
 ###################################
 func _enter_building_placement(building_data: BuildingDataRes) -> void:
 	building_preview.set_building_data(building_data)
+	display_building_placeable_overlay(building_data.type)
 
 func _exit_building_placement() -> void:
 	building_preview.set_building_data(null)
+	disable_building_placeable_overlay()
 
 func _physics_process_building_placement(delta: float) -> void:
 	# Check for mode change first, if so return
@@ -285,3 +287,26 @@ func _sample_cells_at_mouse_pos(world_pos: Vector2) -> Array[Cell]:
 func _set_mouse_pointer_sprite(texture: Texture2D) -> void:
 	mouse_pointer_sprite.texture = texture
 	mouse_pointer_sprite.scale = mouse_pointer_size / texture.get_size()
+
+
+func disable_building_placeable_overlay() -> void:
+	for x in range(Global.LEVEL_WIDTH):
+		for y in range(Global.LEVEL_HEIGHT):
+			Global.level.get_cell(Vector2i(x, y)).set_placeable_highlight(false)
+
+
+func display_building_placeable_overlay(building_type: Enum.BuildingType) -> void:
+	var placement_check: Array[Vector2i] = Global.level.building_manager.placement_checks[building_type]
+
+	# Since placement_checks is sorted following the same x -> y pattern we can work with the index to compare them.
+	var index: int = 0
+	for x in range(Global.LEVEL_WIDTH):
+		for y in range(Global.LEVEL_HEIGHT):
+			var pos: Vector2i = Vector2i(x, y)
+			var pos_at_index: Vector2i = placement_check[index] if index < placement_check.size() else Vector2i(-1, -1)
+
+			if pos == pos_at_index:
+				Global.level.get_cell(pos).set_placeable_highlight(true)
+				index += 1
+			else:
+				Global.level.get_cell(pos).set_placeable_highlight(false)

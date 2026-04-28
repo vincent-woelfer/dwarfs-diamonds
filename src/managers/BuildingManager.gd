@@ -4,6 +4,42 @@ extends Node2D
 var buildings: Array[Building] = []
 var action_points: Array[ActionPoint] = []
 
+# Array[Array[Vector2i]] - For each building type, a list of all cells where it can be placed
+var placement_checks: Array[Array] = []
+
+
+func _process(delta: float) -> void:
+	update_all_placement_checks()
+
+
+func update_all_placement_checks() -> void:
+	var start_time := Time.get_ticks_msec()
+
+	placement_checks.clear()
+
+	for building_type: Enum.BuildingType in Enum.BuildingType.values():
+		var building_data: BuildingDataRes = Util.get_building_data(building_type)
+
+		var cells: Array[Vector2i] = []
+
+		for x in range(Global.LEVEL_WIDTH):
+			for y in range(Global.LEVEL_HEIGHT):
+				var grid_pos: Vector2i = Vector2i(x, y)
+				if PlacementChecks.is_placeable_at(building_data, grid_pos):
+					cells.append(grid_pos)
+
+		cells.append(Vector2i(20, 20))
+		cells.append(Vector2i(20, 21))
+		cells.append(Vector2i(20, 22))
+		cells.append(Vector2i(20, 23))
+
+		# Append
+		placement_checks.append(cells)
+
+	var duration := Time.get_ticks_msec() - start_time
+	# HexLog.print("Buildings => Updated %d building placement checks in: %d ms" % [Enum.BuildingType.size(), duration], Colors.GENERIC_INFO_PRINT_COLOR)
+
+
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################

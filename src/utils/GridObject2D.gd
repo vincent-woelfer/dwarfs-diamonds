@@ -36,7 +36,7 @@ func update_grid_pos(new_grid_pos: Vector2i) -> void:
 
 	if _grid_pos != _grid_pos_prev:
 		_on_new_cell_entered(_curr_cell)
-		
+
 
 func sample_grid_pos() -> Vector2:
 	var cell: Cell = Global.level.sample_cell_at_world_pos(global_position + _grid_pos_sample_offset)
