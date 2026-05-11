@@ -5,16 +5,20 @@ extends Node2D
 # Unified storage component. Handles storage, pickup/drop/capacity checks, and visual item placement.
 ########################################################################################################################
 
-enum PlacementMode {
-	CARRY,
-	STOCKPILE,
-}
+enum PlacementMode {CARRY, STOCKPILE}
 
 @export var placement_mode: PlacementMode = PlacementMode.CARRY
 
 # Storage capacity
-@export var capacity_max_weight: float = 5.0
-@export var capacity_max_count: int = 10
+# COMBINED = max weight/count shared between all items.
+# PER_ITEM_TYPE = max count per item type, weight is ignored
+enum CapacityMode {COMBINED, PER_ITEM_TYPE}
+@export var capacity_mode: CapacityMode = CapacityMode.COMBINED
+
+@export var capacity_combined_max_weight: float = 5.0
+@export var capacity_combined_max_count: int = 10
+
+@export var capacity_per_item_type_dict: Dictionary[Enum.ItemType, int] = {}
 
 # Placement tuning
 @export var item_scaling_in_storage: float = 1.0
@@ -139,8 +143,7 @@ func can_pickup(item: Item) -> bool:
 	if item == null or not item.can_be_picked_up_right_now() or not does_fit_into_capacity(item):
 		return false
 
-	# Check pickup range (currently same cell)
-	if item.grid_pos != parent.grid_pos:
+	if not is_in_range(item):
 		return false
 
 	return true
@@ -149,14 +152,27 @@ func can_pickup(item: Item) -> bool:
 ## Can this carry component carry the given item at all (ignoring range etc)
 ## Used to filter jobs
 func does_fit_into_capacity(item: Item) -> bool:
-	# Check capacity
-	if _curr_total_weight + item.weight > capacity_max_weight:
+	if item == null:
 		return false
 
-	if _curr_carried_items.size() + 1 > capacity_max_count:
-		return false
+	if capacity_mode == CapacityMode.COMBINED:
+		if _curr_total_weight + item.weight > capacity_combined_max_weight:
+			return false
+		if _curr_carried_items.size() + 1 > capacity_combined_max_count:
+			return false
+
+	elif capacity_mode == CapacityMode.PER_ITEM_TYPE:
+		var curr: int = _item_type_group_sizes.get(item.item_type, 0)
+		var max_for_type: int = capacity_per_item_type_dict.get(item.item_type, 0)
+		if curr + 1 > max_for_type:
+			return false
 
 	return true
+
+
+func is_in_range(item: Item) -> bool:
+	# For now just check if in the same cell, later we can add a pickup radius or something
+	return item.grid_pos == parent.grid_pos
 
 
 ###################################
@@ -175,7 +191,7 @@ func get_carried_total_count() -> int:
 
 
 func get_carried_weight_percentage() -> float:
-	return _curr_total_weight / capacity_max_weight
+	return _curr_total_weight / capacity_combined_max_weight
 
 
 func get_item_type_group_sizes() -> Dictionary[Enum.ItemType, int]:
@@ -194,10 +210,7 @@ func get_all_pickupable_items_in_range() -> Array[Item]:
 	var items: Array[Item] = []
 
 	for item: Item in Global.get_group(Global.GROUP_CARRYABLE_ITEMS):
-		# For performance, first check grid pos
-		if item.grid_pos != parent.grid_pos:
-			continue
-		if can_pickup(item):
+		if is_in_range(item) and can_pickup(item):
 			items.append(item)
 
 	return items
@@ -307,8 +320,8 @@ func _ready() -> void:
 			item_scaling_in_storage = 0.75
 		PlacementMode.STOCKPILE:
 			item_scaling_in_storage = 0.6
-			capacity_max_count = 30
-			capacity_max_weight = 200.0
+			capacity_combined_max_count = 30
+			capacity_combined_max_weight = 200.0
 
 
 func _physics_process(delta: float) -> void:
