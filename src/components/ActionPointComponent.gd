@@ -109,7 +109,7 @@ func _dropoff_rubble() -> bool:
 	const dispose_time := 0.75
 	const after_last_time := 0.3
 
-	var carry_comp: CarryComponent = parent.carry_comp
+	var carry_comp: StorageComponent = parent.storage_comp
 	var has_rubble := carry_comp.is_carrying_item_of_type(Enum.ItemType.RUBBLE)
 
 	# Check for rubble disposal
@@ -117,7 +117,8 @@ func _dropoff_rubble() -> bool:
 		var rubble: Item = carry_comp.get_items_of_type(Enum.ItemType.RUBBLE)[-1]
 
 		# Transfer
-		carry_comp.transfer_to_other_storage(rubble, _curr_action_point.storage._storage)
+		if not carry_comp.transfer_to_other_storage(rubble, _curr_action_point.storage_comp):
+			return false
 
 		repeated_tick_timestamp = Util.now()
 
@@ -134,7 +135,7 @@ func _dropoff_gemstone() -> bool:
 	const dispose_time := 0.35
 	const after_last_time := 0.5
 
-	var carry_comp: CarryComponent = parent.carry_comp
+	var carry_comp: StorageComponent = parent.storage_comp
 	var has_gemstone := carry_comp.is_carrying_item_of_type(Enum.ItemType.GEMSTONE)
 
 	# Check for gemstone disposal

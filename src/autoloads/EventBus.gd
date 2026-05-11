@@ -97,7 +97,7 @@ func _input(event: InputEvent) -> void:
 	# F11
 	if event.is_action_pressed("dev_dwarf_drop_all_items"):
 		for dwarf: Dwarf in Global.level.dwarfs:
-			dwarf.carry_comp.drop_all()
+			dwarf.storage_comp.drop_all()
 
 	# F12
 	if event.is_action_pressed("dev_toogle_sun_fast_forward"):

@@ -78,6 +78,9 @@ func get_all_action_points(type: ActionPoint.ActionType) -> Array[ActionPoint]:
 		if cell == null or not Global.level.nav_manager.is_cell_enabled(ap.grid_pos):
 			continue
 
+		# Verify its available for interaction
+
+
 		# Finally add
 		filtered_aps.append(ap)
 
@@ -99,3 +102,7 @@ func _unregister_action_points(building: Building) -> void:
 		var cell: Cell = Global.level.get_cell(ap.grid_pos)
 		if cell != null:
 			cell.remove_action_point(ap)
+
+		# Remove from scene
+		building.remove_child(ap)
+		ap.queue_free()

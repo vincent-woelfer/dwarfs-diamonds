@@ -106,6 +106,9 @@ func _setup_action_points() -> void:
 		ap.setup_action_point(pos, ap_res.type)
 		action_points.append(ap)
 
+		# TODO DEV also remove or add from elsewhere
+		add_child(ap)
+
 
 ########################################################################################################################
 # Public API

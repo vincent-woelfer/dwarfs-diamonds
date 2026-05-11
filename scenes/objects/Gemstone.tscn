@@ -24,9 +24,9 @@ position = Vector2(0, -14)
 scale = Vector2(0.02, 0.02)
 texture = SubResource("CompressedTexture2D_k2h34")
 
-[node name="StackingShape" parent="." index="3" unique_id=1208221848]
+[node name="StackingShape" parent="." index="2" unique_id=1208221848]
 shape = SubResource("RectangleShape2D_ty5o6")
 
-[node name="PointLight" parent="." index="4" unique_id=1069997814]
+[node name="PointLight" parent="." index="3" unique_id=1069997814]
 position = Vector2(0, -13)
 texture = SubResource("CompressedTexture2D_aj0ih")

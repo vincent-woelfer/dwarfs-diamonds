@@ -4,4 +4,8 @@
 
 [resource]
 shader = ExtResource("1_m58vd")
-
+shader_parameter/total_penetration_distance = 0.3
+shader_parameter/fade_threshold = 0.3
+shader_parameter/lit_color = Color(0, 0, 0, 1)
+shader_parameter/fade_color = Color(0, 0, 0, 1)
+shader_parameter/unlit_color = Color(0, 0, 0, 1)

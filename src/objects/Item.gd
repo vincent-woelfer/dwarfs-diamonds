@@ -16,13 +16,12 @@ extends GridObject2D
 
 # Storage state
 var is_in_storage: bool = false
-var storage: AbstractStorage = null
+var storage: StorageComponent = null
 
-# Pick-up animation state - used by CarryComponent / StockpileComponent to move to position
+# Pick-up animation state - used by StorageComponent / StorageComponent to move to position
 var transition_animation_finished: bool = false
 var transition_animation_start_time: float = 0.0
-
-var max_transition_duration: float = 0.5 # seconds
+var transition_max_duration: float = 0.5 # seconds
 
 
 # Sounds
@@ -80,7 +79,7 @@ func _ready() -> void:
 	# _spawn_animation()
 
 
-func on_picked_up(new_storage: AbstractStorage) -> void:
+func on_picked_up(new_storage: StorageComponent) -> void:
 	is_in_storage = true
 	storage = new_storage
 	
@@ -113,7 +112,7 @@ func on_dropped() -> void:
 	movement_comp.on_dropped()
 
 
-func on_transfered_to_other_storage(new_storage: AbstractStorage) -> void:
+func on_transfered_to_other_storage(new_storage: StorageComponent) -> void:
 	assert(is_in_storage)
 	is_in_storage = true
 	storage = new_storage
@@ -136,7 +135,7 @@ func _process(delta: float) -> void:
 			target_scale *= storage.item_scaling_in_storage
 
 		var time_since_pickup: float = Util.now() - transition_animation_start_time
-		var animation_progress: float = clamp(time_since_pickup / max_transition_duration, 0.0, 1.0)
+		var animation_progress: float = clamp(time_since_pickup / transition_max_duration, 0.0, 1.0)
 		scale = scale.lerp(target_scale, animation_progress)
 		if animation_progress >= 1.0:
 			transition_animation_finished = true

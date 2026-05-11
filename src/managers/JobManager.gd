@@ -284,9 +284,9 @@ func _filter_workable_jobs_for_dwarf(dwarf: Dwarf) -> Array[Job]:
 					continue
 
 			Job.Type.PICKUP:
-				assert(dwarf.carry_comp != null)
+				assert(dwarf.storage_comp != null)
 				assert(job.carryable_item != null)
-				if not dwarf.carry_comp.can_carry_ignoring_position(job.carryable_item):
+				if not dwarf.storage_comp.does_fit_into_capacity(job.carryable_item):
 					continue
 		
 		# Job is workable for this dwarf -> add to output

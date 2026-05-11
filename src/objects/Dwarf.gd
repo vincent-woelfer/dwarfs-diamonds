@@ -7,7 +7,7 @@ extends GridObject2D
 @onready var mining_comp: MiningComponent = $MiningComponent
 @onready var construction_comp: ConstructionComponent = $ConstructionComponent
 @onready var movement_comp: MovementComponent = $MovementComponent
-@onready var carry_comp: CarryComponent = $CarryComponent
+@onready var storage_comp: StorageComponent = $StorageComponent
 @onready var task_queue: TaskQueueComponent = $TaskQueueComponent
 @onready var action_point_comp: ActionPointComponent = $ActionPointComponent
 
@@ -223,7 +223,7 @@ func _enter_dying() -> void:
 
 	print_rich("%s has died!" % [ self ])
 
-	carry_comp.drop_all()
+	storage_comp.drop_all()
 	
 	_abort_tasks_enter_idle()
 
@@ -453,11 +453,11 @@ func _create_own_tasks() -> void:
 	var tasks: Array[Task] = []
 
 	# Dispose Gemstone
-	if carry_comp.is_carrying_item_of_type(Enum.ItemType.GEMSTONE):
+	if storage_comp.is_carrying_item_of_type(Enum.ItemType.GEMSTONE):
 		_create_action_point_tasks_for_type(ActionPoint.ActionType.DROPOFF_GEMSTONE)
 
 	# Dispose Rubble
-	elif carry_comp.is_carrying_item_of_type(Enum.ItemType.RUBBLE):
+	elif storage_comp.is_carrying_item_of_type(Enum.ItemType.RUBBLE):
 		_create_action_point_tasks_for_type(ActionPoint.ActionType.DROPOFF_RUBBLE)
 
 
@@ -634,7 +634,7 @@ func _perform_stationary_task(task: Task) -> void:
 		print_rich("%s reached %s and starts picking up %s" % [ self , task.target_grid_pos, task.carryable_item])
 
 		# No pickup-state, simply try to pick up item. Success -> goes into idle directly, failure -> abandon job.
-		if not carry_comp.pickup_all_in_range([task.carryable_item]):
+		if not storage_comp.pickup_all_in_range([task.carryable_item]):
 			print_rich("%s failed to pick up object %s, abandoning task" % [ self , task.carryable_item])
 			_abort_tasks_enter_idle()
 			return

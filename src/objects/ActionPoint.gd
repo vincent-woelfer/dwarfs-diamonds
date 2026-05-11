@@ -22,7 +22,7 @@ var in_cell_pos: Vector2 = Global.CELL_SIZE_VEC_HALF
 
 
 ## TODO DEV
-var storage: StockpileComponent = null
+var storage_comp: StorageComponent = null
 
 
 ########################################################################################################################
@@ -32,9 +32,11 @@ func setup_action_point(grid_pos_: Vector2i, type_: ActionType) -> void:
 	setup_grid_object(grid_pos_, Vector2.ZERO)
 	self.type = type_
 
-	storage = StockpileComponent.new()
-	add_child(storage)
-	storage.position = Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
+	storage_comp = StorageComponent.new()
+	storage_comp.placement_mode = StorageComponent.PlacementMode.STOCKPILE
+	storage_comp.position = Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
+	
+	add_child(storage_comp)
 
 func _ready() -> void:
 	pass

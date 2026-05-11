@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://sfmxn54qwmtl" path="res://src/components/MiningComponent.gd" id="3_ms7vq"]
 [ext_resource type="Script" uid="uid://b56e6awnf6woo" path="res://src/components/ConstructionComponent.gd" id="5_56axy"]
 [ext_resource type="Script" uid="uid://12nby18asb05" path="res://src/components/MovementComponent.gd" id="5_o7n6f"]
-[ext_resource type="Script" uid="uid://ca0ir7bdht3kr" path="res://src/components/CarryComponent.gd" id="7_2lrks"]
+[ext_resource type="Script" uid="uid://bn60jsxabaehw" path="res://src/components/StorageComponent.gd" id="7_2lrks"]
 [ext_resource type="Script" uid="uid://bgr3cdguef030" path="res://src/components/TaskQueueComponent.gd" id="8_gwb0r"]
 [ext_resource type="Script" uid="uid://c6ev22w02fxwg" path="res://src/components/ActionPointComponent.gd" id="9_0mwxv"]
 
@@ -40,9 +40,8 @@ script = ExtResource("5_56axy")
 [node name="MovementComponent" type="Node2D" parent="." unique_id=1591218661]
 script = ExtResource("5_o7n6f")
 
-[node name="CarryComponent" type="Node2D" parent="." unique_id=935967982]
+[node name="StorageComponent" type="Node2D" parent="." unique_id=935967982]
 script = ExtResource("7_2lrks")
-metadata/_custom_type_script = "uid://ca0ir7bdht3kr"
 
 [node name="TaskQueueComponent" type="Node2D" parent="." unique_id=1669064102]
 script = ExtResource("8_gwb0r")
