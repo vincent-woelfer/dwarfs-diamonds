@@ -30,8 +30,7 @@ var est_landing_cell: Cell = null
 # State machine
 enum State {IDLE, MOVING, MINING, BUILDING, FALLING, DYING, ACTION}
 var sm: StateMachine
-func _physics_process(delta: float) -> void:
-	sm.physics_process(delta)
+
 
 ########################################################################################################################
 # SETUP & OWN PROCESSING
@@ -81,10 +80,8 @@ func _ready() -> void:
 ########################################################################################################################
 # STATE MACHINE HANDLERS
 ########################################################################################################################
-# ENTER actually enters that state and triggers components
-# EXIT stops components but task-finishing logic is handled where exit transition is called (mostly signal handlers).
-# Transitions from within _exit functions are NOT ALLOWED
-# Transitions from within _enter (as "enter checks") are allowed!
+func _physics_process(delta: float) -> void:
+	sm.physics_process(delta)
 
 ###################################
 # IDLE

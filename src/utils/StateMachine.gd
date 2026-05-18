@@ -1,6 +1,15 @@
 class_name StateMachine
 extends RefCounted
 
+########################################################################################################################
+# STATE MACHINE HANDLERS
+########################################################################################################################
+# ENTER actually enters that state and triggers components
+# EXIT stops components but task-finishing logic is handled where exit transition is called (mostly signal handlers).
+# Transitions from within _exit functions are NOT ALLOWED
+# Transitions from within _enter (as "enter checks") are allowed!
+########################################################################################################################
+
 signal Signal_StateChanged(prev_state: int, next_state: int)
 
 ## Current state

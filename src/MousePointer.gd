@@ -31,8 +31,6 @@ var prev_center_cell: Cell = null
 # State machine
 enum State {NEUTRAL, BUILDING_PLACEMENT, BUILDING_DESTROY}
 var sm: StateMachine
-func _physics_process(delta: float) -> void:
-	sm.physics_process(delta)
 
 
 func _ready() -> void:
@@ -50,6 +48,9 @@ func _ready() -> void:
 ########################################################################################################################
 # STATE MACHINE HANDLERS
 ########################################################################################################################
+func _physics_process(delta: float) -> void:
+	sm.physics_process(delta)
+
 
 ###################################
 # Neutral State

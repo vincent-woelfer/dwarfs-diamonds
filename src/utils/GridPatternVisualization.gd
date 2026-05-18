@@ -117,6 +117,7 @@ func _ready() -> void:
 func refresh() -> void:
 	needs_rescan = true
 
+
 func _process(_delta: float) -> void:
 	# Update grid pattern from parent if rescan needed
 	if needs_rescan:

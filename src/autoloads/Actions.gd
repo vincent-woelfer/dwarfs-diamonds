@@ -81,8 +81,8 @@ func remove_building(building: Building) -> void:
 	assert(building != null)
 
 	# Log
-	var building_status := " (was under construction)" if not building.is_complete else ""
-	print_action("Removing building: %s at %s%s" % [building.building_data.name, building.grid_pos, building_status])
+	var building_status: String = Enum.to_str(building.State, building.sm.state)
+	print_action("Removing building: %s at %s (was %s)" % [building.building_data.name, building.grid_pos, building_status])
 
 	# Call building destroy logic
 	building.on_destroy()

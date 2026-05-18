@@ -18,7 +18,7 @@ enum CapacityMode {COMBINED, PER_ITEM_TYPE}
 @export var capacity_combined_max_weight: float = 5.0
 @export var capacity_combined_max_count: int = 10
 
-@export var capacity_per_item_type_dict: Dictionary[Enum.ItemType, int] = {}
+@export var capacity_per_item_type_dict: ItemTypeList = ItemTypeList.new()
 
 # Placement tuning
 @export var item_scaling_in_storage: float = 1.0
@@ -30,7 +30,7 @@ var _curr_carried_items: Array[Item] = []
 var _curr_total_weight: float = 0.0
 
 # for placement logic
-var _item_type_group_sizes: Dictionary[Enum.ItemType, int] = {}
+var _item_type_group_sizes: ItemTypeList = ItemTypeList.new()
 
 ########################################################################################################################
 # PUBLIC METHODS
@@ -194,7 +194,7 @@ func get_carried_weight_percentage() -> float:
 	return _curr_total_weight / capacity_combined_max_weight
 
 
-func get_item_type_group_sizes() -> Dictionary[Enum.ItemType, int]:
+func get_item_type_group_sizes() -> ItemTypeList:
 	return _item_type_group_sizes
 
 
@@ -231,7 +231,7 @@ func get_items_of_type(item_type: Enum.ItemType) -> Array[Item]:
 # ITEM PLACEMENT
 ##################################################################################1#####################################
 func _update_item_placement(delta: float) -> void:
-	var idx_by_type: Dictionary[Enum.ItemType, int] = {}
+	var idx_by_type: ItemTypeList = ItemTypeList.new()
 
 	for i: int in range(get_carried_total_count()):
 		var item: Item = get_item_by_index(i)
@@ -239,12 +239,10 @@ func _update_item_placement(delta: float) -> void:
 		if item == null:
 			continue # safety check, should not happen
 
-		# Idx by type and group idx
-		if not idx_by_type.has(item.item_type):
-			idx_by_type[item.item_type] = 0
-		var idx_in_group: int = idx_by_type[item.item_type]
-		idx_by_type[item.item_type] += 1
+		# Fetch data and increment
+		var idx_in_group: int = idx_by_type.get_item_count(item.item_type)
 		var group_idx: int = item.item_type as int
+		idx_by_type.increment_item_count(item.item_type)
 
 		var target_pos: Vector2 = _get_item_target_position(item, idx_in_group, group_idx)
 
