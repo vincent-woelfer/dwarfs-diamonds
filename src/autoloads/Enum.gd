@@ -9,6 +9,11 @@ func to_str(enum_dict: Dictionary, value: int) -> String:
 	for n: String in enum_dict:
 		if enum_dict[n] == value:
 			return n
+
+	# Only for state machines 
+	if value == -1:
+		return "INIT_STATE(-1)"
+
 	return "Unknown"
 
 ## Given the Enum Class, return an array of all enum entries as string
@@ -39,7 +44,7 @@ enum ProcessPriority {
 
 enum ZIndex {
 	CELL_SKY = -10,
-	CELL_SOLID = 0,	
+	CELL_SOLID = 0,
 	DECO = 50,
 	BUILDINGS = 100,
 	DWARFS = 200,

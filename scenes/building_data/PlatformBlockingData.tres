@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dg7m75nftn2bc" path="res://src/resources/ActionPointRes.gd" id="1_og5sk"]
 [ext_resource type="Script" uid="uid://582fgtaaib5v" path="res://src/resources/BuildingDataRes.gd" id="2_duvw7"]
 [ext_resource type="Script" uid="uid://qrjawossld3p" path="res://src/resources/GridPatternRes.gd" id="2_h4g72"]
+[ext_resource type="Script" uid="uid://c0wpqduy002wb" path="res://src/structs/ItemTypeList.gd" id="3_8uwq3"]
 
 [sub_resource type="Resource" id="Resource_duvw7"]
 script = ExtResource("2_h4g72")
@@ -24,11 +25,15 @@ script = ExtResource("2_h4g72")
 cells = Array[Vector2i]([Vector2i(0, 1)])
 metadata/_custom_type_script = "uid://qrjawossld3p"
 
+[sub_resource type="Resource" id="Resource_tvfrp"]
+script = ExtResource("3_8uwq3")
+
 [resource]
 script = ExtResource("2_duvw7")
 type = 2
 name = "Platform"
 build_time = 3.0
+required_materials = SubResource("Resource_tvfrp")
 pattern_building = SubResource("Resource_vwinv")
 pattern_build_from = SubResource("Resource_4a6mf")
 pattern_solid_ground = SubResource("Resource_1yblm")

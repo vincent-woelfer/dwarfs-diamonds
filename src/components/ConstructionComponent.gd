@@ -67,7 +67,7 @@ func can_build_at_all(building: Building) -> bool:
 	if building == null:
 		return false
 
-	if building.is_complete:
+	if building.is_operating():
 		return false
 
 	return true
@@ -96,6 +96,6 @@ func _physics_process(delta: float) -> void:
 	_curr_building_building.update_build_progress(building_speed * delta)
 	
 	# Check if building completed - this works for multiple dwarfs building the same building, each is calling this method for themselfes
-	if temp_reference_building.is_complete:
+	if temp_reference_building.is_operating():
 		Signal_OnConstructionCompleted.emit(temp_reference_building)
 		stop_building()

@@ -85,7 +85,7 @@ func remove_building(building: Building) -> void:
 	print_action("Removing building: %s at %s (was %s)" % [building.building_data.name, building.grid_pos, building_status])
 
 	# Call building destroy logic
-	building.on_destroy()
+	building.destroy()
 
 	# Unregister building (not usable after this but still exists for visual effects)
 	Global.level.building_manager.unregister_building(building)

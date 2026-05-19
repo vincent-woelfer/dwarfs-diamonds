@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dg7m75nftn2bc" path="res://src/resources/ActionPointRes.gd" id="1_416t3"]
 [ext_resource type="Script" uid="uid://qrjawossld3p" path="res://src/resources/GridPatternRes.gd" id="1_j0kbs"]
 [ext_resource type="Script" uid="uid://582fgtaaib5v" path="res://src/resources/BuildingDataRes.gd" id="2_416t3"]
+[ext_resource type="Script" uid="uid://c0wpqduy002wb" path="res://src/structs/ItemTypeList.gd" id="3_o5xdo"]
 
 [sub_resource type="Resource" id="Resource_416t3"]
 script = ExtResource("1_416t3")
@@ -28,11 +29,19 @@ cells = Array[Vector2i]([Vector2i(0, 0), Vector2i(1, 0), Vector2i(-1, 0), Vector
 script = ExtResource("1_j0kbs")
 cells = Array[Vector2i]([Vector2i(-1, 1), Vector2i(0, 1), Vector2i(1, 1), Vector2i(2, 1)])
 
+[sub_resource type="Resource" id="Resource_f5g52"]
+script = ExtResource("3_o5xdo")
+item_dict = Dictionary[int, int]({
+0: 2
+})
+metadata/_custom_type_script = "uid://c0wpqduy002wb"
+
 [resource]
 script = ExtResource("2_416t3")
 type = 1
 name = "Outpost"
 build_time = 4.0
+required_materials = SubResource("Resource_f5g52")
 pattern_building = SubResource("Resource_4ifjn")
 pattern_build_from = SubResource("Resource_eniya")
 pattern_solid_ground = SubResource("Resource_og48x")

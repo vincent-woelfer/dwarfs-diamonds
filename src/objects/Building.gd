@@ -23,7 +23,7 @@ var action_points: Array[ActionPoint] = []
 var dev_color: Color
 
 # Set depending on editor vs ingame and if finished instantly.
-var starting_state: State = State.IN_CONSTRUCTION
+var starting_state: State = State.WAITING_FOR_MATERIAL
 
 # State machine
 # For buildings, only used in this order
@@ -98,7 +98,10 @@ func _ready() -> void:
 		setup_building(_editor_building_type, Vector2i.ZERO)
 		starting_state = State.OPERATING
 
-	# State machine
+	# State machine. Starting state is set depending on if in editor or game and if finished instantly or not (for testing purposes)
+	# We override this here if its "waiting for material" but building doesnt have required materials.
+	if starting_state == State.WAITING_FOR_MATERIAL and building_data.required_materials.is_empty():
+		starting_state = State.IN_CONSTRUCTION
 	sm = StateMachine.new(self , State, starting_state)
 
 	# Only for Game
@@ -113,10 +116,13 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	sm.physics_process(delta)
 
+
 ###################################
 # Waiting for material
 ###################################
 func _enter_waiting_for_material() -> void:
+	print_rich("%s placed (waiting for materials: %s)" % [ self , building_data.required_materials])
+
 	# Visuals
 	self.light_mask = Colors.building_light_mask_unfinished
 	_set_modulate_internal(Colors.building_modulate_unfinished)
@@ -132,6 +138,8 @@ func _exit_waiting_for_material() -> void:
 # In construction
 ###################################
 func _enter_in_construction() -> void:
+	print_rich("%s starting construction" % [ self ])
+
 	# Visuals
 	self.light_mask = Colors.building_light_mask_unfinished
 	_set_modulate_internal(Colors.building_modulate_unfinished)
@@ -150,12 +158,13 @@ func _exit_in_construction() -> void:
 # Operating
 ###################################
 func _enter_operating() -> void:
+	print_rich("%s completed" % [ self ])
+
 	# Update visual
 	self.light_mask = Colors.building_light_mask_finished
 	_set_modulate_internal(Colors.building_modulate_finished)
 
 	visual_root.update_building_progress(1.0)
-	print_rich("%s completed" % [ self ])
 
 	# Flash & audio effect
 	_flash(Color(3, 3, 3), 0.25)
@@ -210,9 +219,13 @@ func update_build_progress(building_speed_with_delta: float) -> void:
 
 
 # Called from Actions.remove_building which handles most logic (like calling building_manager.unregister_building() and removing from cells)
-func on_destroy() -> void:
+func destroy() -> void:
 	if sm.state != State.IN_TEARDOWN:
 		sm.transition_to(State.IN_TEARDOWN)
+
+
+func is_operating() -> bool:
+	return sm.state == State.OPERATING
 
 ########################################################################################################################
 # PRIVATE

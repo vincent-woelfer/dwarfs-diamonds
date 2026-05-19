@@ -27,6 +27,9 @@ var state_names: Array[String]
 # Store if state is exitable. Defaults to true
 var state_exitable: Array[bool]
 
+# 
+const INIT_STATE: int = -1
+
 
 func _init(owner_: Object, enum_type_: Dictionary, initial_state: int) -> void:
     assert(owner_ != null, "StateMachine owner cannot be null.")
@@ -34,7 +37,6 @@ func _init(owner_: Object, enum_type_: Dictionary, initial_state: int) -> void:
     assert(initial_state in enum_type_.values(), "Initial state must be a valid enum value.")
 
     owner = owner_
-    state = initial_state
     state_names = Enum.to_string_array(enum_type_)
     assert(state_names.size() > 0, "Enum type must have at least one value.")
 
@@ -42,13 +44,9 @@ func _init(owner_: Object, enum_type_: Dictionary, initial_state: int) -> void:
     state_exitable.resize(state_names.size())
     state_exitable.fill(true)
 
-
-func set_state_exitable(state_value: int, exitable: bool) -> void:
-    if not _is_state_valid(state_value):
-        push_error("Invalid state %d!" % state_value)
-        return
-
-    state_exitable[state_value] = exitable
+    # Enter initial state
+    state = INIT_STATE
+    transition_to(initial_state)
 
 
 func transition_to(next_state: int, ...enter_args: Array) -> void:
@@ -56,11 +54,11 @@ func transition_to(next_state: int, ...enter_args: Array) -> void:
         push_error("Invalid state %d!" % next_state)
         return
 
-    # We still need to re-enter the same state if we have enter arguments
+    # We still need to re-enter the same state if we have enter arguments. Otherwise ignore
     if next_state == state and enter_args.is_empty():
         return
 
-    if not state_exitable[state]:
+    if state != INIT_STATE and not state_exitable[state]:
         push_error("Cannot exit state %s as it is marked non-exitable." % _state_to_name(state))
         return
 
@@ -71,20 +69,21 @@ func transition_to(next_state: int, ...enter_args: Array) -> void:
         return
     currently_in_transition = true
 
+    # Exit current state
     var prev_state := state
-    _call_state_func("_exit_", state, [])
+    if state != INIT_STATE:
+        _call_state_func("_exit_", state, [])
 
     state = next_state
 
     # Reset transition flag
     currently_in_transition = false
 
+    # Enter new state with arguments
     if enter_args.is_empty():
         _call_state_func("_enter_", state, [])
     else:
         _call_state_func("_enter_", state, enter_args)
-
-    Signal_StateChanged.emit(prev_state, next_state)
 
     # Debug redraw
     var debug_draw_proxy: DebugDrawProxy = owner.get("_debug_draw_proxy_relative")
@@ -93,6 +92,16 @@ func transition_to(next_state: int, ...enter_args: Array) -> void:
     debug_draw_proxy = owner.get("_debug_draw_proxy_absolute")
     if debug_draw_proxy != null:
         debug_draw_proxy.queue_redraw()
+
+    Signal_StateChanged.emit(prev_state, next_state)
+
+
+func set_state_exitable(state_value: int, exitable: bool) -> void:
+    if not _is_state_valid(state_value):
+        push_error("Invalid state %d!" % state_value)
+        return
+
+    state_exitable[state_value] = exitable
 
 
 func process(delta: float) -> void:
@@ -117,6 +126,9 @@ func _call_state_func(prefix: String, state_value: int, var_args: Array) -> void
 
 # Converts typed enum value to lowercase name (e.g. State.IDLE → "idle")
 func _state_to_name(state_value: int) -> String:
+    if state_value == INIT_STATE:
+        return "init_state"
+
     if not _is_state_valid(state_value):
         return "unknown"
     return String(state_names[state_value]).to_lower()

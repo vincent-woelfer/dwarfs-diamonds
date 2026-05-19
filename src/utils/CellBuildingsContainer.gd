@@ -8,7 +8,7 @@ extends RefCounted
 func has_ladder() -> bool:
     var _has_ladder := false
     for building in _buildings:
-        if building.building_data.type == Enum.BuildingType.LADDER and building.is_complete:
+        if building.building_data.type == Enum.BuildingType.LADDER and building.is_operating():
             _has_ladder = true
 
     return _has_ladder
@@ -28,7 +28,7 @@ func is_blocked() -> bool:
 func has_platform() -> bool:
     var _has_platform := false
     for building in _buildings:
-        if building.building_data.type in [Enum.BuildingType.PLATFORM_BLOCKING, Enum.BuildingType.PLATFORM_BRIDGE] and building.is_complete:
+        if building.building_data.type in [Enum.BuildingType.PLATFORM_BLOCKING, Enum.BuildingType.PLATFORM_BRIDGE] and building.is_operating():
             _has_platform = true
             
     return _has_platform
@@ -64,7 +64,7 @@ func has_this_specific_building(building: Building) -> bool:
 # TODO improve per platform type
 func get_platform_mining_hardness() -> float:
     for building in _buildings:
-        if building.building_data.type == Enum.BuildingType.PLATFORM_BLOCKING and building.is_complete:
+        if building.building_data.type == Enum.BuildingType.PLATFORM_BLOCKING and building.is_operating():
             return 3.0
     return 1.0
 
