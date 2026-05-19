@@ -22,7 +22,7 @@ var build_time: float = 1.0
 
 
 ## Required materials to build this building.
-@export var required_materials: Array[ItemTypeList] = ItemTypeList.new()
+@export var required_materials: ItemTypeList = ItemTypeList.new()
 
 ########################################################################################################################
 # Grid Patterns

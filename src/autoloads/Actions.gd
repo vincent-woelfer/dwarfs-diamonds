@@ -58,6 +58,9 @@ func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly
 	var building_instance: Building = Building.new()
 	building_instance.setup_building(building_data.type, cell.grid_pos)
 
+	if finish_instantly:
+		building_instance.starting_state = Building.State.OPERATING
+
 	# Play sound effect
 	Audio.play_at_pos("building_placed", building_instance.global_position)
 
@@ -70,9 +73,6 @@ func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly
 		assert(covered_cell != null) # This should never happen
 		covered_cell.add_building(building_instance)
 
-	if finish_instantly:
-		building_instance._complete_construction()
-	
 	return building_instance
 
 

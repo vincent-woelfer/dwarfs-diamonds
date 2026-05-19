@@ -22,6 +22,9 @@ var action_points: Array[ActionPoint] = []
 # For dev - only for logging
 var dev_color: Color
 
+# Set depending on editor vs ingame and if finished instantly.
+var starting_state: State = State.IN_CONSTRUCTION
+
 # State machine
 # For buildings, only used in this order
 enum State {WAITING_FOR_MATERIAL, IN_CONSTRUCTION, OPERATING, IN_TEARDOWN}
@@ -50,6 +53,7 @@ var grid_pattern_visualization_path: String = "GridPatternVisualization"
 # SETUP
 ########################################################################################################################
 ## Called from editor when changing building type and from game when placing building
+## Setup should setup building itself, registering (e.g. with buildings manager, nav-cells) happens elsewhere.
 func setup_building(building_type_: Enum.BuildingType, grid_pos_: Vector2i) -> void:
 	# In Game, place building at correct position.
 	if not Engine.is_editor_hint():
@@ -89,20 +93,18 @@ func _ready() -> void:
 	dev_color = Colors.get_rand_building_dev_color()
 	self.z_index = Enum.ZIndex.BUILDINGS
 
-	# Editor setup
+	# Editor setup - ingame setup happens when placing building
 	if Engine.is_editor_hint():
 		setup_building(_editor_building_type, Vector2i.ZERO)
+		starting_state = State.OPERATING
 
 	# State machine
-	sm = StateMachine.new(self , State, State.WAITING_FOR_MATERIAL)
+	sm = StateMachine.new(self , State, starting_state)
 
 	# Only for Game
 	if not Engine.is_editor_hint():
 		# Signals
 		EventBus.Signal_CellDestroyed.connect(_check_solid_ground)
-
-		self.light_mask = Colors.building_light_mask_unfinished
-		_set_modulate_internal(Colors.building_modulate_unfinished)
 
 
 ########################################################################################################################
@@ -115,17 +117,25 @@ func _physics_process(delta: float) -> void:
 # Waiting for material
 ###################################
 func _enter_waiting_for_material() -> void:
-	pass
+	# Visuals
+	self.light_mask = Colors.building_light_mask_unfinished
+	_set_modulate_internal(Colors.building_modulate_unfinished)
+
 	# TODO add job
 
 func _exit_waiting_for_material() -> void:
 	pass
 	# TODO remove job
 
+
 ###################################
 # In construction
 ###################################
 func _enter_in_construction() -> void:
+	# Visuals
+	self.light_mask = Colors.building_light_mask_unfinished
+	_set_modulate_internal(Colors.building_modulate_unfinished)
+
 	# Add build job
 	build_job = Job.new(Job.Type.BUILD, curr_cell)
 	build_job.building = self
@@ -140,12 +150,12 @@ func _exit_in_construction() -> void:
 # Operating
 ###################################
 func _enter_operating() -> void:
-	visual_root.update_building_progress(1.0)
-	print_rich("%s completed" % [ self ])
-	
 	# Update visual
 	self.light_mask = Colors.building_light_mask_finished
 	_set_modulate_internal(Colors.building_modulate_finished)
+
+	visual_root.update_building_progress(1.0)
+	print_rich("%s completed" % [ self ])
 
 	# Flash & audio effect
 	_flash(Color(3, 3, 3), 0.25)
@@ -170,10 +180,17 @@ func _exit_operating() -> void:
 # In teardown
 ####################################
 func _enter_in_teardown() -> void:
-	pass
+	if build_job != null:
+		Actions.archive_job(build_job, false)
 
-func _exit_in_teardown() -> void:
-	pass
+
+	# Flash & audio effect
+	var effect_duration := 0.25 * 3
+	_flash(Color(3, 0, 0), effect_duration)
+	Audio.play_at_pos("building_on_destroy", global_position)
+
+	await Util.await_time(effect_duration)
+	Global.level.building_manager.remove_building(self )
 
 
 ########################################################################################################################
@@ -187,33 +204,18 @@ func update_build_progress(building_speed_with_delta: float) -> void:
 	build_progress = clamp(build_progress + building_with_duration, 0.0, 1.0)
 
 	if build_progress >= 1.0:
-		
-		_complete_construction()
+		sm.transition_to(State.OPERATING)
 	else:
 		visual_root.update_building_progress(build_progress)
 
 
 # Called from Actions.remove_building which handles most logic (like calling building_manager.unregister_building() and removing from cells)
 func on_destroy() -> void:
-	Actions.archive_job(build_job, false)
-
-	# Flash & audio effect
-	var effect_duration := 0.25 * 3
-	_flash(Color(3, 0, 0), effect_duration)
-	Audio.play_at_pos("building_on_destroy", global_position)
-
-	await Util.await_time(effect_duration)
-	Global.level.building_manager.remove_building(self )
-
+	if sm.state != State.IN_TEARDOWN:
+		sm.transition_to(State.IN_TEARDOWN)
 
 ########################################################################################################################
 # PRIVATE
-########################################################################################################################
-func _complete_construction() -> void:
-	pass
-
-########################################################################################################################
-# HELPER FUNCTIONS
 ########################################################################################################################
 # Called internally when building is completed
 func _setup_action_points() -> void:

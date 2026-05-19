@@ -162,8 +162,8 @@ func does_fit_into_capacity(item: Item) -> bool:
 			return false
 
 	elif capacity_mode == CapacityMode.PER_ITEM_TYPE:
-		var curr: int = _item_type_group_sizes.get(item.item_type, 0)
-		var max_for_type: int = capacity_per_item_type_dict.get(item.item_type, 0)
+		var curr: int = _item_type_group_sizes.get_item_count(item.item_type)
+		var max_for_type: int = capacity_per_item_type_dict.get_item_count(item.item_type)
 		if curr + 1 > max_for_type:
 			return false
 
@@ -339,11 +339,10 @@ func _get_parent_look_dir() -> Vector2:
 
 ## Internal helper to efficiently keep track of items per type, used for placement logic
 func _update_item_type_group_sizes() -> void:
-	_item_type_group_sizes = {}
+	_item_type_group_sizes.clear()
+
 	for item: Item in _curr_carried_items:
-		if not _item_type_group_sizes.has(item.item_type):
-			_item_type_group_sizes[item.item_type] = 0
-		_item_type_group_sizes[item.item_type] += 1
+		_item_type_group_sizes.increment_item_count(item.item_type)
 
 
 func _add(item: Item) -> void:
