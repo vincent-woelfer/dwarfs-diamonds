@@ -13,8 +13,13 @@ metadata/_custom_type_script = "uid://dg7m75nftn2bc"
 [sub_resource type="Resource" id="Resource_j6v8y"]
 script = ExtResource("1_416t3")
 type = 1
-local_grid_offset = Vector2i(1, 0)
 color = Color(1, 0.4117647, 0.7058824, 1)
+metadata/_custom_type_script = "uid://dg7m75nftn2bc"
+
+[sub_resource type="Resource" id="Resource_o5xdo"]
+script = ExtResource("1_416t3")
+type = 2
+color = Color(1, 0, 0, 1)
 metadata/_custom_type_script = "uid://dg7m75nftn2bc"
 
 [sub_resource type="Resource" id="Resource_eniya"]
@@ -45,4 +50,4 @@ required_materials = SubResource("Resource_f5g52")
 pattern_building = SubResource("Resource_4ifjn")
 pattern_build_from = SubResource("Resource_eniya")
 pattern_solid_ground = SubResource("Resource_og48x")
-action_points = Array[ExtResource("1_416t3")]([SubResource("Resource_416t3"), SubResource("Resource_j6v8y")])
+action_points = Array[ExtResource("1_416t3")]([SubResource("Resource_416t3"), SubResource("Resource_j6v8y"), SubResource("Resource_o5xdo")])

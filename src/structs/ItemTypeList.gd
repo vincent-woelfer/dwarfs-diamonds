@@ -18,12 +18,43 @@ func get_item_count(item_type: Enum.ItemType) -> int:
 	return item_dict.get(item_type, 0)
 
 
-func increment_item_count(item_type: Enum.ItemType, amount: int = 1) -> int:
+func get_total_item_count() -> int:
+	var total: int = 0
+	for item_type: Enum.ItemType in item_dict.keys():
+		total += item_dict[item_type]
+
+	return total
+
+
+func get_all_item_types() -> Array[Enum.ItemType]:
+	return item_dict.keys()
+
+
+func is_full(definition_of_full: ItemTypeList) -> bool:
+	for item_type: Enum.ItemType in definition_of_full.get_all_item_types():
+		var curr: int = self.get_item_count(item_type)
+		var expected: int = definition_of_full.get_item_count(item_type)
+		if curr < expected:
+			return false
+
+	return true
+
+
+func increment(item_type: Enum.ItemType, amount: int = 1) -> int:
 	# Ensure item type is in list
 	if not item_dict.has(item_type):
 		item_dict[item_type] = 0
 
 	item_dict[item_type] += amount
+	return item_dict[item_type]
+
+func decrement(item_type: Enum.ItemType, amount: int = 1) -> int:
+	# If not present just return 0, no negative numbers allowed
+	if not item_dict.has(item_type):
+		push_warning("Trying to decrement item type %s which is not in list, returning 0" % [Enum.to_str(Enum.ItemType, item_type)])
+		return 0
+
+	item_dict[item_type] = max(item_dict[item_type] - amount, 0)
 	return item_dict[item_type]
 
 

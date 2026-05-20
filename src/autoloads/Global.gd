@@ -4,12 +4,14 @@ extends Node2D
 
 # Grid dimensions
 const CELL_SIZE: int = 128
+const CELL_SIZE_HALF: int = roundi(CELL_SIZE * 0.5)
 const CELL_SIZE_VEC: Vector2 = Vector2(CELL_SIZE, CELL_SIZE)
 
 const CELL_SIZE_VEC_HALF: Vector2 = CELL_SIZE_VEC * 0.5
 
 ## From top-left corner of cell to center of floor (0,0 in editor)
-const CELL_OFFSET_CORNER_TO_CENTER_FLOOR: Vector2 = Vector2(0.5, 1.0) * CELL_SIZE_VEC
+const CELL_OFFSET_CENTER_FLOOR: Vector2 = Vector2(0.5, 1.0) * CELL_SIZE_VEC
+const CELL_OFFSET_CENTER: Vector2 = Vector2(0.5, 0.5) * CELL_SIZE_VEC
 
 # Size=128 at 3840x2160 (4K) gives 30x16.8 cells
 const LEVEL_WIDTH: int = 40

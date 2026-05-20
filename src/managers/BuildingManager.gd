@@ -5,15 +5,11 @@ extends Node2D
 var buildings: Array[Building] = []
 var action_points: Array[ActionPoint] = []
 
-
 ########################################################################################################################
-# PUBLIC METHODS
+# BUILDINGS
 ########################################################################################################################
-###################################
-# REGISTRATION
-###################################
-## Called by Building to register itself when created
-func register_building(building: Building) -> void:
+## Called by Building to add itself when created
+func add_building(building: Building) -> void:
 	if Engine.is_editor_hint(): return
 
 	if building in buildings:
@@ -24,40 +20,52 @@ func register_building(building: Building) -> void:
 	add_child(building)
 
 
-## Called by Building to unregister itself when removed
-func unregister_building(building: Building) -> void:
+## Called by Building to unregister itself when removed (entering teardown state)
+func teardown_building(building: Building) -> void:
 	if Engine.is_editor_hint(): return
 
 	if not building in buildings:
-		push_error("BuildingManager: Trying to remove building that is not registered: %s" % building)
+		push_error("BuildingManager: Trying to teardown building that is not registered: %s" % building)
 		return
 
-	_unregister_action_points(building)
+	if building.sm.state != Building.State.IN_TEARDOWN:
+		push_error("BuildingManager: Trying to teardown building that is not in teardown state: %s" % building)
+		return
+
+	unregister_all_action_points(building)
 	buildings.erase(building)
 	
 
-## Called by building itself to finally be removes from scene
-func remove_building(building: Building) -> void:
+## Called by building itself to finally be removes from scene (after teardown effects are done)
+func delete_building(building: Building) -> void:
 	if Engine.is_editor_hint(): return
 
 	if building == null:
 		return
+
+	if building.sm.state != Building.State.IN_TEARDOWN:
+		push_error("BuildingManager: Trying to delete building that is not in teardown state: %s" % building)
+		return
+
+	assert(building.action_points.is_empty())
 		
 	remove_child(building)
 	building.queue_free()
 
-
-## Called by Building to register its action points when construction is complete
-func register_action_points(building: Building) -> void:
+########################################################################################################################
+# Action Points
+########################################################################################################################
+## Called by Building to register its action points
+func register_action_points(building: Building, aps: Array[ActionPoint]) -> void:
 	if Engine.is_editor_hint(): return
 
 	if not building in buildings:
-		push_error("BuildingManager: Trying to add action points for building that is not registered: %s" % building)
+		push_error("BuildingManager: Trying to add APs for building that is not registered: %s" % building)
 		return
 
-	for ap: ActionPoint in building.action_points:
+	for ap: ActionPoint in aps:
 		if ap in action_points:
-			push_error("BuildingManager: Trying to register action point that is already registered: %s" % ap)
+			push_error("BuildingManager: Trying to register AP that is already registered: %s" % ap)
 			continue
 
 		action_points.append(ap)
@@ -67,11 +75,31 @@ func register_action_points(building: Building) -> void:
 		if cell != null:
 			cell.add_action_point(ap)
 
+		# Add to building
+		building.add_child(ap)
 
+
+## 
+func unregister_action_points(building: Building, aps: Array[ActionPoint]) -> void:
+	for ap: ActionPoint in aps:
+		if ap not in action_points:
+			push_error("BuildingManager: Trying to unregister AP that is not registered: %s" % ap)
+			continue
+
+		if ap not in building.action_points:
+			push_error("BuildingManager: Trying to unregister AP that is not part of building's APs: %s" % ap)
+			continue
+	
+		_delete_ap(ap, building)
+
+
+func unregister_all_action_points(building: Building) -> void:
+	unregister_action_points(building, building.action_points)
+		
 ###################################
 # Fetching Data
 ###################################
-func get_all_action_points(type: ActionPoint.ActionType) -> Array[ActionPoint]:
+func get_all_action_points(type: ActionPoint.ApType) -> Array[ActionPoint]:
 	if Engine.is_editor_hint(): return []
 
 	var filtered_aps: Array[ActionPoint] = []
@@ -97,23 +125,20 @@ func get_all_action_points(type: ActionPoint.ActionType) -> Array[ActionPoint]:
 
 	return filtered_aps
 
+
 ########################################################################################################################
-# PRIVATE METHODS
+# Private Methods
 ########################################################################################################################
-## Only called from unregister_building()
-func _unregister_action_points(building: Building) -> void:
-	for ap: ActionPoint in building.action_points:
-		if ap not in action_points:
-			push_error("BuildingManager: Trying to unregister action point that is not registered: %s" % ap)
-			continue
+func _delete_ap(ap: ActionPoint, building: Building) -> void:
+	assert(ap != null)
 
-		action_points.erase(ap)
+	action_points.erase(ap)
 
-		# Remove from cell
-		var cell: Cell = Global.level.get_cell(ap.grid_pos)
-		if cell != null:
-			cell.remove_action_point(ap)
+	# Remove from cell
+	var cell: Cell = Global.level.get_cell(ap.grid_pos)
+	if cell != null:
+		cell.remove_action_point(ap)
 
-		# Remove from scene
-		building.remove_child(ap)
-		ap.queue_free()
+	# Remove from scene
+	building.remove_child(ap)
+	ap.queue_free()

@@ -17,42 +17,45 @@ var action_points_visible: bool = true
 # Never draw ladder patterns in game to avoid visual clutter (these are drawn in editor only)
 var never_draw_because_is_ladder: bool = false
 
-# Visual properties
+# Visual properties 
+# Rectangles
 const alpha_fill: float = 0.11
 const alpha_border: float = 0.5
 const border_margin_width_px: float = 2.0
-const circle_radius_px: float = 0.15 * Global.CELL_SIZE
+
+# Circle
+const circle_radius_px: float = 0.125 * Global.CELL_SIZE
 const circle_alpha: float = 0.6
 
 # Text properties
-const label_width := 1.0 * Global.CELL_SIZE
-# relative to circle (cell center)
-const label_offset := Vector2(0.0, -0.5) * Global.CELL_SIZE_VEC + Vector2(-label_width / 2.0, 0.0)
-
-var font := ThemeDB.fallback_font
-var font_size := 14
-
-# Offset to visually center the pattern on the grid
-const visual_offset: Vector2 = - Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
+const label_font_size := 14
+var label_font := ThemeDB.fallback_font
+const label_width := 1.3 * Global.CELL_SIZE
+const label_vert_spacing := 4.0
 
 # Dirty flag for redraw and rescan
 var needs_redraw: bool
 var needs_rescan: bool
 
+
 ########################################################################################################################
 # DRAWING
+########################################################################################################################
+# ATTENTION: Everything must be offset by -Global.CELL_OFFSET_CENTER_FLOOR to be drawn correctly.
+# This is because in editor (0,0) is not the top-left corner of cell (0,0) but the center of the floor tile.
+# This is because we want objects/dwarfs to be centered on the floor.
 ########################################################################################################################
 func _draw() -> void:
 	###################################
 	# GRID PATTERNS
 	###################################
-	if (not grid_patterns.is_empty()) and grid_patterns_visible:
+	if not grid_patterns.is_empty() and grid_patterns_visible:
 		var idx := 0
 		for grid_pattern: GridPatternRes in grid_patterns:
 			# Calculate grid_colors
-			var color := grid_colors[idx] if idx < grid_colors.size() else Colors.FALLBACK_COLOR
-			var color_fill := Colors.with_alpha(color, alpha_fill)
-			var color_border := Colors.with_alpha(color, alpha_border)
+			var grid_color := grid_colors[idx] if idx < grid_colors.size() else Colors.FALLBACK_COLOR
+			var color_fill := Colors.with_alpha(grid_color, alpha_fill)
+			var color_border := Colors.with_alpha(grid_color, alpha_border)
 			idx += 1
 
 			for grid_pos: Vector2i in grid_pattern.get_positions():
@@ -61,23 +64,33 @@ func _draw() -> void:
 	###################################
 	# ACTION POINTS
 	###################################
-	if (not action_points.is_empty()) and action_points_visible:
+	# Create dict with total num APs per grid_pos and running index to calculate offsets for multiple APs on the same cell
+	var grid_pos_total_num_aps: Dictionary[Vector2i, int] = {}
+	var grid_pos_current_idx: Dictionary[Vector2i, int] = {}
+	for action_point: ActionPointRes in action_points:
+		var pos: Vector2i = action_point.grid_offset
+		grid_pos_total_num_aps[pos] = grid_pos_total_num_aps.get(pos, 0) + 1
+		grid_pos_current_idx[pos] = 0
+
+	# Actually draw action points
+	if not action_points.is_empty() and action_points_visible:
 		for action_point: ActionPointRes in action_points:
-			var color := Colors.get_action_point_color(action_point.type)
-			var color_fill := Colors.with_alpha(color, alpha_fill)
-			var color_border := Colors.with_alpha(color, alpha_border)
+			var ap_color := Colors.get_action_point_color(action_point.type)
 
-			_draw_rect_with_border(action_point.local_grid_offset, color_fill, color_border)
+			var cell_center_pos: Vector2 = (action_point.grid_offset as Vector2) * Global.CELL_SIZE_VEC + Global.CELL_OFFSET_CENTER - Global.CELL_OFFSET_CENTER_FLOOR
+			var total_num_aps: int = grid_pos_total_num_aps.get(action_point.grid_offset, 1)
+			var current_idx: int = grid_pos_current_idx.get(action_point.grid_offset, 0)
+			grid_pos_current_idx[action_point.grid_offset] = current_idx + 1
 
-			# Action circle			
-			var circle_pos: Vector2 = ((action_point.local_grid_offset as Vector2) + Vector2(0.5, 0.5)) * Global.CELL_SIZE + visual_offset
-			var color_circle := Colors.with_alpha(color, circle_alpha)
-			draw_circle(circle_pos, circle_radius_px, color_circle)
+			# Cell center, shifted upwards by (total label size / 2), corrected for label size
+			var combined_label_height := total_num_aps * label_font_size + (total_num_aps - 1) * label_vert_spacing
+			var label_base_pos: Vector2 = cell_center_pos - Vector2(0, combined_label_height * 0.5) - Vector2(label_width, -label_font_size) * 0.5
+			var label_pos: Vector2 = label_base_pos + Vector2(0, current_idx * (label_font_size + label_vert_spacing)) # Shift down for each additional AP on the same cell
 
 			# Text
-			var text: String = Enum.to_str(ActionPoint.ActionType, action_point.type)
-			var lable_pos: Vector2 = circle_pos + label_offset
-			draw_string(font, lable_pos, text, HORIZONTAL_ALIGNMENT_CENTER, label_width, font_size, color)
+			var label_text: String = Enum.to_str(ActionPoint.ApType, action_point.type)
+			draw_string_outline(label_font, label_pos, label_text, HORIZONTAL_ALIGNMENT_CENTER, label_width, label_font_size, 2, Color.BLACK)
+			draw_string(label_font, label_pos, label_text, HORIZONTAL_ALIGNMENT_CENTER, label_width, label_font_size, ap_color)
 
 	
 func _draw_rect_with_border(grid_pos: Vector2i, color_fill: Color, color_border: Color) -> void:
@@ -86,13 +99,13 @@ func _draw_rect_with_border(grid_pos: Vector2i, color_fill: Color, color_border:
 	# Fill
 	var pos: Vector2 = grid_pos * Global.CELL_SIZE
 	var size: Vector2 = Global.CELL_SIZE_VEC
-	var rect := Rect2(pos + visual_offset, size)
+	var rect := Rect2(pos - Global.CELL_OFFSET_CENTER_FLOOR, size)
 	draw_rect(rect, color_fill, true)
 
 	# Border
 	pos += margin_vec_px * 0.5
 	size -= margin_vec_px
-	rect = Rect2(pos + visual_offset, size)
+	rect = Rect2(pos - Global.CELL_OFFSET_CENTER_FLOOR, size)
 	draw_rect(rect, color_border, false, border_margin_width_px)
 
 

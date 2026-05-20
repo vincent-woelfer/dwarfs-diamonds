@@ -43,7 +43,8 @@ var pattern_build_from_color: Color = Color.GREEN
 @export_custom(PROPERTY_HINT_COLOR_NO_ALPHA, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY)
 var pattern_solid_ground_color: Color = Color(0.3, 0.15, 0.1) # Dark brown
 
-## Patter defining where the building blocks movement, e.g. for platforms. Relevant for placement checks aswell (no dwarf must be in blocking area when placing the building).
+## Patter defining where the building blocks movement, e.g. for platforms.
+## Relevant for placement checks aswell (no dwarf must be in blocking area when placing the building).
 @export var pattern_blocking: GridPatternRes
 @export_custom(PROPERTY_HINT_COLOR_NO_ALPHA, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_READ_ONLY)
 var pattern_blocking_color: Color = Color.ORANGE_RED

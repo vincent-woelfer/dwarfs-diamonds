@@ -256,7 +256,7 @@ func _on_finished_path() -> void:
 		return
 
 	# If still not at move-to position -> replan
-	if not task_queue.curr_task.reached_move_to_position(self ):
+	if not task_queue.curr_task.has_reached_move_to_position(self ):
 		print_rich("%s finished path from task %s but has not reached move-to position, replanning!" % [ self , task_queue.curr_task])
 		_perform_move_to_task(task_queue.curr_task)
 		return
@@ -451,14 +451,14 @@ func _create_own_tasks() -> void:
 
 	# Dispose Gemstone
 	if storage_comp.is_carrying_item_of_type(Enum.ItemType.GEMSTONE):
-		_create_action_point_tasks_for_type(ActionPoint.ActionType.DROPOFF_GEMSTONE)
+		_create_action_point_tasks_for_type(ActionPoint.ApType.DROPOFF_GEMSTONE)
 
 	# Dispose Rubble
 	elif storage_comp.is_carrying_item_of_type(Enum.ItemType.RUBBLE):
-		_create_action_point_tasks_for_type(ActionPoint.ActionType.DROPOFF_RUBBLE)
+		_create_action_point_tasks_for_type(ActionPoint.ApType.DROPOFF_RUBBLE)
 
 
-func _create_action_point_tasks_for_type(ap_type: ActionPoint.ActionType) -> void:
+func _create_action_point_tasks_for_type(ap_type: ActionPoint.ApType) -> void:
 	var aps: Array[ActionPoint] = Global.level.building_manager.get_all_action_points(ap_type)
 
 	if aps.is_empty():
@@ -471,7 +471,7 @@ func _create_action_point_tasks_for_type(ap_type: ActionPoint.ActionType) -> voi
 
 	var path: Path = Global.level.nav_manager.find_path_to_one_of(curr_cell.grid_pos, target_positions, movement_comp.movement_stats)
 	if not path:
-		HexLog.throttled(self , "%s failed to find path to target positions %s for AP type %s" % [ self , target_positions, Enum.to_str(ActionPoint.ActionType, ap_type)], HexLog.NO_PATH_AP_INTERVALL)
+		HexLog.throttled(self , "%s failed to find path to target positions %s for AP type %s" % [ self , target_positions, Enum.to_str(ActionPoint.ApType, ap_type)], HexLog.NO_PATH_AP_INTERVALL)
 		return
 
 	# Back-reference path to AP
@@ -628,15 +628,15 @@ func _perform_stationary_task(task: Task) -> void:
 	
 	### PICKUP TASK ###
 	elif task.type == Task.Type.PICKUP:
-		print_rich("%s reached %s and starts picking up %s" % [ self , task.target_grid_pos, task.carryable_item])
+		print_rich("%s reached %s and starts picking up %s" % [ self , task.target_grid_pos, task.item])
 
 		# No pickup-state, simply try to pick up item. Success -> goes into idle directly, failure -> abandon job.
-		if not storage_comp.pickup_all_in_range([task.carryable_item]):
-			print_rich("%s failed to pick up object %s, abandoning task" % [ self , task.carryable_item])
+		if not storage_comp.pickup_all_in_range([task.item]):
+			print_rich("%s failed to pick up object %s, abandoning task" % [ self , task.item])
 			_abort_tasks_enter_idle()
 			return
 
-		print_rich("%s successfully picked up %s, finishing task" % [ self , task.carryable_item])
+		print_rich("%s successfully picked up %s, finishing task" % [ self , task.item])
 		_finish_task_and_start_next(Task.Type.PICKUP)
 		return
 

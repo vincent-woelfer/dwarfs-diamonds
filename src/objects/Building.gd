@@ -18,6 +18,8 @@ var build_job: Job = null
 
 # Action Points
 var action_points: Array[ActionPoint] = []
+var material_ap: ActionPoint = null
+var material_storage: StorageComponent = null
 
 # For dev - only for logging
 var dev_color: Color
@@ -26,9 +28,15 @@ var dev_color: Color
 var starting_state: State = State.WAITING_FOR_MATERIAL
 
 # State machine
-# For buildings, only used in this order
 enum State {WAITING_FOR_MATERIAL, IN_CONSTRUCTION, OPERATING, IN_TEARDOWN}
 var sm: StateMachine
+
+var sm_transition_table: Dictionary[int, Array] = {
+	State.WAITING_FOR_MATERIAL: [State.IN_CONSTRUCTION, State.IN_TEARDOWN],
+	State.IN_CONSTRUCTION: [State.OPERATING, State.IN_TEARDOWN],
+	State.OPERATING: [State.IN_TEARDOWN],
+	State.IN_TEARDOWN: [],
+}
 
 ########################################################################################################################
 # DEV / EDITOR ONLY
@@ -102,7 +110,9 @@ func _ready() -> void:
 	# We override this here if its "waiting for material" but building doesnt have required materials.
 	if starting_state == State.WAITING_FOR_MATERIAL and building_data.required_materials.is_empty():
 		starting_state = State.IN_CONSTRUCTION
-	sm = StateMachine.new(self , State, starting_state)
+
+	sm = StateMachine.new(self , State, starting_state, sm_transition_table)
+	sm.set_state_exitable(State.IN_TEARDOWN, false)
 
 	# Only for Game
 	if not Engine.is_editor_hint():
@@ -121,15 +131,26 @@ func _physics_process(delta: float) -> void:
 # Waiting for material
 ###################################
 func _enter_waiting_for_material() -> void:
+	assert(not building_data.required_materials.is_empty())
 	print_rich("%s placed (waiting for materials: %s)" % [ self , building_data.required_materials])
 
 	# Visuals
 	self.light_mask = Colors.building_light_mask_unfinished
 	_set_modulate_internal(Colors.building_modulate_unfinished)
 
+	# Action points - Setup material AP
+	if not _setup_material_action_point():
+		push_error("Failed to setup material action point for building %s! Transitioning to IN_CONSTRUCTION anyway." % self )
+		sm.transition_to(State.IN_CONSTRUCTION)
+		return
+
 	# TODO add job
 
+
 func _exit_waiting_for_material() -> void:
+	# Remove action points
+	Global.level.building_manager.unregister_action_points(self , [material_ap])
+
 	pass
 	# TODO remove job
 
@@ -149,16 +170,23 @@ func _enter_in_construction() -> void:
 	build_job.building = self
 	Global.level.job_manager.add_job(build_job)
 
+
 func _exit_in_construction() -> void:
 	# Complete build job and delete reference
 	Actions.archive_job(build_job, true)
 	build_job = null
 
+	# Remove material storage
+	if material_storage != null:
+		material_storage.drop_all()
+		material_storage.queue_free()
+		material_storage = null
+
 ###################################
 # Operating
 ###################################
 func _enter_operating() -> void:
-	print_rich("%s completed" % [ self ])
+	print_rich("%s completed (operational)" % [ self ])
 
 	# Update visual
 	self.light_mask = Colors.building_light_mask_finished
@@ -178,12 +206,8 @@ func _enter_operating() -> void:
 			cell.on_building_completed(self )
 			cell.queue_nav_update()
 
-	# Action Points setup
-	_setup_action_points()
-	Global.level.building_manager.register_action_points(self )
+	_setup_action_points([ActionPoint.ApType.DROPOFF_RUBBLE, ActionPoint.ApType.DROPOFF_GEMSTONE])
 
-func _exit_operating() -> void:
-	pass
 
 ####################################
 # In teardown
@@ -191,15 +215,25 @@ func _exit_operating() -> void:
 func _enter_in_teardown() -> void:
 	if build_job != null:
 		Actions.archive_job(build_job, false)
+		build_job = null
 
+	# Remove material storage
+	if material_storage != null:
+		material_storage.drop_all()
+		material_storage.queue_free()
+		material_storage = null
+
+	# Includes deleting action points
+	Global.level.building_manager.teardown_building(self )
 
 	# Flash & audio effect
 	var effect_duration := 0.25 * 3
 	_flash(Color(3, 0, 0), effect_duration)
 	Audio.play_at_pos("building_on_destroy", global_position)
 
+	# Wait for effect to finish before deleting building
 	await Util.await_time(effect_duration)
-	Global.level.building_manager.remove_building(self )
+	Global.level.building_manager.delete_building(self )
 
 
 ########################################################################################################################
@@ -212,10 +246,16 @@ func update_build_progress(building_speed_with_delta: float) -> void:
 	var building_with_duration := building_speed_with_delta / building_data.build_time
 	build_progress = clamp(build_progress + building_with_duration, 0.0, 1.0)
 
+	# Update visual (incl. material storage emptying)
+	visual_root.update_building_progress(build_progress)
+	if material_storage != null:
+		var total_count: int = building_data.required_materials.get_total_item_count()
+		var should_be_left: int = clampi(roundi((1.0 - build_progress) * total_count), 0, total_count)
+		while material_storage.get_carried_total_count() > should_be_left:
+			material_storage.delete(material_storage.get_last_item())
+
 	if build_progress >= 1.0:
 		sm.transition_to(State.OPERATING)
-	else:
-		visual_root.update_building_progress(build_progress)
 
 
 # Called from Actions.remove_building which handles most logic (like calling building_manager.unregister_building() and removing from cells)
@@ -231,19 +271,56 @@ func is_operating() -> bool:
 # PRIVATE
 ########################################################################################################################
 # Called internally when building is completed
-func _setup_action_points() -> void:
-	action_points.clear()
-
+func _setup_action_points(types: Array[ActionPoint.ApType]) -> void:
 	for ap_res: ActionPointRes in building_data.action_points:
-		var ap := ActionPoint.new()
-		var pos: Vector2i = grid_pos + ap_res.local_grid_offset
-		ap.setup_action_point(pos, ap_res.type)
+		if not ap_res.type in types:
+			continue
+
+		var pos: Vector2i = grid_pos + ap_res.grid_offset
+		var ap: ActionPoint = ActionPoint.setup_bare_ap(pos, ap_res.type)
+
+		if ap.type in [ActionPoint.ApType.DROPOFF_RUBBLE, ActionPoint.ApType.DROPOFF_GEMSTONE]:
+			ap.setup_dropoff_ap()
+
 		action_points.append(ap)
-
-		# TODO DEV also remove or add from elsewhere
-		add_child(ap)
+		Global.level.building_manager.register_action_points(self , [ap])
 
 
+func _setup_material_action_point() -> bool:
+	# Only call if building has required materials, otherwise it should be setup in _setup_action_points
+	assert(not building_data.required_materials.is_empty())
+	assert(material_ap == null)
+	assert(material_storage == null)
+
+	# Find first (there should only be one) material AP in building data
+	var ap_res: ActionPointRes = null
+	for ap_res_iter: ActionPointRes in building_data.action_points:
+		if ap_res_iter.type == ActionPoint.ApType.CONSTR_MAT_STOCKPILE:
+			ap_res = ap_res_iter
+			break
+	if ap_res == null:
+		push_error("Building %s has required materials but no material AP defined in building data!" % self )
+		return false
+
+	var pos: Vector2i = grid_pos + ap_res.grid_offset
+	var ap: ActionPoint = ActionPoint.setup_bare_ap(pos, ActionPoint.ApType.CONSTR_MAT_STOCKPILE)
+	material_storage = StorageComponent.new()
+	material_ap = ap
+	add_child(material_storage)
+	ap.setup_constr_mat_stockpile_ap(material_storage, building_data.required_materials)
+
+	action_points.append(ap)
+	Global.level.building_manager.register_action_points(self , [ap])
+
+	# Listen for complete signal
+	material_storage.Signal_OnAllItemTypesFull.connect(func() -> void:
+		if sm.state == State.WAITING_FOR_MATERIAL and _has_all_construction_materials():
+			sm.transition_to(State.IN_CONSTRUCTION)
+	)
+
+	return true
+
+	
 ## Triggered by cell destruction signal
 func _check_solid_ground(destroyed_cell: Cell) -> void:
 	if sm.state == State.IN_TEARDOWN:
@@ -251,6 +328,21 @@ func _check_solid_ground(destroyed_cell: Cell) -> void:
 
 	if not PlacementChecks.has_solid_ground_at(building_data, grid_pos):
 		Actions.remove_building(self )
+
+
+func _has_all_construction_materials() -> bool:
+	assert(sm.state == State.WAITING_FOR_MATERIAL)
+	assert(material_ap != null)
+
+	# Gather combined materials from all action points
+	var combined_materials: ItemTypeList = material_ap.storage_comp.get_curr_item_type_list()
+	# for ap in action_points:
+	# 	if ap.type == ActionPoint.ApType.CONSTR_MAT_STOCKPILE:
+	# 		var items: ItemTypeList = ap.storage_comp.get_curr_item_type_list()
+	# 		for item_type in items.get_all_item_types():
+	# 			combined_materials.increment(item_type, items.get_item_count(item_type))
+
+	return combined_materials.is_full(building_data.required_materials)
 
 
 func _flash(color: Color, duration: float) -> void:

@@ -1,9 +1,9 @@
 class_name Task
 extends RefCounted
 
-###################################
+########################################################################################################################
 # ENUM DEFINITIONS
-###################################
+########################################################################################################################
 enum Type {
 	# store job and move to one of workable_from cells
 	MOVE_TO_JOB,
@@ -21,9 +21,9 @@ enum Type {
 	PLACE_TORCH,
 }
 
-###################################
+########################################################################################################################
 # SHARED VARIABLES
-###################################
+########################################################################################################################
 var type: Task.Type
 
 var target_grid_pos: Vector2i
@@ -34,12 +34,12 @@ var target_grid_pos: Vector2i
 var finishes_job: bool = false
 
 # Task was created by this job (or null) and should therefore be discarded when job is aborted.
-# Also used to finish jobs when last task is completed.
+# Also used to finish jobs when last task is completed (and finished_job == true)
 var created_by_job: Job = null
 
-###################################
+########################################################################################################################
 # TASK SPECIFIC VARIABLES
-###################################
+########################################################################################################################
 # MOVE_TO_JOB
 # TODO maybe refactor to just used "created_by_job"
 var job: Job = null
@@ -57,7 +57,7 @@ var job: Job = null
 var building: Building = null
 
 # PICKUP
-var carryable_item: Item = null
+var item: Item = null
 
 # ACTION_POINT
 var action_point: ActionPoint = null
@@ -78,7 +78,7 @@ func is_stationary_task() -> bool:
 	return type in [Type.MINE, Type.CONSTRUCT, Type.PICKUP, Type.ACTION_POINT, Type.PLACE_TORCH]
 
 
-func reached_move_to_position(dwarf: Dwarf) -> bool:
+func has_reached_move_to_position(dwarf: Dwarf) -> bool:
 	assert(dwarf != null)
 	assert(is_move_to_task())
 
@@ -93,9 +93,9 @@ func reached_move_to_position(dwarf: Dwarf) -> bool:
 
 	return false
 
-###################################
+########################################################################################################################
 # STATIC FACTORY METHODS
-###################################
+########################################################################################################################
 static func create_move_to_job_task(job_: Job) -> Task:
 	var task := Task.new(Task.Type.MOVE_TO_JOB)
 	task.target_grid_pos = job_.center_cell.grid_pos
@@ -121,7 +121,7 @@ static func create_construct_task(target_grid_pos_: Vector2i, building_: Buildin
 static func create_pickup_task(target_grid_pos_: Vector2i, carryable_item_: Item) -> Task:
 	var task := Task.new(Task.Type.PICKUP)
 	task.target_grid_pos = target_grid_pos_
-	task.carryable_item = carryable_item_
+	task.item = carryable_item_
 	return task
 
 static func create_action_point_task(target_grid_pos_: Vector2i, action_point_: ActionPoint) -> Task:

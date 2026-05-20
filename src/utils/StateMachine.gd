@@ -15,23 +15,28 @@ signal Signal_StateChanged(prev_state: int, next_state: int)
 ## Current state
 var state: int
 
-# Reference to parent
+## Reference to parent
 var owner: Object
 
-# Transitions from within enter/exit states is not allowed. Prevent this by tracking if in transition.
+## Transitioning from within enter/exit states is not allowed. Prevent this by tracking if in transition.
 var currently_in_transition: bool = false
 
-# List of state names corresponding to enum values. Index matches enum value.
+## List of state names corresponding to enum values. Index matches enum value.
 var state_names: Array[String]
 
-# Store if state is exitable. Defaults to true
+## Store if state is exitable. Defaults to true.
+## Can be set to false for special states (e.g. dying, teardown).
 var state_exitable: Array[bool]
 
-# 
+## Transition table. If empty, all transitions are allowed (except forbidden by state_exitable == false).
+## If defined, only transitions defined here are allowed. Key is from state, value is array of allowed to states.
+var transition_table: Dictionary[int, Array] = {}
+
+#
 const INIT_STATE: int = -1
 
 
-func _init(owner_: Object, enum_type_: Dictionary, initial_state: int) -> void:
+func _init(owner_: Object, enum_type_: Dictionary, initial_state: int, transition_table_: Dictionary[int, Array] = {}) -> void:
     assert(owner_ != null, "StateMachine owner cannot be null.")
     assert(enum_type_ != null, "StateMachine enum type cannot be null.")
     assert(initial_state in enum_type_.values(), "Initial state must be a valid enum value.")
@@ -43,6 +48,19 @@ func _init(owner_: Object, enum_type_: Dictionary, initial_state: int) -> void:
     # Init exitable array, default to true for all entries
     state_exitable.resize(state_names.size())
     state_exitable.fill(true)
+
+    # Set transition table
+    transition_table = transition_table_
+
+    # Validate transition table
+    for from_state: int in transition_table.keys():
+        assert(_is_state_valid(from_state), "Transition table from state %d is not a valid enum value." % from_state)
+
+        var to_states: Array = transition_table[from_state]
+        for to_state: Variant in to_states:
+            assert(typeof(to_state) == TYPE_INT, "Transition table to state %s is not an int enum value." % str(to_state))
+            @warning_ignore("unsafe_cast")
+            assert(_is_state_valid(to_state as int), "Transition table to state %d is not a valid enum value." % to_state)
 
     # Enter initial state
     state = INIT_STATE
@@ -62,9 +80,16 @@ func transition_to(next_state: int, ...enter_args: Array) -> void:
         push_error("Cannot exit state %s as it is marked non-exitable." % _state_to_name(state))
         return
 
+    # Check transition table if defined. If not empty, only allow transitions defined there.
+    if state != INIT_STATE and not transition_table.is_empty():
+        var allowed_transitions: Array[int] = transition_table.get(state, [])
+        if next_state not in allowed_transitions:
+            push_error("Transition from state %s to state %s is not allowed by transition table!" % [_state_to_name(state), _state_to_name(next_state)])
+            return
+
     # Prevent re-entrance
     if currently_in_transition:
-        push_error("Cannot transition to state %s while exiting current state %s!" % [_state_to_name(next_state), _state_to_name(state)])
+        push_error("Cannot transition to state %s while still in transition exiting current state %s!" % [_state_to_name(next_state), _state_to_name(state)])
         assert(false)
         return
     currently_in_transition = true

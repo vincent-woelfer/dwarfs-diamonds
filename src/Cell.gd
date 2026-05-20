@@ -158,7 +158,7 @@ func add_action_point(action_point: ActionPoint) -> void:
 func remove_action_point(action_point: ActionPoint) -> void:
 	action_points.erase(action_point)
 
-func get_action_points_of_type(ap_type: ActionPoint.ActionType) -> Array[ActionPoint]:
+func get_action_points_of_type(ap_type: ActionPoint.ApType) -> Array[ActionPoint]:
 	var result: Array[ActionPoint] = []
 	for ap in action_points:
 		if ap.type == ap_type and ap.is_active:
@@ -209,7 +209,7 @@ func get_center_floor_point() -> Vector2:
 
 
 func get_building_origin_point() -> Vector2:
-	return global_position + Global.CELL_OFFSET_CORNER_TO_CENTER_FLOOR
+	return global_position + Global.CELL_OFFSET_CENTER_FLOOR
 
 
 ## Returns floor point at given world-space x, interpolated over BOT_LEFT -> BOT -> BOT_RIGHT

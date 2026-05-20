@@ -4,28 +4,42 @@ extends Node2D
 ########################################################################################################################
 # Unified storage component. Handles storage, pickup/drop/capacity checks, and visual item placement.
 ########################################################################################################################
+###################################
+# Signals
+###################################
+## Emitted when all item types are full for CapacityMode.PER_ITEM_TYPE_COUNT, not relevant for COMBINED_WEIGHT_COUNT mode
+signal Signal_OnAllItemTypesFull()
 
+###################################
+# Placement mode
+###################################
 enum PlacementMode {CARRY, STOCKPILE}
-
 @export var placement_mode: PlacementMode = PlacementMode.CARRY
 
-# Storage capacity
+###################################
+# Capacity mode
+###################################
 # COMBINED = max weight/count shared between all items.
 # PER_ITEM_TYPE = max count per item type, weight is ignored
-enum CapacityMode {COMBINED, PER_ITEM_TYPE}
-@export var capacity_mode: CapacityMode = CapacityMode.COMBINED
+enum CapacityMode {COMBINED_WEIGHT_COUNT, PER_ITEM_TYPE_COUNT}
+@export var capacity_mode: CapacityMode = CapacityMode.COMBINED_WEIGHT_COUNT
 
 @export var capacity_combined_max_weight: float = 5.0
 @export var capacity_combined_max_count: int = 10
 
 @export var capacity_per_item_type_dict: ItemTypeList = ItemTypeList.new()
 
+###################################
 # Placement tuning
+###################################
 @export var item_scaling_in_storage: float = 1.0
 
+
+###################################
+# Internal
+###################################
 @onready var parent: GridObject2D = get_parent()
 
-# internal
 var _curr_carried_items: Array[Item] = []
 var _curr_total_weight: float = 0.0
 
@@ -68,8 +82,8 @@ func pickup(item: Item) -> bool:
 	if not can_pickup(item):
 		return false
 
-	_add(item)
 	item.on_picked_up(self )
+	_add(item)
 
 	return true
 
@@ -135,7 +149,7 @@ func on_item_transfered_from_other_storage(item: Item) -> void:
 
 
 ###################################
-# CAN CARRY / PICKUP CHECKS
+# CAN PICKUP / CAPACITY CHECKS
 ###################################
 ## Can this carrier pick up the given item right now
 func can_pickup(item: Item) -> bool:
@@ -155,13 +169,13 @@ func does_fit_into_capacity(item: Item) -> bool:
 	if item == null:
 		return false
 
-	if capacity_mode == CapacityMode.COMBINED:
+	if capacity_mode == CapacityMode.COMBINED_WEIGHT_COUNT:
 		if _curr_total_weight + item.weight > capacity_combined_max_weight:
 			return false
 		if _curr_carried_items.size() + 1 > capacity_combined_max_count:
 			return false
 
-	elif capacity_mode == CapacityMode.PER_ITEM_TYPE:
+	elif capacity_mode == CapacityMode.PER_ITEM_TYPE_COUNT:
 		var curr: int = _item_type_group_sizes.get_item_count(item.item_type)
 		var max_for_type: int = capacity_per_item_type_dict.get_item_count(item.item_type)
 		if curr + 1 > max_for_type:
@@ -182,6 +196,15 @@ func is_carrying_anything() -> bool:
 	return not _curr_carried_items.is_empty()
 
 
+## Returns true if all required item types are full for CapacityMode.PER_ITEM_TYPE_COUNT
+func is_full_all_item_types() -> bool:
+	if capacity_mode != CapacityMode.PER_ITEM_TYPE_COUNT:
+		# push_warning("is_full_all_item_types is only relevant for PER_ITEM_TYPE_COUNT mode")
+		return false # not relevant for this mode
+
+	return _item_type_group_sizes.is_full(capacity_per_item_type_dict)
+
+
 func get_carried_total_weight() -> float:
 	return _curr_total_weight
 
@@ -194,7 +217,7 @@ func get_carried_weight_percentage() -> float:
 	return _curr_total_weight / capacity_combined_max_weight
 
 
-func get_item_type_group_sizes() -> ItemTypeList:
+func get_curr_item_type_list() -> ItemTypeList:
 	return _item_type_group_sizes
 
 
@@ -202,6 +225,9 @@ func get_item_by_index(index: int) -> Item:
 	if index < 0 or index >= _curr_carried_items.size():
 		return null
 	return _curr_carried_items[index]
+
+func get_last_item() -> Item:
+	return get_item_by_index(_curr_carried_items.size() - 1)
 
 
 ## Returns all pickupable items in range (currently same cell)
@@ -242,7 +268,7 @@ func _update_item_placement(delta: float) -> void:
 		# Fetch data and increment
 		var idx_in_group: int = idx_by_type.get_item_count(item.item_type)
 		var group_idx: int = item.item_type as int
-		idx_by_type.increment_item_count(item.item_type)
+		idx_by_type.increment(item.item_type)
 
 		var target_pos: Vector2 = _get_item_target_position(item, idx_in_group, group_idx)
 
@@ -322,6 +348,12 @@ func _ready() -> void:
 			capacity_combined_max_weight = 200.0
 
 
+func _exit_tree() -> void:
+	# Drop all items on exit, so they dont get lost. This should not happen often,
+	# only if the AP gets deleted while carrying items, but better safe than sorry.
+	drop_all()
+
+
 func _physics_process(delta: float) -> void:
 	if is_carrying_anything():
 		_update_item_placement(delta)
@@ -337,21 +369,19 @@ func _get_parent_look_dir() -> Vector2:
 	return Vector2.RIGHT
 
 
-## Internal helper to efficiently keep track of items per type, used for placement logic
-func _update_item_type_group_sizes() -> void:
-	_item_type_group_sizes.clear()
-
-	for item: Item in _curr_carried_items:
-		_item_type_group_sizes.increment_item_count(item.item_type)
-
-
+###################################
+# ONLY place where items are actually added/removed from storage, all checks should be done before calling these
+###################################
 func _add(item: Item) -> void:
 	_curr_carried_items.append(item)
 	_curr_total_weight += item.weight
-	_update_item_type_group_sizes()
+	_item_type_group_sizes.increment(item.item_type)
+
+	if is_full_all_item_types():
+		Signal_OnAllItemTypesFull.emit()
 
 
 func _remove(item: Item) -> void:
 	_curr_carried_items.erase(item)
 	_curr_total_weight -= item.weight
-	_update_item_type_group_sizes()
+	_item_type_group_sizes.decrement(item.item_type)

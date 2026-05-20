@@ -64,7 +64,7 @@ static func randi_from_coords(pos: Vector2, min_inclusive: int, max_inclusive: i
 
 
 static func grid_to_world_cell_center(grid_pos: Vector2i) -> Vector2:
-	return ((grid_pos as Vector2) + Vector2(0.5, 0.5)) * Global.CELL_SIZE_VEC
+	return (grid_pos as Vector2) + Global.CELL_OFFSET_CENTER
 
 
 static func grid_to_world_cell_center_array(grid_poses: Array[Vector2i]) -> Array[Vector2]:

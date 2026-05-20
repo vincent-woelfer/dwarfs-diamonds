@@ -84,14 +84,14 @@ func _physics_process(delta: float) -> void:
 	# Actual interaction logic
 	var done := false
 
-	if _curr_action_point.type == ActionPoint.ActionType.DROPOFF_RUBBLE:
+	if _curr_action_point.type == ActionPoint.ApType.DROPOFF_RUBBLE:
 		done = _dropoff_rubble()
 
-	elif _curr_action_point.type == ActionPoint.ActionType.DROPOFF_GEMSTONE:
+	elif _curr_action_point.type == ActionPoint.ApType.DROPOFF_GEMSTONE:
 		done = _dropoff_gemstone()
 
 	else:
-		push_error("Unsupported action point type %s" % [Enum.to_str(ActionPoint.ActionType, _curr_action_point.type)])
+		push_error("Unsupported action point type %s" % [Enum.to_str(ActionPoint.ApType, _curr_action_point.type)])
 		stop_interacting()
 		return
 

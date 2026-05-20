@@ -8,6 +8,7 @@ enum Type {
 	MINE,
 	BUILD,
 	PICKUP,
+	GATHER_BUILD_MATERIALS,
 }
 
 ###################################
@@ -50,11 +51,14 @@ var carryable_item: Item = null
 ###################################
 var building: Building = null
 
+###################################
+# For GATHER_BUILD_MATERIALS jobs
+###################################
+
 
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################
-
 ## Generates the list of tasks required to complete this job.
 func generate_tasks() -> Array[Task]:
 	var tasks: Array[Task] = []
@@ -74,7 +78,6 @@ func generate_tasks() -> Array[Task]:
 	return tasks
 
 
-########################################################################################################################
 func calculate_capacity() -> int:
 	match job_type:
 		Job.Type.MINE:

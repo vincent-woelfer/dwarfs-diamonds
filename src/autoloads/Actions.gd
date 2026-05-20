@@ -65,7 +65,7 @@ func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly
 	Audio.play_at_pos("building_placed", building_instance.global_position)
 
 	# Also adds as child
-	Global.level.building_manager.register_building(building_instance)
+	Global.level.building_manager.add_building(building_instance)
 
 	# Add to all cells covered by building -> this updates their navmesh
 	for pos in building_instance.building_data.pattern_building.get_positions(cell.grid_pos):
@@ -84,12 +84,8 @@ func remove_building(building: Building) -> void:
 	var building_status: String = Enum.to_str(building.State, building.sm.state)
 	print_action("Removing building: %s at %s (was %s)" % [building.building_data.ui_name, building.grid_pos, building_status])
 
-	# Call building destroy logic
 	building.destroy()
-
-	# Unregister building (not usable after this but still exists for visual effects)
-	Global.level.building_manager.unregister_building(building)
-
+	
 	# Remove from all cells covered by building -> updates their navmesh
 	for pos in building.building_data.pattern_building.get_positions(building.grid_pos):
 		var covered_cell: Cell = Global.level.get_cell(pos)
