@@ -52,7 +52,7 @@ func place_building(cell: Cell, building_data: BuildingDataRes, finish_instantly
 
 	# Log
 	var finish_instant_string := " (instantly)" if finish_instantly else ""
-	print_action("Placing building: %s at %s%s" % [building_data.name, cell.grid_pos, finish_instant_string])
+	print_action("Placing building: %s at %s%s" % [building_data.ui_name, cell.grid_pos, finish_instant_string])
 
 	# Instantiate building
 	var building_instance: Building = Building.new()
@@ -82,7 +82,7 @@ func remove_building(building: Building) -> void:
 
 	# Log
 	var building_status: String = Enum.to_str(building.State, building.sm.state)
-	print_action("Removing building: %s at %s (was %s)" % [building.building_data.name, building.grid_pos, building_status])
+	print_action("Removing building: %s at %s (was %s)" % [building.building_data.ui_name, building.grid_pos, building_status])
 
 	# Call building destroy logic
 	building.destroy()

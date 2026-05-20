@@ -17,6 +17,13 @@ var _audio_player: AudioStreamPlayer2D = null
 # TODO add mining tool restrictions (e.g. can only mine stone with pickaxe, etc.)
 # TODO add different mining sounds per material but also per miner (e.g. pickaxe sound for pickaxe, etc.)
 
+
+const CellMiningHardness := {
+	Enum.CellType.A: 1.0,
+	Enum.CellType.B: 2.0,
+	Enum.CellType.C: 3.0,
+}
+
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################

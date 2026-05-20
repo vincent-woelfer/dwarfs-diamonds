@@ -260,7 +260,7 @@ func _ready() -> void:
 
 func _update_mining_hardness() -> void:
 	if is_solid:
-		mining_hardness = Global.CellMiningHardness.get(type)
+		mining_hardness = MiningComponent.CellMiningHardness.get(type)
 	elif buildings.has_platform():
 		mining_hardness = buildings.get_platform_mining_hardness()
 	else:

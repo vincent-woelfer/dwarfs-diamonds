@@ -263,7 +263,7 @@ func _flash(color: Color, duration: float) -> void:
 
 func _to_string() -> String:
 	var print_color := Colors.to_print_color(dev_color)
-	return Util.color_string("%s @%s" % [building_data.name, grid_pos], print_color)
+	return Util.color_string("%s @%s" % [building_data.ui_name, grid_pos], print_color)
 
 
 func _set_modulate_internal(color: Color) -> void:

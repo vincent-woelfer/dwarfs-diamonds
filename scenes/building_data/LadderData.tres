@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dg7m75nftn2bc" path="res://src/resources/ActionPointRes.gd" id="1_6ctk3"]
 [ext_resource type="Script" uid="uid://qrjawossld3p" path="res://src/resources/GridPatternRes.gd" id="1_u18a1"]
+[ext_resource type="Script" uid="uid://c0wpqduy002wb" path="res://src/structs/ItemTypeList.gd" id="3_shu55"]
 [ext_resource type="Script" uid="uid://582fgtaaib5v" path="res://src/resources/BuildingDataRes.gd" id="3_xrwn1"]
 
 [sub_resource type="Resource" id="Resource_6ctk3"]
@@ -15,9 +16,13 @@ cells = Array[Vector2i]([Vector2i(0, 0)])
 [sub_resource type="Resource" id="Resource_xrwn1"]
 script = ExtResource("1_u18a1")
 
+[sub_resource type="Resource" id="Resource_wslmn"]
+script = ExtResource("3_shu55")
+
 [resource]
 script = ExtResource("3_xrwn1")
-name = "Ladder"
+ui_name = "Ladder"
+required_materials = SubResource("Resource_wslmn")
 pattern_building = SubResource("Resource_faiv5")
 pattern_build_from = SubResource("Resource_6ctk3")
 pattern_solid_ground = SubResource("Resource_xrwn1")

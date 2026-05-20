@@ -27,10 +27,14 @@ func _init() -> void:
 
 
 func _ready() -> void:
+	if Engine.is_editor_hint(): return
+
 	dev_stats_label = get_tree().root.get_node("root/UICanvasLayer-ScreenSpace-3/DevStatsLabel")
 
 
 func _process(delta: float) -> void:
+	if Engine.is_editor_hint(): return
+	
 	# Update label
 	dev_stats_label.text = "Dwarfs: %d | Jobs: %d | Buildings: %d\n[color=red]Cells mined: %d[/color] | [color=pink]Gemstones: %d[/color]" % [
 		Global.level.dwarfs.size(),

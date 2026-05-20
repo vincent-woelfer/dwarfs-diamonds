@@ -1,3 +1,4 @@
+@tool
 class_name BuildingManager
 extends Node2D
 
@@ -13,6 +14,8 @@ var action_points: Array[ActionPoint] = []
 ###################################
 ## Called by Building to register itself when created
 func register_building(building: Building) -> void:
+	if Engine.is_editor_hint(): return
+
 	if building in buildings:
 		push_error("BuildingManager: Trying to register building that is already registered: %s" % building)
 		return
@@ -23,6 +26,8 @@ func register_building(building: Building) -> void:
 
 ## Called by Building to unregister itself when removed
 func unregister_building(building: Building) -> void:
+	if Engine.is_editor_hint(): return
+
 	if not building in buildings:
 		push_error("BuildingManager: Trying to remove building that is not registered: %s" % building)
 		return
@@ -33,6 +38,8 @@ func unregister_building(building: Building) -> void:
 
 ## Called by building itself to finally be removes from scene
 func remove_building(building: Building) -> void:
+	if Engine.is_editor_hint(): return
+
 	if building == null:
 		return
 		
@@ -42,6 +49,8 @@ func remove_building(building: Building) -> void:
 
 ## Called by Building to register its action points when construction is complete
 func register_action_points(building: Building) -> void:
+	if Engine.is_editor_hint(): return
+
 	if not building in buildings:
 		push_error("BuildingManager: Trying to add action points for building that is not registered: %s" % building)
 		return
@@ -63,6 +72,8 @@ func register_action_points(building: Building) -> void:
 # Fetching Data
 ###################################
 func get_all_action_points(type: ActionPoint.ActionType) -> Array[ActionPoint]:
+	if Engine.is_editor_hint(): return []
+
 	var filtered_aps: Array[ActionPoint] = []
 	for ap: ActionPoint in action_points:
 		# Check type

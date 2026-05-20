@@ -39,7 +39,7 @@ metadata/_custom_type_script = "uid://c0wpqduy002wb"
 [resource]
 script = ExtResource("2_416t3")
 type = 1
-name = "Outpost"
+ui_name = "Outpost"
 build_time = 4.0
 required_materials = SubResource("Resource_f5g52")
 pattern_building = SubResource("Resource_4ifjn")

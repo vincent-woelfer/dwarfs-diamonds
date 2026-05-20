@@ -14,12 +14,11 @@ extends Resource
 
 @export_group("Building Properties")
 ## Visual / UI Name, must never affect gameplay / logic!!!
-@export var name: String
+@export var ui_name: String
 
 ## Build time in seconds (without modifiers)
 @export_range(0.0, 20.0, 0.01, "or_greater", "suffix:s")
 var build_time: float = 1.0
-
 
 ## Required materials to build this building.
 @export var required_materials: ItemTypeList = ItemTypeList.new()
@@ -89,11 +88,11 @@ func _validate_property(property: Dictionary) -> void:
 		var prop_pattern: GridPatternRes = prop_variant
 
 		if prop_pattern == null:
-			push_warning("BuildingDataRes: '%s' is not set for building '%s'." % [property.name, name])
+			push_warning("BuildingDataRes: '%s' is not set for building '%s'." % [property.name, ui_name])
 			return
 
 		# Empty patterns are a warning, depending on which pattern it is. Check manually here.
 		var patterns_should_not_be_empty := ["pattern_building", "pattern_build_from"]
 		if prop_pattern.cells.is_empty():
 			if prop_name in patterns_should_not_be_empty:
-				push_warning("BuildingDataRes: '%s' has an empty pattern for building '%s'." % [property.name, name])
+				push_warning("BuildingDataRes: '%s' has an empty pattern for building '%s'." % [property.name, ui_name])

@@ -31,7 +31,7 @@ script = ExtResource("3_8uwq3")
 [resource]
 script = ExtResource("2_duvw7")
 type = 2
-name = "Platform"
+ui_name = "Platform-Blocking"
 build_time = 3.0
 required_materials = SubResource("Resource_tvfrp")
 pattern_building = SubResource("Resource_vwinv")

@@ -30,15 +30,8 @@ const MIN_SKY_HEIGHT: int = 5
 # var FIXED_MAP_SEED: int = 57
 var FIXED_MAP_SEED: int = randi()
 
-const CellMiningHardness := {
-	Enum.CellType.A: 1.0,
-	Enum.CellType.B: 2.0,
-	Enum.CellType.C: 3.0,
-}
-
 # Group Names
 const GROUP_CARRYABLE_ITEMS: String = "carryable_items"
-
 
 # Relevant Game Objects
 @onready var camera: Camera
@@ -53,9 +46,18 @@ const GROUP_CARRYABLE_ITEMS: String = "carryable_items"
 
 
 func _load_global_references() -> void:
+	###################################
+	# In-Enditor instantiation of references
+	###################################
 	if Engine.is_editor_hint():
 		HexLog.print_banner_with_text("Global autoload: skipping reference loading in editor.")
+		level = Level.new()
+		add_child(level)
 		return
+
+	###################################
+	# Actually load scene references
+	###################################
 
 	# Relevant Game Objects
 	camera = _get_from_root("Camera")
@@ -115,5 +117,5 @@ func _get_from_root(path: String) -> Variant:
 	return get_tree().root.get_node("%s/%s" % [main_scene_name, path])
 
 
-func get_group(group_name: String) -> Array:
+func get_group(group_name: String) -> Array[Node]:
 	return get_tree().get_nodes_in_group(group_name)

@@ -1,3 +1,4 @@
+@tool
 class_name Level
 extends Node2D
 
@@ -26,11 +27,15 @@ var sun_system: SunSystem
 # READY
 ########################################################################################################################
 func _ready() -> void:
-	# Preload assets
-	for building_type: Enum.BuildingType in Enum.BuildingType.values():
-		Util.instantiate_building_visual_base(building_type)
+	# In-Game Setup
+	if not Engine.is_editor_hint():
+		# Preload assets
+		for building_type: Enum.BuildingType in Enum.BuildingType.values():
+			Util.instantiate_building_visual_base(building_type)
 
+	###################################
 	# Managers NOT depending on grid
+	###################################
 	job_manager = JobManager.new()
 	add_child(job_manager)
 
@@ -43,34 +48,38 @@ func _ready() -> void:
 	level_stats_manager = LevelStatsManager.new()
 	add_child(level_stats_manager)
 
+	###################################
+	# GRID generation
+	###################################
+	if not Engine.is_editor_hint():
+		_generate_grid()
 
-	# GRID
-	_generate_grid()
+		# Required but hacky :/
+		# Wait a frame to ensure all cells are ready
+		# Wait a second frame to ensure all cells have updated their walkability
+		await get_tree().process_frame
+		await get_tree().process_frame
 
-	# Required but hacky :/
-	# Wait a frame to ensure all cells are ready
-	# Wait a second frame to ensure all cells have updated their walkability
-	await get_tree().process_frame
-	await get_tree().process_frame
+		###################################
+		# With Grid
+		###################################
+		_full_light_depths_update()
+		EventBus.Signal_LightDepthUpdated.emit()
 
-	_full_light_depths_update()
-	EventBus.Signal_LightDepthUpdated.emit()
+		# Managers depending on grid
+		nav_manager = NavManager.new()
+		add_child(nav_manager)
 
-	# Managers depending on grid
-	nav_manager = NavManager.new()
-	add_child(nav_manager)
+		# SUN / LIGHTING
+		sun_system = SunSystem.new()
+		add_child(sun_system)
 
-	# SUN / LIGHTING
-	sun_system = SunSystem.new()
-	add_child(sun_system)
+		preplace_torches()
 
-
-	preplace_torches()
-
-	# DWARF
-	spawn_dwarf(8)
-	spawn_dwarf(14)
-	spawn_dwarf(20)
+		# DWARF
+		spawn_dwarf(8)
+		spawn_dwarf(14)
+		spawn_dwarf(20)
 
 
 func spawn_dwarf(x: int) -> void:
