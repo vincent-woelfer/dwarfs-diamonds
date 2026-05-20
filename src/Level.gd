@@ -4,6 +4,8 @@ extends Node2D
 
 # SCENES
 var dwarf_scene: PackedScene = preload('res://scenes/Dwarf.tscn') as PackedScene
+
+# must be load (not preload) due to circular reference!!!
 var rubble_scene: PackedScene = load('res://scenes/objects/Rubble.tscn') as PackedScene
 var gemstone_scene: PackedScene = load('res://scenes/objects/Gemstone.tscn') as PackedScene
 
