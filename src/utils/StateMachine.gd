@@ -82,8 +82,7 @@ func transition_to(next_state: int, ...enter_args: Array) -> void:
 
     # Check transition table if defined. If not empty, only allow transitions defined there.
     if state != INIT_STATE and not transition_table.is_empty():
-        var allowed_transitions: Array[int] = transition_table.get(state, [])
-        if next_state not in allowed_transitions:
+        if next_state not in transition_table.get(state, []):
             push_error("Transition from state %s to state %s is not allowed by transition table!" % [_state_to_name(state), _state_to_name(next_state)])
             return
 

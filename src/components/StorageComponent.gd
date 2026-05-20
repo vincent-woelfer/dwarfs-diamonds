@@ -186,7 +186,8 @@ func does_fit_into_capacity(item: Item) -> bool:
 
 func is_in_range(item: Item) -> bool:
 	# For now just check if in the same cell, later we can add a pickup radius or something
-	return item.grid_pos == parent.grid_pos
+	# return item.grid_pos == parent.grid_pos
+	return true
 
 
 ###################################

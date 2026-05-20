@@ -184,7 +184,7 @@ func _on_landed(fall_height_cells: int) -> void:
 
 func _to_string() -> String:
 	var color := Colors.to_print_color(sprite.modulate)
-	var print_name: String = "Rubble" if item_type == Enum.ItemType.RUBBLE else "Gemstone"
+	var print_name: String = Enum.to_str(Enum.ItemType, item_type).capitalize()
 	return Util.color_string("%s @%s" % [print_name, self._grid_pos], color)
 
 

@@ -95,4 +95,5 @@ enum BuildingType {
 enum ItemType {
 	RUBBLE = 0,
 	GEMSTONE = 1,
+	STONE = 2,
 }

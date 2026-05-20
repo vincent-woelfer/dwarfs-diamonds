@@ -116,6 +116,9 @@ func destroy_cell() -> void:
 	if has_mineral:
 		Global.level.spawn_item(grid_pos, Global.level.gemstone_scene)
 
+	if randf() < 0.4:
+		Global.level.spawn_item(grid_pos, Global.level.stone_scene)
+
 	visual.set_dirty()
 	queue_nav_update()
 

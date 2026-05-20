@@ -146,6 +146,18 @@ func _enter_waiting_for_material() -> void:
 
 	# TODO add job
 
+func _physics_process_waiting_for_material(delta: float) -> void:
+	if material_storage != null:
+		# TODO
+		var items: Array[Item] = []
+
+		for item: Item in Global.get_group(Global.GROUP_CARRYABLE_ITEMS):
+			if item.item_type in building_data.required_materials.get_all_item_types() and item.is_in_storage == false:
+				items.append(item)
+
+		if items.size() > 0:
+			material_storage.pickup_all_in_range(items)
+	
 
 func _exit_waiting_for_material() -> void:
 	# Remove action points
