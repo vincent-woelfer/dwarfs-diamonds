@@ -8,7 +8,7 @@ enum Type {
 	MINE,
 	BUILD,
 	PICKUP,
-	GATHER_BUILD_MATERIALS,
+	GATHER_MATERIALS,
 }
 
 ###################################
@@ -52,8 +52,9 @@ var carryable_item: Item = null
 var building: Building = null
 
 ###################################
-# For GATHER_BUILD_MATERIALS jobs
+# For GATHER_MATERIALS jobs
 ###################################
+var required_items: ItemTypeList = null
 
 
 ########################################################################################################################
@@ -61,7 +62,7 @@ var building: Building = null
 ########################################################################################################################
 ## Basic checks whether this job is blocked or ready
 func is_workable() -> bool:
-	if assigned_dwarfs.size() >= calculate_capacity():
+	if assigned_dwarfs.size() >= calculate_dwarf_capacity():
 		return false
 	if workable_from_poses.is_empty():
 		return false
@@ -74,7 +75,7 @@ func assign_dwarf(dwarf: Dwarf) -> bool:
 
 	if dwarf in assigned_dwarfs:
 		return false
-	if assigned_dwarfs.size() >= calculate_capacity():
+	if assigned_dwarfs.size() >= calculate_dwarf_capacity():
 		return false
 
 	Util.array_append_unique_not_null(assigned_dwarfs, dwarf)
@@ -122,11 +123,16 @@ func generate_tasks() -> Array[Task]:
 		Job.Type.PICKUP:
 			tasks.append(Task.create_move_to_job_task(self ))
 			tasks.append(Task.create_pickup_task(center_cell.grid_pos, carryable_item))
+
+		# Not implemented jet
+		_:
+			assert(false)
+
 	return tasks
 
 
 ## Number of dwarfs that can work on this job simultaneously
-func calculate_capacity() -> int:
+func calculate_dwarf_capacity() -> int:
 	match job_type:
 		Job.Type.MINE:
 			# Up to 2 dwarfs can mine simultaneously (if enough space)
@@ -142,55 +148,59 @@ func calculate_capacity() -> int:
 		Job.Type.PICKUP:
 			return 1
 
-	assert(false)
-	return 0
+		# Not implemented jet
+		_:
+			assert(false)
+			return 0
 
-
+	
 func update_workable_from_cells() -> void:
 	var can_use_ladders: bool = true
 	workable_from_poses.clear()
 
-	# MINING / BUILD PLATFORM
-	if job_type == Job.Type.MINE:
-		for n_offset: Vector2i in Util.neighbours_cardinal:
-			var n_cell: Cell = center_cell.get_neighbour(n_offset)
+	match job_type:
+		Job.Type.MINE:
+			for n_offset: Vector2i in Util.neighbours_cardinal:
+				var n_cell: Cell = center_cell.get_neighbour(n_offset)
 
-			if !n_cell or not n_cell.is_standable(can_use_ladders):
-				continue
+				if !n_cell or not n_cell.is_standable(can_use_ladders):
+					continue
 
-			workable_from_poses.append(n_cell.grid_pos)
+				workable_from_poses.append(n_cell.grid_pos)
 
-	# BUILD
-	elif job_type == Job.Type.BUILD:
-		for n_grid_pos: Vector2i in building.building_data.pattern_build_from.get_positions(building.grid_pos):
-			var n_cell: Cell = Global.level.get_cell(n_grid_pos)
+		Job.Type.BUILD:
+			for n_grid_pos: Vector2i in building.building_data.pattern_build_from.get_positions(building.grid_pos):
+				var n_cell: Cell = Global.level.get_cell(n_grid_pos)
 
-			if !n_cell or not n_cell.is_standable(can_use_ladders):
-				continue
-			
-			workable_from_poses.append(n_cell.grid_pos)
+				if !n_cell or not n_cell.is_standable(can_use_ladders):
+					continue
+				
+				workable_from_poses.append(n_cell.grid_pos)
 
-		# For ladders, only allow building from outside center cell if it isnt possible from there.
-		if building.building_data.type == Enum.BuildingType.LADDER:
-			if building.grid_pos in workable_from_poses:
-				workable_from_poses.clear()
-				workable_from_poses.append(building.grid_pos)
+			# For ladders, only allow building from outside center cell if it isnt possible from there.
+			if building.building_data.type == Enum.BuildingType.LADDER:
+				if building.grid_pos in workable_from_poses:
+					workable_from_poses.clear()
+					workable_from_poses.append(building.grid_pos)
 
-	# PICKUP
-	elif job_type == Job.Type.PICKUP:
-		if carryable_item.can_be_picked_up_right_now():
-			workable_from_poses.append(center_cell.grid_pos)
+		Job.Type.PICKUP:
+			if carryable_item.can_be_picked_up_right_now():
+				workable_from_poses.append(center_cell.grid_pos)
+
+		# Not implemented jet
+		_:
+			assert(false)
 
 
 ## Estimates remaining time in seconds. For now only works when dwarf already arrived at job.
 ## Used for other dwarfs to decide whether to take this job or not.
 const MAX_REMAINING_TIME_ESTIMATE: float = 60.0 * 5.0 # 5 minutes
 func estimate_remaining_time() -> float:
-	if assigned_dwarfs.is_empty():
-		return MAX_REMAINING_TIME_ESTIMATE
-
 	# Simple estimate based on job type
 	var remaining_time: float = MAX_REMAINING_TIME_ESTIMATE
+
+	if assigned_dwarfs.is_empty():
+		return remaining_time
 
 	match job_type:
 		Job.Type.MINE:
@@ -208,8 +218,6 @@ func estimate_remaining_time() -> float:
 						var time := dwarf.curr_path.get_remaining_time(dwarf.movement_comp.movement_stats)
 						remaining_time = min(remaining_time, time + 5.0) # +5s buffer for starting mining
 
-			return remaining_time
-
 		Job.Type.BUILD:
 			for dwarf in assigned_dwarfs:
 				# If at least one dwarf is already building -> use its speed
@@ -225,16 +233,18 @@ func estimate_remaining_time() -> float:
 						var time := dwarf.curr_path.get_remaining_time(dwarf.movement_comp.movement_stats)
 						remaining_time = min(remaining_time, time + 5.0) # +5s buffer for starting building
 						
-			return 0.0
+			remaining_time = 0.0
 
 		Job.Type.PICKUP:
 			# Only one dwarf can do this job
-			return 0.0
+			remaining_time = 0.0
 
+		# Not implemented jet
+		_:
+			assert(false)
+			remaining_time = MAX_REMAINING_TIME_ESTIMATE
 
-	# Other job types not implemented yet
-	assert(false)
-	return MAX_REMAINING_TIME_ESTIMATE
+	return remaining_time
 
 
 ########################################################################################################################
@@ -276,7 +286,7 @@ func get_debug_info() -> Array:
 			info[1] = "READY"
 			info[2] = Colors.JOB_COLOR_READY
 		else:
-			info[1] = "DOING %d/%d" % [assigned_dwarfs.size(), calculate_capacity()]
+			info[1] = "DOING %d/%d" % [assigned_dwarfs.size(), calculate_dwarf_capacity()]
 			info[2] = Colors.JOB_COLOR_DOING
 
 	# Override/modify with additional info

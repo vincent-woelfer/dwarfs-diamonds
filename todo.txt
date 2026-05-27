@@ -2,7 +2,6 @@
 # TODO
 ########################################################################################################################
 
-merge item and carryable component
 
 Zwerg in Minecard/Lift nutzt anderes interface.
 
@@ -17,6 +16,13 @@ get_build_upon_strenght
 0 = cant build,
 higher = stronger, depends on building.
 max wert für is_solid ?
+
+
+
+=======
+Just one type of pickup-job / task:
+instead of one item it can have multiple, either ONE from ground or MULTIPLE from storage.
+items then are "reserved" by this dwarf, either via item (when on ground) or via storage.
 
 ########################################################################################################################
 # Quellen für Assets

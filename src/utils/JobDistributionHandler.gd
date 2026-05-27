@@ -17,7 +17,7 @@ func distribute_jobs(dwarfs_looking_for_jobs: Array[Dwarf]) -> DwarfJobsAssignme
 	# This array contains references to the same job multiple times if it has capacity > 1
 	var job_slots: Array[Job] = []
 	for job: Job in job_set.keys():
-		var slots: int = mini(job.calculate_capacity(), dwarfs_looking_for_jobs.size())
+		var slots: int = mini(job.calculate_dwarf_capacity(), dwarfs_looking_for_jobs.size())
 		for _i: int in slots:
 			job_slots.append(job)
 
