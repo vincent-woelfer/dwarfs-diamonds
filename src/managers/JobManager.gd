@@ -13,28 +13,14 @@ func add_job(job: Job) -> void:
 	assert(job not in _jobs)
 	assert(job.center_cell != null)
 	assert(job.is_active)
+	# internally calls assert
+	job.verify_variables()
 
-	match job.job_type:
-		Job.Type.MINE:
-			for existing_job in _jobs:
-				if existing_job.job_type == Job.Type.MINE and existing_job.center_cell == job.center_cell:
-					assert(false, "JobManager: Not adding duplicate mining job for cell %s" % job.center_cell)
-					return
-
-		Job.Type.BUILD:
-			assert(job.building != null)
-			for existing_job in _jobs:
-				if existing_job.job_type == Job.Type.BUILD and existing_job.building == job.building:
-					assert(false, "JobManager: Not adding duplicate build job for building %s" % job.building)
-					return
-
-		Job.Type.PICKUP:
-			assert(job.carryable_item != null)
-			for existing_job in _jobs:
-				if existing_job.job_type == Job.Type.PICKUP and existing_job.carryable_item == job.carryable_item:
-					assert(false, "JobManager: Not adding duplicate pickup job for object %s" % job.carryable_item)
-					return
-	
+	# Check for duplicates
+	for existing_job in _jobs:
+		if job.is_duplicate(existing_job):
+			assert(false, "JobManager: Not adding duplicate job %s" % job)
+			return
 
 	job.update_workable_from_cells()
 	_jobs.append(job)

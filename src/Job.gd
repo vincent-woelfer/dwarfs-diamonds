@@ -103,10 +103,29 @@ func archive_internal(success_: bool) -> void:
 	for dwarf in assigned_dwarfs:
 		dwarf._on_job_archived()
 
-
 ########################################################################################################################
 # PUBLIC METHODS with PER-JOB-TYPE LOGIC
 ########################################################################################################################
+## Verifies that all required variables are set for this job
+func verify_variables() -> void:
+	match job_type:
+		Job.Type.MINE:
+			# No additional variables required for mine jobs
+			pass
+
+		Job.Type.BUILD:
+			assert(building != null)
+
+		Job.Type.PICKUP:
+			assert(carryable_item != null)
+
+		Job.Type.GATHER_MATERIALS:
+			assert(required_items != null)
+
+		# Not implemented jet
+		_: assert(false)
+
+
 ## Generates the list of tasks required to complete this job.
 func generate_tasks() -> Array[Task]:
 	var tasks: Array[Task] = []
@@ -125,8 +144,7 @@ func generate_tasks() -> Array[Task]:
 			tasks.append(Task.create_pickup_task(center_cell.grid_pos, carryable_item))
 
 		# Not implemented jet
-		_:
-			assert(false)
+		_: assert(false)
 
 	return tasks
 
@@ -188,8 +206,7 @@ func update_workable_from_cells() -> void:
 				workable_from_poses.append(center_cell.grid_pos)
 
 		# Not implemented jet
-		_:
-			assert(false)
+		_: assert(false)
 
 
 ## Estimates remaining time in seconds. For now only works when dwarf already arrived at job.
@@ -245,6 +262,35 @@ func estimate_remaining_time() -> float:
 			remaining_time = MAX_REMAINING_TIME_ESTIMATE
 
 	return remaining_time
+
+
+## Checks whether this job is a duplicate of another job (by data, not by reference)
+func is_duplicate(other_job: Job) -> bool:
+	if other_job == null:
+		return false
+	if job_type != other_job.job_type:
+		return false
+	if center_cell != other_job.center_cell:
+		return false
+
+	## Now depends on job type
+	match job_type:
+		Job.Type.MINE:
+			# Only depends on center cell, already checked above
+			return true
+
+		Job.Type.BUILD:
+			if other_job.building == building:
+				return true
+
+		Job.Type.PICKUP:
+			if other_job.carryable_item == carryable_item:
+				return true
+
+		# Not implemented jet
+		_: assert(false)
+
+	return false
 
 
 ########################################################################################################################
