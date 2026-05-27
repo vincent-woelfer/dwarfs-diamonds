@@ -2,7 +2,6 @@ class_name JobDistributionHandler
 extends RefCounted
 
 ## Uses Hungarian Algorithm to distribute jobs optimally according to scores
-
 func distribute_jobs(dwarfs_looking_for_jobs: Array[Dwarf]) -> DwarfJobsAssignment:
 	var job_set: Dictionary[Job, bool] = {}
 	var dwarfs_with_scored_jobs: Dictionary[Dwarf, Array] = {} # Type = [Dwarf, Array[ScoredJob]]
@@ -15,6 +14,7 @@ func distribute_jobs(dwarfs_looking_for_jobs: Array[Dwarf]) -> DwarfJobsAssignme
 			job_set[scored_job.job] = true
 
 	# Expand each job into capacity-many slots, capped at dwarf count to limit matrix size
+	# This array contains references to the same job multiple times if it has capacity > 1
 	var job_slots: Array[Job] = []
 	for job: Job in job_set.keys():
 		var slots: int = mini(job.calculate_capacity(), dwarfs_looking_for_jobs.size())

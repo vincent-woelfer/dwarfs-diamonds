@@ -84,6 +84,7 @@ func apply_for_new_job(dwarf: Dwarf) -> bool:
 
 
 ## Used by JobDistributionHandler
+## Gathers alls workable jobs and scores them
 func score_jobs_for_dwarf(dwarf: Dwarf) -> Array[ScoredJob]:
 	var start_pos: Vector2i = dwarf.grid_pos
 

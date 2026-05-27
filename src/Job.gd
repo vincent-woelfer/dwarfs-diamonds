@@ -57,47 +57,8 @@ var building: Building = null
 
 
 ########################################################################################################################
-# PUBLIC METHODS
+# PUBLIC METHODS general
 ########################################################################################################################
-## Generates the list of tasks required to complete this job.
-func generate_tasks() -> Array[Task]:
-	var tasks: Array[Task] = []
-
-	match job_type:
-		Job.Type.MINE:
-			tasks.append(Task.create_move_to_job_task(self ))
-			tasks.append(Task.create_mine_task(center_cell.grid_pos))
-
-		Job.Type.BUILD:
-			tasks.append(Task.create_move_to_job_task(self ))
-			tasks.append(Task.create_construct_task(center_cell.grid_pos, building))
-
-		Job.Type.PICKUP:
-			tasks.append(Task.create_move_to_job_task(self ))
-			tasks.append(Task.create_pickup_task(center_cell.grid_pos, carryable_item))
-	return tasks
-
-
-func calculate_capacity() -> int:
-	match job_type:
-		Job.Type.MINE:
-			# Up to 2 dwarfs can mine simultaneously (if enough space)
-			return min(2, workable_from_poses.size())
-
-		Job.Type.BUILD:
-			# Only allow multiple dwarfs for big buildings
-			const big_building_build_time_threshold := 3.0 # seconds
-			if building.building_data.build_time >= big_building_build_time_threshold and building.build_progress == 0.0 and workable_from_poses.size() >= 2:
-				return 2
-			return 1
-
-		Job.Type.PICKUP:
-			return 1
-
-	assert(false)
-	return 0
-
-
 ## Basic checks whether this job is blocked or ready
 func is_workable() -> bool:
 	if assigned_dwarfs.size() >= calculate_capacity():
@@ -140,6 +101,49 @@ func archive_internal(success_: bool) -> void:
 
 	for dwarf in assigned_dwarfs:
 		dwarf._on_job_archived()
+
+
+########################################################################################################################
+# PUBLIC METHODS with PER-JOB-TYPE LOGIC
+########################################################################################################################
+## Generates the list of tasks required to complete this job.
+func generate_tasks() -> Array[Task]:
+	var tasks: Array[Task] = []
+
+	match job_type:
+		Job.Type.MINE:
+			tasks.append(Task.create_move_to_job_task(self ))
+			tasks.append(Task.create_mine_task(center_cell.grid_pos))
+
+		Job.Type.BUILD:
+			tasks.append(Task.create_move_to_job_task(self ))
+			tasks.append(Task.create_construct_task(center_cell.grid_pos, building))
+
+		Job.Type.PICKUP:
+			tasks.append(Task.create_move_to_job_task(self ))
+			tasks.append(Task.create_pickup_task(center_cell.grid_pos, carryable_item))
+	return tasks
+
+
+## Number of dwarfs that can work on this job simultaneously
+func calculate_capacity() -> int:
+	match job_type:
+		Job.Type.MINE:
+			# Up to 2 dwarfs can mine simultaneously (if enough space)
+			return min(2, workable_from_poses.size())
+
+		Job.Type.BUILD:
+			# Only allow multiple dwarfs for big buildings
+			const big_building_build_time_threshold := 3.0 # seconds
+			if building.building_data.build_time >= big_building_build_time_threshold and building.build_progress == 0.0 and workable_from_poses.size() >= 2:
+				return 2
+			return 1
+
+		Job.Type.PICKUP:
+			return 1
+
+	assert(false)
+	return 0
 
 
 func update_workable_from_cells() -> void:
