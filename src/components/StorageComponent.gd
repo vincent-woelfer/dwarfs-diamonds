@@ -176,8 +176,8 @@ func does_fit_into_capacity(item: Item) -> bool:
 			return false
 
 	elif capacity_mode == CapacityMode.PER_ITEM_TYPE_COUNT:
-		var curr: int = _item_type_group_sizes.get_item_count(item.item_type)
-		var max_for_type: int = capacity_per_item_type_dict.get_item_count(item.item_type)
+		var curr: int = _item_type_group_sizes.count_items_by_type(item.item_type)
+		var max_for_type: int = capacity_per_item_type_dict.count_items_by_type(item.item_type)
 		if curr + 1 > max_for_type:
 			return false
 
@@ -200,7 +200,6 @@ func is_carrying_anything() -> bool:
 ## Returns true if all required item types are full for CapacityMode.PER_ITEM_TYPE_COUNT
 func is_full_all_item_types() -> bool:
 	if capacity_mode != CapacityMode.PER_ITEM_TYPE_COUNT:
-		# push_warning("is_full_all_item_types is only relevant for PER_ITEM_TYPE_COUNT mode")
 		return false # not relevant for this mode
 
 	return _item_type_group_sizes.is_full(capacity_per_item_type_dict)
@@ -267,7 +266,7 @@ func _update_item_placement(delta: float) -> void:
 			continue # safety check, should not happen
 
 		# Fetch data and increment
-		var idx_in_group: int = idx_by_type.get_item_count(item.item_type)
+		var idx_in_group: int = idx_by_type.count_items_by_type(item.item_type)
 		var group_idx: int = item.item_type as int
 		idx_by_type.increment(item.item_type)
 
@@ -376,7 +375,7 @@ func _get_parent_look_dir() -> Vector2:
 func _add(item: Item) -> void:
 	_curr_carried_items.append(item)
 	_curr_total_weight += item.weight
-	_item_type_group_sizes.increment(item.item_type)
+	_item_type_group_sizes.increment(item.item_type, 1)
 
 	if is_full_all_item_types():
 		Signal_OnAllItemTypesFull.emit()
@@ -385,4 +384,4 @@ func _add(item: Item) -> void:
 func _remove(item: Item) -> void:
 	_curr_carried_items.erase(item)
 	_curr_total_weight -= item.weight
-	_item_type_group_sizes.decrement(item.item_type)
+	_item_type_group_sizes.decrement(item.item_type, 1)

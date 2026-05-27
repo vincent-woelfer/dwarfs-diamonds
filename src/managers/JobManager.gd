@@ -1,8 +1,13 @@
 class_name JobManager
 extends Node2D
 
-var _jobs: Array[Job] = [] # Ensure Job class is properly defined elsewhere
+## All registered jobs
+var _jobs: Array[Job] = []
 
+## Registered dwarf as looking for a job this frame. Cleared each frame
+var _dwarfs_looking_for_jobs: Array[Dwarf] = []
+
+## Max fall height for which dwarfs are still allowed to apply for jobs
 const max_fall_height_for_job_application: int = 2
 
 ########################################################################################################################
@@ -108,9 +113,6 @@ func score_jobs_for_dwarf(dwarf: Dwarf) -> Array[ScoredJob]:
 	# Return job
 	return scored_jobs
 
-
-## Registers dwarf as looking for a job this frame
-var _dwarfs_looking_for_jobs: Array[Dwarf] = []
 
 ## Main job distribution function
 func _distribute_jobs_to_dwarfs() -> void:
