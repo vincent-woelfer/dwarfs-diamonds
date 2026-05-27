@@ -303,7 +303,7 @@ func _on_action_completed(action_point: ActionPoint) -> void:
 	_finish_task_and_start_next(Task.Type.ACTION_POINT)
 
 
-## Triggered by MovementComponent
+## Triggered by MovementComponent (or manually after landing)
 func _on_new_cell_entered(new_cell: Cell) -> void:
 	_debug_draw_proxy_absolute.queue_redraw()
 	
@@ -433,13 +433,13 @@ func _abort_tasks_enter_idle() -> void:
 	# Print
 	if last_job != null:
 		if last_job.success:
-			print_rich("%s finished working on %s / %s and %s" % [ self , last_job, last_task, transition_string])
+			print_rich("%s aborting -> finished working on %s / %s and %s" % [ self , last_job, last_task, transition_string])
 		else:
-			print_rich("%s aborted working on %s / %s and %s" % [ self , last_job, last_task, transition_string])
+			print_rich("%s aborting -> aborted working on %s / %s and %s" % [ self , last_job, last_task, transition_string])
 	elif last_task != null:
-		print_rich("%s aborted current task %s and %s" % [ self , last_task, transition_string])
+		print_rich("%s aborting -> aborted current task %s and %s" % [ self , last_task, transition_string])
 	else:
-		print_rich("%s has no job or task to abort, %s" % [ self , transition_string])
+		print_rich("%s aborting -> has no job or task to abort, %s" % [ self , transition_string])
 
 	# Transition back to idle but dont override falling/dying state
 	if transition_to_idle:
