@@ -20,6 +20,8 @@ var job_type: Job.Type
 var center_cell: Cell
 
 # All cells from which this job can be worked on (e.g. for mining: all free neighbouring cells)
+# For MINE, BUILD, PICKUP this is directly at "job created entit" (cell, building, item).
+# For GATHER_MATERIALS -> storage/AP to deliver to
 var workable_from_poses: Array[Vector2i] = []
 
 # Currently assigned dwarfs
@@ -143,6 +145,9 @@ func generate_tasks() -> Array[Task]:
 			tasks.append(Task.create_move_to_job_task(self ))
 			tasks.append(Task.create_pickup_task(center_cell.grid_pos, carryable_item))
 
+		Job.Type.GATHER_MATERIALS:
+			# TODO
+
 		# Not implemented jet
 		_: assert(false)
 
@@ -165,6 +170,9 @@ func calculate_dwarf_capacity() -> int:
 
 		Job.Type.PICKUP:
 			return 1
+
+		Job.Type.GATHER_MATERIALS:
+			return required_items.get_total_item_count()
 
 		# Not implemented jet
 		_:
@@ -204,6 +212,9 @@ func update_workable_from_cells() -> void:
 		Job.Type.PICKUP:
 			if carryable_item.can_be_picked_up_right_now():
 				workable_from_poses.append(center_cell.grid_pos)
+
+		Job.Type.GATHER_MATERIALS:
+			workable_from_poses.append(center_cell)
 
 		# Not implemented jet
 		_: assert(false)

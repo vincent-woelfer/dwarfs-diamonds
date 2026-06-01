@@ -77,7 +77,7 @@ func apply_for_new_job(dwarf: Dwarf) -> bool:
 ## Used by JobDistributionHandler
 ## Gathers alls workable jobs and scores them
 ## TODO: For gather jobs, multiple variants of the same job are addded with different items and therefore scores.
-func aggregate_all_workable_jobs_for_dwarf(dwarf: Dwarf) -> Array[ScoredJob]:
+func aggregate_and_score_jobs_for_dwarf(dwarf: Dwarf) -> Array[ScoredJob]:
 	var start_pos: Vector2i = dwarf.grid_pos
 
 	if dwarf.sm.state == Dwarf.State.FALLING and dwarf.est_fall_height_cells <= max_fall_height_for_job_application:
@@ -87,15 +87,17 @@ func aggregate_all_workable_jobs_for_dwarf(dwarf: Dwarf) -> Array[ScoredJob]:
 		return []
 
 	# Filter jobs and score all remaining jobs according to various criteria (mostly distance for now)
-	var workable_jobs: Array[Job] = _filter_workable_jobs_for_dwarf(dwarf)
+	# Only for regular jobs!
+	var workable_jobs: Array[Job] = _get_workable_jobs_for_dwarf(dwarf)
 	var scored_jobs: Array[ScoredJob] = []
 
 	for job: Job in workable_jobs:
-		var path: Path = Global.level.nav_manager.find_path_to_one_of(start_pos, job.workable_from_poses, dwarf.movement_comp.movement_stats)
-		if not path:
+		# Find path to one of the jobs workable_from poses.
+		var path_to_workable_pose: Path = Global.level.nav_manager.find_path_to_one_of(start_pos, job.workable_from_poses, dwarf.movement_comp.movement_stats)
+		if not path_to_workable_pose:
 			continue
 
-		var scored_job: ScoredJob = _score_job(job, path, dwarf)
+		var scored_job: ScoredJob = _score_job(job, path_to_workable_pose, dwarf)
 		if scored_job != null:
 			scored_jobs.append(scored_job)
 		
@@ -155,8 +157,8 @@ func _distribute_jobs_to_dwarfs() -> void:
 ########################################################################################################################
 # Job Filtering and Scoring
 ########################################################################################################################
-func _filter_workable_jobs_for_dwarf(dwarf: Dwarf) -> Array[Job]:
-	var filtered_jobs: Array[Job] = []
+func _get_workable_jobs_for_dwarf(dwarf: Dwarf) -> Array[Job]:
+	var workable_jobs: Array[Job] = []
 	for job: Job in _jobs:
 		if not job.is_workable():
 			continue
@@ -165,26 +167,31 @@ func _filter_workable_jobs_for_dwarf(dwarf: Dwarf) -> Array[Job]:
 		match job.job_type:
 			Job.Type.MINE:
 				assert(dwarf.mining_comp != null)
-				assert(job.center_cell != null)
 				if not dwarf.mining_comp.can_mine_at_all(job.center_cell):
 					continue
 
 			Job.Type.BUILD:
 				assert(dwarf.construction_comp != null)
-				assert(job.building != null)
 				if not dwarf.construction_comp.can_build_at_all(job.building):
 					continue
 
 			Job.Type.PICKUP:
 				assert(dwarf.storage_comp != null)
-				assert(job.carryable_item != null)
 				if not dwarf.storage_comp.does_fit_into_capacity(job.carryable_item):
 					continue
+
+			Job.Type.GATHER_MATERIALS:
+				assert(dwarf.storage_comp != null)
+				# No further checks
+
+			_:
+				assert(false, "JobManager: Unhandled job type in _get_workable_jobs_for_dwarf: %s" % [job.job_type])
+				continue
 		
 		# Job is workable for this dwarf -> add to output
-		filtered_jobs.append(job)
+		workable_jobs.append(job)
 
-	return filtered_jobs
+	return workable_jobs
 
 
 ## Score job - lower is better.
