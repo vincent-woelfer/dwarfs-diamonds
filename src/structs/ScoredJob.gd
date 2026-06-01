@@ -10,6 +10,7 @@ var score: float = 0.0
 ## For gather tasks
 var items_to_gather: ItemTypeList = null
 
+
 func _init(job_: Job, path_: Path, score_: float, _items_to_gather: ItemTypeList = null) -> void:
     job = job_
     path = path_

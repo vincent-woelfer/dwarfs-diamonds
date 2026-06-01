@@ -76,7 +76,8 @@ func apply_for_new_job(dwarf: Dwarf) -> bool:
 
 ## Used by JobDistributionHandler
 ## Gathers alls workable jobs and scores them
-func score_jobs_for_dwarf(dwarf: Dwarf) -> Array[ScoredJob]:
+## TODO: For gather jobs, multiple variants of the same job are addded with different items and therefore scores.
+func aggregate_all_workable_jobs_for_dwarf(dwarf: Dwarf) -> Array[ScoredJob]:
 	var start_pos: Vector2i = dwarf.grid_pos
 
 	if dwarf.sm.state == Dwarf.State.FALLING and dwarf.est_fall_height_cells <= max_fall_height_for_job_application:

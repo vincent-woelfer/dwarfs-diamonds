@@ -8,7 +8,7 @@ func distribute_jobs(dwarfs_looking_for_jobs: Array[Dwarf]) -> DwarfJobsAssignme
 
 	# Collect all scored jobs
 	for dwarf: Dwarf in dwarfs_looking_for_jobs:
-		var scored_jobs: Array[ScoredJob] = Global.level.job_manager.score_jobs_for_dwarf(dwarf)
+		var scored_jobs: Array[ScoredJob] = Global.level.job_manager.aggregate_all_workable_jobs_for_dwarf(dwarf)
 		dwarfs_with_scored_jobs[dwarf] = scored_jobs
 		for scored_job: ScoredJob in scored_jobs:
 			job_set[scored_job.job] = true

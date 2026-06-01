@@ -23,6 +23,9 @@ var transition_animation_finished: bool = false
 var transition_animation_start_time: float = 0.0
 var transition_max_duration: float = 0.5 # seconds
 
+# TODO reserved for pickup
+var is_reserved: bool = false
+
 
 # Sounds
 @export var on_spawned_audio: AudioStream
