@@ -26,16 +26,6 @@ const float is_solid_flat_offset = 0.10;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
-float sample_is_solid(vec2 uv) {
-    vec4 stencil_color = texture(STENCIL_TEXTURE, uv);
-    int stencil_r8 = int(round(stencil_color.r * 255.0));
-    bool is_solid             = (stencil_r8 & (1 << 1)) != 0;
-
-    // soild = dark = 0.0, not solid = bright = 1.0
-    return is_solid ? 0.0 : 1.0;
-}    
-
-////////////////////////////////////////////////////////////////////////////////////////
 void fragment() {
     // Get UV in world space - SCREEN_UV also works the same
     vec2 uv = UV;

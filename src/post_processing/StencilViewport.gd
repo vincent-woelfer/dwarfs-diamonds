@@ -4,6 +4,7 @@ extends SubViewport
 @onready var window: Window = get_tree().root
 @onready var root_viewport: Viewport = window.get_viewport()
 
+
 func _ready() -> void:
 	# For this stencil-viewport render only layer 2 (the stencil layer)
 	self.canvas_cull_mask = Util.LAYER_2

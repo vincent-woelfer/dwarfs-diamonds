@@ -36,7 +36,7 @@ metadata/_custom_type_script = "uid://dbjxic6v0lmsn"
 
 [node name="StencilViewport" type="SubViewport" parent="." unique_id=302488709]
 disable_3d = true
-canvas_cull_mask = 4293918723
+canvas_cull_mask = 4293918722
 size = Vector2i(3840, 2160)
 script = ExtResource("3_lrqlo")
 
@@ -44,6 +44,8 @@ script = ExtResource("3_lrqlo")
 script = ExtResource("4_jh1ax")
 
 [node name="StencilColorRect" type="ColorRect" parent="PostProcessCanvasLayer-1" unique_id=1458842093]
+editor_description = "Renders the part of the Overlay which is based on Stencil Information.
+The stencil image (rendered by StencilViewport) is passed as input texture into the shader material. There its read (channel bits extraced) and the overlay (highlights, shadows...) are generated."
 material = SubResource("ShaderMaterial_sqa0i")
 
 [node name="UICanvasLayer-WorldSpace-2" type="CanvasLayer" parent="." unique_id=78963653]

@@ -45,7 +45,6 @@ window/size/extend_to_title=true
 window/size/sharp_corners=true
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-window/handheld/orientation=1
 
 [file_customization]
 
