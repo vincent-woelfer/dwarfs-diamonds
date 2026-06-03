@@ -5,10 +5,10 @@ var _astar: AStar2D = null
 
 var _cell_connections_to_update: CellPairQueue = CellPairQueue.new()
 
-
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################
+
 
 ## Update nav for this cell and all 8 neighbours
 func queue_update_cell(grid_pos: Vector2i) -> void:
@@ -68,6 +68,7 @@ func is_cell_enabled(grid_pos: Vector2i) -> bool:
 	var id: int = Util.hash(grid_pos)
 	return _is_id_enabled(id)
 
+
 ########################################################################################################################
 # PRIVATE METHODS
 ########################################################################################################################
@@ -84,7 +85,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if not _cell_connections_to_update.is_empty():
 		_update_all_queued_cell_connections()
-	
+
 
 # Disabled = currently not walkable
 # Connections might still be there for disabled cells (might changein future)
@@ -102,7 +103,7 @@ func _update_all_queued_cell_connections() -> void:
 		# Update individual cells -> This is called way to often per cell per frame but whatever for now
 		_update_cell_is_enabled(from)
 		_update_cell_is_enabled(to)
-		
+
 		_update_cell_connection_pair(from, to)
 
 		# Reset cell nav-flag
@@ -173,8 +174,8 @@ func _should_connect_cardinal_neighbours(from: Cell, to: Cell) -> bool:
 	# If downwards, we can always go down
 	else:
 		return true
-	
-	
+
+
 func _should_connect_diagonal_neighbours(from: Cell, to: Cell) -> bool:
 	# Both must be standable (implies passable)
 	if (not from.is_standable()) or (not to.is_standable()):
@@ -231,13 +232,12 @@ func _generate_nav_grid() -> void:
 func _is_id_enabled(id: int) -> bool:
 	return _astar.has_point(id) and _astar.is_point_disabled(id) == false
 
-
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
-var _debug_draw_proxy_relative := DebugDrawProxy.new(self )
+var _debug_draw_proxy_relative := DebugDrawProxy.new(self)
 
-const debug_colors := {
+var debug_colors := {
 	# Points
 	"point_passable": Color(1.0, 0.6, 0.0, 0.6),
 	"point_standable": Color(1.0, 0.6, 0.0, 1.0),
@@ -248,14 +248,15 @@ const debug_colors := {
 	"connection_bidir": Color(0.6, 1.0, 0.0, 0.8),
 }
 
-const debug_size_point := 5.0
-const debug_width_connection_uni := 3.0
-const debug_width_connection_bi := 3.0
-const debug_arrow_length := 15.0
-const debug_arrow_width := 10.0
+var debug_size_point := 5.0
+var debug_width_connection_uni := 3.0
+var debug_width_connection_bi := 3.0
+var debug_arrow_length := 15.0
+var debug_arrow_width := 10.0
 
 # Downward from cell-center
-const debug_point_offset := Vector2(0.0, 0.4) * Global.CELL_SIZE_VEC
+var debug_point_offset := Vector2(0.0, 0.4) * Global.CELL_SIZE_VEC
+
 
 func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
 	if not _astar:
@@ -268,7 +269,7 @@ func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
 			continue
 
 		var from_pos := Util.grid_to_world_cell_center(_astar.get_point_position(from_id)) + debug_point_offset
-		
+
 		# Draw connections - but only if to-point is not disabled
 		for to_id in _astar.get_point_connections(from_id):
 			if _astar.is_point_disabled(to_id):
