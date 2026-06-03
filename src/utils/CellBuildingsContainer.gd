@@ -58,7 +58,7 @@ func is_empty() -> bool:
 func get_buildings() -> Array[Building]:
     return _buildings
 
-func has_this_specific_building(building: Building) -> bool:
+func has_building(building: Building) -> bool:
     return building in _buildings
 
 # TODO improve per platform type

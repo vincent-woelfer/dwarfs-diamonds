@@ -89,6 +89,10 @@ func set_is_highlighted(highlighted: bool) -> void:
 	visual.set_dirty()
 
 
+## Mining progess is [0, 1].
+## mining_speed is in "1 / seconds to mine".
+## With_delta is already multiplied by delta.
+## We still need to factor in this cells hardness.
 func increase_mining_process(mining_speed_with_delta: float) -> void:
 	var actual_mining_increase := mining_speed_with_delta / mining_hardness
 	mining_process = clamp(mining_process + actual_mining_increase, 0.0, 1.0)
@@ -97,6 +101,12 @@ func increase_mining_process(mining_speed_with_delta: float) -> void:
 	if mining_process >= 1.0:
 		# This in turn emits Signal_GlobalCellMiningCompleted which this and all other MiningComponents listen to
 		Actions.destroy_cell(self ) # calls destroy_cell()
+
+
+func estimate_remaining_time_to_mine(mining_speed: float) -> float:
+	var remaining_process: float = 1.0 - mining_process
+	return remaining_process * (mining_speed / mining_hardness)
+
 
 ## Destroy cell itself (terrain)
 func destroy_cell() -> void:

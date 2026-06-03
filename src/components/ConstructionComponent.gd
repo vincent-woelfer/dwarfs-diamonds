@@ -20,6 +20,7 @@ var _curr_building_building: Building = null
 # Reference to the used audio player
 var _audio_player: AudioStreamPlayer2D = null
 
+
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################
@@ -30,7 +31,7 @@ func start_building(cell: Cell, cell_from: Cell, building: Building) -> bool:
 		return false
 
 	# Verify that the building is at the current cell
-	assert(cell.buildings.has_this_specific_building(building))
+	assert(cell.buildings.has_building(building))
 
 	# TODO add check if in workable from poses?
 
@@ -57,7 +58,7 @@ func is_currently_building() -> bool:
 	if _curr_building_cell == null:
 		assert(_curr_building_from_cell == null and _curr_building_building == null)
 		return false
-		
+
 	return _curr_building_building != null
 
 
@@ -67,19 +68,25 @@ func can_build_at_all(building: Building) -> bool:
 	if building == null:
 		return false
 
-	if building.is_operating():
+	if not building.is_in_construction():
 		return false
 
 	return true
 
 
+func estimate_remaining_time_to_build(building: Building) -> float:
+	if not can_build_at_all(building):
+		return AbstractJob.CANT_WORK_TIME
+
+	return building.estimate_remaining_time_to_build(building_speed)
+
 # ########################################################################################################################
 # # PRIVATE METHODS
 # ########################################################################################################################
 # func _ready() -> void:
-	# SIGNALS
+# SIGNALS
 
-	
+
 func _physics_process(delta: float) -> void:
 	# Exit if not building
 	if not is_currently_building():
@@ -89,12 +96,12 @@ func _physics_process(delta: float) -> void:
 	if _curr_building_building == null:
 		stop_building()
 		return
-	
+
 	# Actual Building, if this is part of job and update_build_progress completes the building, _curr_building_building will be null!
 	# -> store reference for later
 	var temp_reference_building := _curr_building_building
 	_curr_building_building.update_build_progress(building_speed * delta)
-	
+
 	# Check if building completed - this works for multiple dwarfs building the same building, each is calling this method for themselfes
 	if temp_reference_building.is_operating():
 		Signal_OnConstructionCompleted.emit(temp_reference_building)

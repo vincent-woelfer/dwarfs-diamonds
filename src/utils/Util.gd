@@ -6,7 +6,6 @@ class_name Util
 const LAYER_1 := 1 << 0 # Normal visual layer
 const LAYER_2 := 1 << 1 # Stencil buffer, used for passing data to shaders
 
-
 const EPSILON_LERP: float = 0.001
 const EPSILON_PIXEL_DIST: float = Global.CELL_SIZE * 0.1
 
@@ -14,11 +13,13 @@ const EPSILON_PIXEL_DIST: float = Global.CELL_SIZE * 0.1
 # Sample a bit above the center of the cell to avoid issues with sampling when right at the edge of a cell
 const SAMPLE_OFFSET_VERTICAL_EPSILON := -Vector2(0.0, Global.CELL_SIZE * 0.2)
 
+
 ########################################################################################################################
 # Dwardfs & Diamonds NEW
 ########################################################################################################################
 static func color_string(text: String, color: Color) -> String:
 	return "[color=%s]%s[/color]" % [color.to_html(false), text]
+
 
 static func is_pos_inside_map_no_border(pos: Vector2) -> bool:
 	var min_x := 0.0
@@ -58,6 +59,7 @@ static func rand_from_coords(pos: Vector2, z: int = 0) -> float:
 	n = n & 0x7fffffff
 	return float(n % 10001) / 10000.0
 
+
 static func randi_from_coords(pos: Vector2, min_inclusive: int, max_inclusive: int, z: int = 0) -> int:
 	var r: float = rand_from_coords(pos, z)
 	return min_inclusive + roundi(r * (max_inclusive - min_inclusive))
@@ -75,7 +77,6 @@ static func grid_to_world_cell_center_array(grid_poses: Array[Vector2i]) -> Arra
 
 # NO world_space_to_grid_space -> Use Level.get_cell_at_world_pos
 
-
 ########################################################################################################################
 # Neighbours
 ########################################################################################################################
@@ -90,7 +91,7 @@ static var neighbours_diagonal := [
 	Vector2i(-1, -1),
 	Vector2i(1, 1),
 	Vector2i(-1, 1),
-	Vector2i(1, -1)
+	Vector2i(1, -1),
 ]
 
 # These follow the same order as the 8 poly points, so we can easily loop through them together when needed (e.g. for vertex colors)
@@ -106,15 +107,18 @@ static var neighbours_all := [
 	Vector2i(-1, 0),
 ]
 
+
 ## Allows for both cardinal and diagonal neighbours
 static func are_neighbours(pos_a: Vector2i, pos_b: Vector2i) -> bool:
 	# Squared distance must be 1 (cardinal) or 2 (diagonal). dist-2-cardinal = 2*2 = 4 so is not a neighbour
 	var dist: int = pos_a.distance_squared_to(pos_b)
 	return dist == 1 or dist == 2
 
+
 static func are_cardinal_neighbours(pos_a: Vector2i, pos_b: Vector2i) -> bool:
 	# Squared distance must be 1 (cardinal)
 	return pos_a.distance_squared_to(pos_b) == 1
+
 
 static func are_diagonal_neighbours(pos_a: Vector2i, pos_b: Vector2i) -> bool:
 	# Squared distance must be 2 (diagonal)
@@ -124,6 +128,7 @@ static func are_diagonal_neighbours(pos_a: Vector2i, pos_b: Vector2i) -> bool:
 ## Compare vertically and get the lower cell (higher y)
 static func get_lower_cell(a: Cell, b: Cell) -> Cell:
 	return a if a.grid_pos.y > b.grid_pos.y else b
+
 
 ## Compare vertically and get the upper cell (lower y)
 static func get_upper_cell(a: Cell, b: Cell) -> Cell:
@@ -139,7 +144,7 @@ static func get_upper_cell(a: Cell, b: Cell) -> Cell:
 # start_bit – where in the integer to place the bits (bit offset)
 static func encode_into_bits(value: float, start_bit: int, num_bits: int) -> int:
 	value = clampf(value, 0.0, 1.0)
-	
+
 	# e.g. 3 bits -> 7
 	var max_val: int = (1 << num_bits) - 1
 	# scale into 0..max_val
@@ -162,17 +167,18 @@ static func lerp_towards_f(curr: float, goal: float, speed: float, delta: float)
 ########################################################################################################################
 static func is_point_near_line_segment(p: Vector2, a: Vector2, b: Vector2) -> bool:
 	# Epsilon is in world space units -> dont use "0.001" or similar
-	const epsilon: float = Util.EPSILON_PIXEL_DIST
+	const EPS: float = Util.EPSILON_PIXEL_DIST
 
 	var ab: Vector2 = b - a
 	var ab_len_sq: float = ab.length_squared()
 	if ab_len_sq == 0.0:
-		return p.distance_to(a) <= epsilon
+		return p.distance_to(a) <= EPS
 
 	var t: float = (p - a).dot(ab) / ab_len_sq
 	t = clamp(t, 0.0, 1.0)
 	var closest: Vector2 = a + ab * t
-	return p.distance_to(closest) <= epsilon
+	return p.distance_to(closest) <= EPS
+
 
 ########################################################################################################################
 # Physics stuff
@@ -183,12 +189,14 @@ static func get_scene_root() -> Node2D:
 	else:
 		return (Engine.get_main_loop() as SceneTree).current_scene as Node2D
 
+
 ########################################################################################################################
 # Timing & Waiting
 ########################################################################################################################
 static func await_until(node: Node2D, condition: Callable) -> void:
 	while not condition.call():
 		await node.get_tree().physics_frame
+
 
 static func await_time(time: float) -> void:
 	await get_scene_root().get_tree().create_timer(time).timeout
@@ -208,6 +216,7 @@ static func timer(time: float, timeout_callable: Callable, one_shot: bool = fals
 	t.timeout.connect(timeout_callable)
 	return t
 
+
 static func timer_one_shot(time: float, timeout_callable: Callable) -> void:
 	var scene_tree_timer := get_scene_root().get_tree().create_timer(time)
 	scene_tree_timer.timeout.connect(timeout_callable)
@@ -217,6 +226,7 @@ static func timer_one_shot(time: float, timeout_callable: Callable) -> void:
 static func now() -> float:
 	return (Time.get_ticks_msec() / 1000.0) as float
 
+
 ## Returns true if the given duration has passed since start_time
 static func has_time_passed(timestamp: float, duration: float) -> bool:
 	return now() - timestamp >= duration
@@ -225,16 +235,19 @@ static func has_time_passed(timestamp: float, duration: float) -> bool:
 ########################################################################################################################
 # ARRAYS
 ########################################################################################################################
+## Append if not null and not already in array
 static func array_append_unique_not_null(arr: Array, item: Variant) -> void:
 	if item != null and item not in arr:
 		arr.append(item)
 
 
+## Get Vector2i grid poses for array of action points
 static func get_action_points_grid_positions(aps: Array[ActionPoint]) -> Array[Vector2i]:
 	var grid_positions: Array[Vector2i] = []
 	for ap: ActionPoint in aps:
 		grid_positions.append(ap.grid_pos)
 	return grid_positions
+
 
 ########################################################################################################################
 # Hash
@@ -250,7 +263,7 @@ static func unhash(n: int) -> Vector2i:
 	# Reverse of Szudzik pairing (unsigned)
 	var sqrt_n := int(floori(sqrt(n)))
 	var sq := sqrt_n * sqrt_n
-	
+
 	if n - sq < sqrt_n:
 		# Case where x < y, so y = sqrt_n
 		return Vector2i(n - sq, sqrt_n)

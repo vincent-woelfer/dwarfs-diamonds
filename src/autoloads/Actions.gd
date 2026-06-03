@@ -36,7 +36,7 @@ func mark_cell_for_mining(cell: Cell, is_marked_for_mining: bool) -> void:
 
 	# Add or remove mining job
 	if cell.is_marked_for_mining:
-		Global.level.job_manager.add_job(Job.new(Job.Type.MINE, cell))
+		Global.level.job_manager.add_job(MineJob.new(cell))
 	else:
 		Global.level.job_manager.remove_mining_job_for_cell(cell)
 
@@ -85,7 +85,7 @@ func remove_building(building: Building) -> void:
 	print_action("Removing building: %s at %s (was %s)" % [building.building_data.ui_name, building.grid_pos, building_status])
 
 	building.destroy()
-	
+
 	# Remove from all cells covered by building -> updates their navmesh
 	for pos in building.building_data.pattern_building.get_positions(building.grid_pos):
 		var covered_cell: Cell = Global.level.get_cell(pos)
@@ -93,7 +93,7 @@ func remove_building(building: Building) -> void:
 			covered_cell.remove_building(building)
 
 
-func archive_job(job: Job, success: bool) -> void:
+func archive_job(job: AbstractJob, success: bool) -> void:
 	# Ensure this is only triggered once
 	if job == null or not job.is_active:
 		return

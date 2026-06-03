@@ -13,7 +13,7 @@ signal Signal_OnAllItemTypesFull()
 ###################################
 # Placement mode
 ###################################
-enum PlacementMode {CARRY, STOCKPILE}
+enum PlacementMode { CARRY, STOCKPILE }
 @export var placement_mode: PlacementMode = PlacementMode.CARRY
 
 ###################################
@@ -21,7 +21,7 @@ enum PlacementMode {CARRY, STOCKPILE}
 ###################################
 # COMBINED = max weight/count shared between all items.
 # PER_ITEM_TYPE = max count per item type, weight is ignored
-enum CapacityMode {COMBINED_WEIGHT_COUNT, PER_ITEM_TYPE_COUNT}
+enum CapacityMode { COMBINED_WEIGHT_COUNT, PER_ITEM_TYPE_COUNT }
 @export var capacity_mode: CapacityMode = CapacityMode.COMBINED_WEIGHT_COUNT
 
 @export var capacity_combined_max_weight: float = 5.0
@@ -34,7 +34,6 @@ enum CapacityMode {COMBINED_WEIGHT_COUNT, PER_ITEM_TYPE_COUNT}
 ###################################
 @export var item_scaling_in_storage: float = 1.0
 
-
 ###################################
 # Internal
 ###################################
@@ -45,6 +44,7 @@ var _curr_total_weight: float = 0.0
 
 # for placement logic
 var _item_type_group_sizes: ItemTypeList = ItemTypeList.new()
+
 
 ########################################################################################################################
 # PUBLIC METHODS
@@ -59,10 +59,11 @@ func pickup_all_in_range(priority_items: Array[Item]) -> bool:
 	var picked_up: Array[Item] = []
 
 	# Sort so that priority items come first
-	items.sort_custom(func(a: Item, b: Item) -> bool:
-		var a_prio: bool = priority_items.has(a)
-		var b_prio: bool = priority_items.has(b)
-		return a_prio and not b_prio
+	items.sort_custom(
+		func(a: Item, b: Item) -> bool:
+			var a_prio: bool = priority_items.has(a)
+			var b_prio: bool = priority_items.has(b)
+			return a_prio and not b_prio
 	)
 
 	for item: Item in items:
@@ -82,7 +83,7 @@ func pickup(item: Item) -> bool:
 	if not can_pickup(item):
 		return false
 
-	item.on_picked_up(self )
+	item.on_picked_up(self)
 	_add(item)
 
 	return true
@@ -186,8 +187,7 @@ func does_fit_into_capacity(item: Item) -> bool:
 
 func is_in_range(item: Item) -> bool:
 	# For now just check if in the same cell, later we can add a pickup radius or something
-	# return item.grid_pos == parent.grid_pos
-	return true
+	return item.grid_pos == parent.grid_pos
 
 
 ###################################
@@ -225,6 +225,7 @@ func get_item_by_index(index: int) -> Item:
 	if index < 0 or index >= _curr_carried_items.size():
 		return null
 	return _curr_carried_items[index]
+
 
 func get_last_item() -> Item:
 	return get_item_by_index(_curr_carried_items.size() - 1)
@@ -357,7 +358,7 @@ func _exit_tree() -> void:
 func _physics_process(delta: float) -> void:
 	if is_carrying_anything():
 		_update_item_placement(delta)
-		
+
 
 func _get_parent_look_dir() -> Vector2:
 	var look_dir: Variant = parent.get("look_dir")

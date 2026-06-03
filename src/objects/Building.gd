@@ -2,6 +2,8 @@
 class_name Building
 extends GridObject2D
 
+const BIG_BUILDING_TIME_THRESHOLD: float = 3.0 # seconds
+
 ## Set in editor for actual buildings to define type
 var building_data: BuildingDataRes
 
@@ -13,7 +15,7 @@ var internal_modulate: Color = Color.WHITE
 var external_modulate: Color = Color.WHITE
 
 # Jobs associated with this building
-var build_job: Job = null
+var build_job: BuildJob = null
 # TOTO var material_job
 
 # Action Points
@@ -28,7 +30,7 @@ var dev_color: Color
 var starting_state: State = State.WAITING_FOR_MATERIAL
 
 # State machine
-enum State {WAITING_FOR_MATERIAL, IN_CONSTRUCTION, OPERATING, IN_TEARDOWN}
+enum State { WAITING_FOR_MATERIAL, IN_CONSTRUCTION, OPERATING, IN_TEARDOWN }
 var sm: StateMachine
 
 var sm_transition_table: Dictionary[int, Array] = {
@@ -85,7 +87,7 @@ func setup_building(building_type_: Enum.BuildingType, grid_pos_: Vector2i) -> v
 		visual_root = get_node_or_null(visual_root_path)
 		remove_child(visual_root)
 		visual_root.queue_free()
-	
+
 	# Update visual base
 	visual_root = Util.instantiate_building_visual_base(building_type_)
 	visual_root.name = visual_root_path
@@ -111,7 +113,7 @@ func _ready() -> void:
 	if starting_state == State.WAITING_FOR_MATERIAL and building_data.required_materials.is_empty():
 		starting_state = State.IN_CONSTRUCTION
 
-	sm = StateMachine.new(self , State, starting_state, sm_transition_table)
+	sm = StateMachine.new(self, State, starting_state, sm_transition_table)
 	sm.set_state_exitable(State.IN_TEARDOWN, false)
 
 	# Only for Game
@@ -132,7 +134,7 @@ func _physics_process(delta: float) -> void:
 ###################################
 func _enter_waiting_for_material() -> void:
 	assert(not building_data.required_materials.is_empty())
-	print_rich("%s placed (waiting for materials: %s)" % [ self , building_data.required_materials])
+	print_rich("%s placed (waiting for materials: %s)" % [self, building_data.required_materials])
 
 	# Visuals
 	self.light_mask = Colors.building_light_mask_unfinished
@@ -140,30 +142,29 @@ func _enter_waiting_for_material() -> void:
 
 	# Action points - Setup material AP
 	if not _setup_material_action_point():
-		push_error("Failed to setup material action point for building %s! Transitioning to IN_CONSTRUCTION anyway." % self )
+		push_error("Failed to setup material action point for building %s! Transitioning to IN_CONSTRUCTION anyway." % self)
 		sm.transition_to(State.IN_CONSTRUCTION)
 		return
 
 	# TODO add job
 
-func _physics_process_waiting_for_material(delta: float) -> void:
-	if material_storage != null:
-		# TODO
-		var items: Array[Item] = []
+# Was only for testing
+# func _physics_process_waiting_for_material(delta: float) -> void:
+# 	if material_storage != null:
+# 		var items: Array[Item] = []
 
-		for item: Item in Global.get_group(Global.GROUP_CARRYABLE_ITEMS):
-			if item.item_type in building_data.required_materials.get_all_item_types() and item.is_in_storage == false:
-				items.append(item)
+# 		for item: Item in Global.get_group(Global.GROUP_CARRYABLE_ITEMS):
+# 			if item.item_type in building_data.required_materials.get_all_item_types() and item.is_in_storage == false:
+# 				items.append(item)
 
-		if items.size() > 0:
-			material_storage.pickup_all_in_range(items)
-	
+# 		if items.size() > 0:
+# 			material_storage.pickup_all_in_range(items)
+
 
 func _exit_waiting_for_material() -> void:
 	# Remove action points
-	Global.level.building_manager.unregister_action_points(self , [material_ap])
+	Global.level.building_manager.unregister_action_points(self, [material_ap])
 
-	pass
 	# TODO remove job
 
 
@@ -171,15 +172,14 @@ func _exit_waiting_for_material() -> void:
 # In construction
 ###################################
 func _enter_in_construction() -> void:
-	print_rich("%s starting construction" % [ self ])
+	print_rich("%s starting construction" % [self])
 
 	# Visuals
 	self.light_mask = Colors.building_light_mask_unfinished
 	_set_modulate_internal(Colors.building_modulate_unfinished)
 
 	# Add build job
-	build_job = Job.new(Job.Type.BUILD, curr_cell)
-	build_job.building = self
+	build_job = BuildJob.new(self)
 	Global.level.job_manager.add_job(build_job)
 
 
@@ -194,11 +194,12 @@ func _exit_in_construction() -> void:
 		material_storage.queue_free()
 		material_storage = null
 
+
 ###################################
 # Operating
 ###################################
 func _enter_operating() -> void:
-	print_rich("%s completed (operational)" % [ self ])
+	print_rich("%s completed (operational)" % [self])
 
 	# Update visual
 	self.light_mask = Colors.building_light_mask_finished
@@ -215,7 +216,7 @@ func _enter_operating() -> void:
 	for pos in building_cells:
 		var cell: Cell = Global.level.get_cell(pos)
 		if cell != null:
-			cell.on_building_completed(self )
+			cell.on_building_completed(self)
 			cell.queue_nav_update()
 
 	_setup_action_points([ActionPoint.ApType.DROPOFF_RUBBLE, ActionPoint.ApType.DROPOFF_GEMSTONE])
@@ -236,7 +237,7 @@ func _enter_in_teardown() -> void:
 		material_storage = null
 
 	# Includes deleting action points
-	Global.level.building_manager.teardown_building(self )
+	Global.level.building_manager.teardown_building(self)
 
 	# Flash & audio effect
 	var effect_duration := 0.25 * 3
@@ -245,7 +246,7 @@ func _enter_in_teardown() -> void:
 
 	# Wait for effect to finish before deleting building
 	await Util.await_time(effect_duration)
-	Global.level.building_manager.delete_building(self )
+	Global.level.building_manager.delete_building(self)
 
 
 ########################################################################################################################
@@ -270,6 +271,11 @@ func update_build_progress(building_speed_with_delta: float) -> void:
 		sm.transition_to(State.OPERATING)
 
 
+func estimate_remaining_time_to_build(building_speed: float) -> float:
+	var remaining_process: float = 1.0 - build_progress
+	return remaining_process * (building_speed / building_data.build_time)
+
+
 # Called from Actions.remove_building which handles most logic (like calling building_manager.unregister_building() and removing from cells)
 func destroy() -> void:
 	if sm.state != State.IN_TEARDOWN:
@@ -278,6 +284,11 @@ func destroy() -> void:
 
 func is_operating() -> bool:
 	return sm.state == State.OPERATING
+
+
+func is_in_construction() -> bool:
+	return sm.state == State.IN_CONSTRUCTION
+
 
 ########################################################################################################################
 # PRIVATE
@@ -295,7 +306,7 @@ func _setup_action_points(types: Array[ActionPoint.ApType]) -> void:
 			ap.setup_dropoff_ap()
 
 		action_points.append(ap)
-		Global.level.building_manager.register_action_points(self , [ap])
+		Global.level.building_manager.register_action_points(self, [ap])
 
 
 func _setup_material_action_point() -> bool:
@@ -311,7 +322,7 @@ func _setup_material_action_point() -> bool:
 			ap_res = ap_res_iter
 			break
 	if ap_res == null:
-		push_error("Building %s has required materials but no material AP defined in building data!" % self )
+		push_error("Building %s has required materials but no material AP defined in building data!" % self)
 		return false
 
 	var pos: Vector2i = grid_pos + ap_res.grid_offset
@@ -322,24 +333,25 @@ func _setup_material_action_point() -> bool:
 	ap.setup_constr_mat_stockpile_ap(material_storage, building_data.required_materials)
 
 	action_points.append(ap)
-	Global.level.building_manager.register_action_points(self , [ap])
+	Global.level.building_manager.register_action_points(self, [ap])
 
 	# Listen for complete signal
-	material_storage.Signal_OnAllItemTypesFull.connect(func() -> void:
-		if sm.state == State.WAITING_FOR_MATERIAL and _has_all_construction_materials():
-			sm.transition_to(State.IN_CONSTRUCTION)
+	material_storage.Signal_OnAllItemTypesFull.connect(
+		func() -> void:
+			if sm.state == State.WAITING_FOR_MATERIAL and _has_all_construction_materials():
+				sm.transition_to(State.IN_CONSTRUCTION)
 	)
 
 	return true
 
-	
+
 ## Triggered by cell destruction signal
 func _check_solid_ground(destroyed_cell: Cell) -> void:
 	if sm.state == State.IN_TEARDOWN:
 		return
 
 	if not PlacementChecks.has_solid_ground_at(building_data, grid_pos):
-		Actions.remove_building(self )
+		Actions.remove_building(self)
 
 
 func _has_all_construction_materials() -> bool:
@@ -373,6 +385,7 @@ func _to_string() -> String:
 func _set_modulate_internal(color: Color) -> void:
 	internal_modulate = color
 	self.modulate = internal_modulate * external_modulate
+
 
 func set_modulate_external(color: Color) -> void:
 	external_modulate = color

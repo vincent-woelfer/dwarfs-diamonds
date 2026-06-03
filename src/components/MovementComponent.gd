@@ -89,6 +89,13 @@ func set_parent_width(new_parent_width: float) -> void:
 	]
 
 
+func get_remaining_path_time() -> float:
+	if sm.state != State.FOLLOWING_PATH or path == null:
+		return 0.0
+
+	return path.get_remaining_time(movement_stats)
+
+
 ########################################################################################################################
 # PRIVATE
 ########################################################################################################################

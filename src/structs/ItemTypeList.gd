@@ -1,9 +1,10 @@
 class_name ItemTypeList
 extends Resource
 
-@export var item_dict: Dictionary[Enum.ItemType, int] = {}
+@export var item_dict: Dictionary[Enum.ItemType, int] = { }
 
-func _init(item_dict_: Dictionary[Enum.ItemType, int] = {}) -> void:
+
+func _init(item_dict_: Dictionary[Enum.ItemType, int] = { }) -> void:
 	self.item_dict = item_dict_
 
 
@@ -22,6 +23,7 @@ func increment(item_type: Enum.ItemType, amount: int = 1) -> int:
 	item_dict[item_type] += amount
 	return item_dict[item_type]
 
+
 func decrement(item_type: Enum.ItemType, amount: int = 1) -> int:
 	if amount < 0:
 		push_warning("Trying to decrement item type %s by negative amount %d, ignoring" % [Enum.to_str(Enum.ItemType, item_type), amount])
@@ -32,13 +34,14 @@ func decrement(item_type: Enum.ItemType, amount: int = 1) -> int:
 		push_warning("Trying to decrement item type %s which is not in list, returning 0" % [Enum.to_str(Enum.ItemType, item_type)])
 		return 0
 
-	item_dict[item_type] = max(item_dict[item_type] - amount, 0)
+	var new_val: int = max(item_dict[item_type] - amount, 0)
+	item_dict[item_type] = new_val
 
 	# If count has reached 0, remove item type from list to keep things clean
-	if item_dict[item_type] == 0:
+	if new_val == 0:
 		item_dict.erase(item_type)
 
-	return item_dict[item_type]
+	return new_val
 
 
 ########################################################################################################################
@@ -46,6 +49,7 @@ func decrement(item_type: Enum.ItemType, amount: int = 1) -> int:
 ########################################################################################################################
 func clear() -> void:
 	item_dict.clear()
+
 
 func is_empty() -> bool:
 	return item_dict.is_empty()

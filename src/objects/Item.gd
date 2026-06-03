@@ -18,22 +18,20 @@ extends GridObject2D
 var is_in_storage: bool = false
 var storage: StorageComponent = null
 
+# TODO reserved for pickup
+var is_reserved: bool = false
+
 # Pick-up animation state - used by StorageComponent / StorageComponent to move to position
 var transition_animation_finished: bool = false
 var transition_animation_start_time: float = 0.0
 var transition_max_duration: float = 0.5 # seconds
 
-# TODO reserved for pickup
-var is_reserved: bool = false
-
-
 # Sounds
 @export var on_spawned_audio: AudioStream
 @export var on_landed_audio: AudioStream
 
-
 # The pickup job associated with this item
-var pickup_job: Job = null
+var pickup_job: PickupJob = null
 
 # Further Config
 var light_energy_default: float = 0.25
@@ -44,14 +42,13 @@ func setup_item(grid_pos_: Vector2i, spawn_offset: Vector2 = Vector2.ZERO) -> vo
 	# Validation
 	assert(item_type in Enum.ItemType.values(), "Invalid item type %s" % [item_type])
 	setup_grid_object(grid_pos_)
-	
+
 	global_position = Global.level.get_cell(grid_pos).get_center_floor_point() + spawn_offset
 
 
 func _ready() -> void:
 	self.z_index = Enum.ZIndex.GEMSTONE if item_type == Enum.ItemType.GEMSTONE else Enum.ZIndex.RUBBLE
 	add_to_group(Global.GROUP_CARRYABLE_ITEMS)
-
 
 	# Setup MovementComponent
 	movement_comp.movement_stats.can_use_ladders = false
@@ -85,7 +82,7 @@ func _ready() -> void:
 func on_picked_up(new_storage: StorageComponent) -> void:
 	is_in_storage = true
 	storage = new_storage
-	
+
 	# Trigger animation
 	transition_animation_finished = false
 	transition_animation_start_time = Util.now()
@@ -97,6 +94,7 @@ func on_picked_up(new_storage: StorageComponent) -> void:
 	light.energy = 0.0
 
 	movement_comp.on_picked_up()
+
 
 func on_dropped() -> void:
 	is_in_storage = false
@@ -148,9 +146,9 @@ func _add_pickup_job() -> void:
 	if pickup_job != null:
 		return
 
-	pickup_job = Job.new(Job.Type.PICKUP, curr_cell)
-	pickup_job.carryable_item = self
+	pickup_job = PickupJob.new(self)
 	Global.level.job_manager.add_job(pickup_job)
+
 
 func can_be_picked_up_right_now() -> bool:
 	if is_in_storage or movement_comp.is_falling():
@@ -170,7 +168,7 @@ func _on_new_cell_entered(new_cell: Cell) -> void:
 
 	if pickup_job != null:
 		pickup_job.center_cell = new_cell
-		pickup_job.update_workable_from_cells()
+		pickup_job.update_workable_from_poses()
 
 
 func _on_started_falling(est_fall_height_cells: int) -> void:
@@ -187,8 +185,11 @@ func _on_landed(fall_height_cells: int) -> void:
 
 func _to_string() -> String:
 	var color := Colors.to_print_color(sprite.modulate)
-	var print_name: String = Enum.to_str(Enum.ItemType, item_type).capitalize()
-	return Util.color_string("%s @%s" % [print_name, self._grid_pos], color)
+	return Util.color_string("%s @%s" % [get_print_name(), self._grid_pos], color)
+
+
+func get_print_name() -> String:
+	return Enum.to_str(Enum.ItemType, item_type).capitalize()
 
 
 func _spawn_animation() -> void:
@@ -201,7 +202,7 @@ func _spawn_animation() -> void:
 	var tween: Tween = create_tween().set_parallel(true)
 
 	# Plop: scale from 0 to 1 with slight overshoot
-	tween.tween_property(self , "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 	# White flash: fade modulate back to normal color
-	tween.tween_property(self , "modulate", prev_modulate, 0.25).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "modulate", prev_modulate, 0.25).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)

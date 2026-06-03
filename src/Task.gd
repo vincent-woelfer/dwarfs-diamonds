@@ -35,14 +35,14 @@ var finishes_job: bool = false
 
 # Task was created by this job (or null) and should therefore be discarded when job is aborted.
 # Also used to finish jobs when last task is completed (and finished_job == true)
-var created_by_job: Job = null
+var created_by_job: AbstractJob = null
 
 ########################################################################################################################
 # TASK SPECIFIC VARIABLES
 ########################################################################################################################
 # MOVE_TO_JOB
 # TODO maybe refactor to just used "created_by_job"
-var job: Job = null
+var job: AbstractJob = null
 
 # MOVE_TO_CELL
 # (uses target_grid_pos)
@@ -71,8 +71,10 @@ var action_point: ActionPoint = null
 func _init(type_: Type) -> void:
 	type = type_
 
+
 func is_move_to_task() -> bool:
 	return type in [Type.MOVE_TO_JOB, Type.MOVE_TO_CELL]
+
 
 func is_stationary_task() -> bool:
 	return type in [Type.MINE, Type.CONSTRUCT, Type.PICKUP, Type.ACTION_POINT, Type.PLACE_TORCH]
@@ -84,7 +86,7 @@ func has_reached_move_to_position(dwarf: Dwarf) -> bool:
 
 	if type == Type.MOVE_TO_JOB:
 		assert(job != null)
-		job.update_workable_from_cells()
+		job.update_workable_from_poses()
 		if dwarf.grid_pos in job.workable_from_poses:
 			return true
 
@@ -93,24 +95,28 @@ func has_reached_move_to_position(dwarf: Dwarf) -> bool:
 
 	return false
 
+
 ########################################################################################################################
 # STATIC FACTORY METHODS
 ########################################################################################################################
-static func create_move_to_job_task(job_: Job) -> Task:
+static func create_move_to_job_task(job_: AbstractJob) -> Task:
 	var task := Task.new(Task.Type.MOVE_TO_JOB)
 	task.target_grid_pos = job_.center_cell.grid_pos
 	task.job = job_
 	return task
+
 
 static func create_move_to_cell_task(target_grid_pos_: Vector2i) -> Task:
 	var task := Task.new(Task.Type.MOVE_TO_CELL)
 	task.target_grid_pos = target_grid_pos_
 	return task
 
+
 static func create_mine_task(target_grid_pos_: Vector2i) -> Task:
 	var task := Task.new(Task.Type.MINE)
 	task.target_grid_pos = target_grid_pos_
 	return task
+
 
 static func create_construct_task(target_grid_pos_: Vector2i, building_: Building) -> Task:
 	var task := Task.new(Task.Type.CONSTRUCT)
@@ -118,17 +124,20 @@ static func create_construct_task(target_grid_pos_: Vector2i, building_: Buildin
 	task.building = building_
 	return task
 
+
 static func create_pickup_task(target_grid_pos_: Vector2i, carryable_item_: Item) -> Task:
 	var task := Task.new(Task.Type.PICKUP)
 	task.target_grid_pos = target_grid_pos_
 	task.item = carryable_item_
 	return task
 
+
 static func create_action_point_task(target_grid_pos_: Vector2i, action_point_: ActionPoint) -> Task:
 	var task := Task.new(Task.Type.ACTION_POINT)
 	task.target_grid_pos = target_grid_pos_
 	task.action_point = action_point_
 	return task
+
 
 static func create_place_torch_task(target_grid_pos_: Vector2i) -> Task:
 	var task := Task.new(Task.Type.PLACE_TORCH)

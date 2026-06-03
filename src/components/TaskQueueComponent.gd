@@ -16,6 +16,7 @@ var curr_task: Task = null
 # Reference to parent dwarf
 @onready var parent: Dwarf = get_parent()
 
+
 ########################################################################################################################
 # METHODS PUPLIC
 ########################################################################################################################
@@ -27,10 +28,10 @@ func add_tasks(tasks: Array[Task]) -> void:
 	append_array_end(tasks)
 
 	print_rich("%s added %d new stand-alone tasks to task queue" % [parent, tasks.size()])
-	print_rich(self )
+	print_rich(self)
 
 
-func add_job(job: Job) -> void:
+func add_job(job: AbstractJob) -> void:
 	if not job:
 		push_warning("Tried to add null job to task queue!")
 		return
@@ -39,8 +40,7 @@ func add_job(job: Job) -> void:
 		push_warning("Tried to add inactive job to task queue!")
 		return
 
-	# TODO check if task queue is empty?
-	# TODO check if tasks are possible????? E.g. if cell to be mined exists, if building to be constructed exists, etc.
+	# TODO maybe check if tasks are possible????? E.g. if cell to be mined exists, if building to be constructed exists, etc.
 	#      or MOST IMPORTANT if path to target exists?????
 
 	# Generate tasks from job
@@ -55,11 +55,8 @@ func add_job(job: Job) -> void:
 
 	# last task finishes job
 	tasks.back().finishes_job = true
-
 	append_array_end(tasks)
-
 	print_rich("%s added job %s with %d tasks to task queue." % [parent, job, tasks.size()])
-	# print_rich(self )
 
 
 # The task-type is only as an error-detection mechanism.
@@ -78,7 +75,7 @@ func finish_current_task(expected_task_type: Task.Type) -> bool:
 	# Remove from queue
 	_task_queue.pop_front()
 
-	print_rich("%s finished task %s. %s" % [parent, curr_task, self ])
+	print_rich("%s finished task %s. %s" % [parent, curr_task, self])
 
 	curr_task = null
 
@@ -93,7 +90,7 @@ func start_next_task() -> bool:
 		push_warning("Tried to start next task but task queue is empty!")
 		return false
 
-	print_rich("%s starting next task %s. %s" % [parent, _task_queue[0], self ])
+	print_rich("%s starting next task %s. %s" % [parent, _task_queue[0], self])
 
 	curr_task = _task_queue[0]
 	return true
@@ -107,6 +104,7 @@ func flush_all_tasks() -> void:
 	_task_queue.clear()
 	curr_task = null
 
+
 ########################################################################################################################
 # METHODS PUPLIC / PRIVATE ????
 ########################################################################################################################
@@ -116,12 +114,6 @@ func append_end(task: Task) -> void:
 
 func append_array_end(tasks: Array[Task]) -> void:
 	_task_queue.append_array(tasks)
-
-
-# func pop_front() -> Task:
-# 	if _task_queue.is_empty():
-# 		return null
-# 	return _task_queue.pop_front()
 
 
 func size() -> int:
@@ -143,9 +135,6 @@ func _ready() -> void:
 	assert(parent != null)
 	assert(parent is Dwarf)
 
-	# SIGNALS
-	# EventBus.Signal_GlobalCellDestroyed.connect(_on_global_any_cell_mining_completed)
-
 
 ########################################################################################################################
 # DEBUG
@@ -155,7 +144,7 @@ func _to_string() -> String:
 
 	if _task_queue.is_empty():
 		msg += " - <empty>"
-		
+
 	else:
 		msg += "\n"
 		for task in _task_queue:

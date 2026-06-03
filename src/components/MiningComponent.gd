@@ -17,12 +17,12 @@ var _audio_player: AudioStreamPlayer2D = null
 # TODO add mining tool restrictions (e.g. can only mine stone with pickaxe, etc.)
 # TODO add different mining sounds per material but also per miner (e.g. pickaxe sound for pickaxe, etc.)
 
-
 const CellMiningHardness := {
 	Enum.CellType.A: 1.0,
 	Enum.CellType.B: 2.0,
 	Enum.CellType.C: 3.0,
 }
+
 
 ########################################################################################################################
 # PUBLIC METHODS
@@ -50,6 +50,7 @@ func stop_mining_cell(cell: Cell) -> void:
 		Audio.stop_player(_audio_player)
 		_audio_player = null
 
+
 func stop_mining_all_cells() -> void:
 	_currently_mining_cells.clear()
 
@@ -72,6 +73,14 @@ func can_mine_at_all(cell: Cell) -> bool:
 
 	return true
 
+
+func estimate_remaining_time_to_mine_cell(cell: Cell) -> float:
+	if not can_mine_at_all(cell):
+		return AbstractJob.CANT_WORK_TIME
+
+	return cell.estimate_remaining_time_to_mine(self.mining_speed)
+
+
 ########################################################################################################################
 # PRIVATE METHODS
 ########################################################################################################################
@@ -87,7 +96,7 @@ func _on_global_any_cell_mining_completed(mined_cell: Cell) -> void:
 		stop_mining_cell(mined_cell)
 		Signal_OnMiningCompleted.emit(mined_cell)
 
-		
+
 func _physics_process(delta: float) -> void:
 	for mining_cell in _currently_mining_cells:
 		# Was cell destroyed by other means? This should NOT happen since we catch this with the global signal, but just in case
