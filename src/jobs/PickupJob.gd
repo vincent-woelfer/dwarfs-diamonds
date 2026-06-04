@@ -13,7 +13,7 @@ var item: Item = null
 func get_job_type_name() -> String:
 	var base_name: String = "PICKUP"
 
-	var item_suffix: String = item.get_print_name().substr(0, 3)
+	var item_suffix: String = item.get_print_name().substr(0, 3).to_upper()
 	return base_name + "-" + item_suffix
 
 

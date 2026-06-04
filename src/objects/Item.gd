@@ -73,6 +73,8 @@ func _ready() -> void:
 	movement_comp.Signal_OnStartedFalling.connect(_on_started_falling)
 	movement_comp.Signal_OnLanded.connect(_on_landed)
 
+	self.Signal_OnNewCellEntered.connect(_on_new_cell_entered)
+
 	######
 	_add_pickup_job()
 	Audio.play_at_pos_stream(on_spawned_audio, global_position)

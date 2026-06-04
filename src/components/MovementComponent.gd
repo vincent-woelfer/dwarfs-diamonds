@@ -14,7 +14,7 @@ signal Signal_OnFinishedPath()
 signal Signal_MovementDirectionChanged(new_dir: Vector2)
 
 ################ Definitions ################
-enum State {NOT_MOVING, FOLLOWING_PATH, FALLING, CARRIED}
+enum State { NOT_MOVING, FOLLOWING_PATH, FALLING, CARRIED }
 var sm: StateMachine
 
 ################ Configuration ################
@@ -39,17 +39,21 @@ var fall_start_y: int
 # Reference to the used audio player
 var _audio_player_positional: AudioStreamPlayer2D = null
 
+
 ########################################################################################################################
 # PUBLIC
 ########################################################################################################################
 func is_falling() -> bool:
 	return sm.state == State.FALLING
 
+
 func is_being_carried() -> bool:
 	return sm.state == State.CARRIED
 
+
 func get_state_string() -> String:
 	return Enum.to_str(MovementComponent.State, sm.state)
+
 
 func assign_path(new_path: Path) -> bool:
 	if new_path == null or sm.state in [State.FALLING, State.CARRIED]:
@@ -58,9 +62,10 @@ func assign_path(new_path: Path) -> bool:
 	# Delete old path
 	if path:
 		path.delete()
-	
+
 	sm.transition_to(State.FOLLOWING_PATH, new_path)
 	return true
+
 
 func abort_path() -> void:
 	# Hide old path
@@ -75,6 +80,8 @@ func abort_path() -> void:
 # used by Item when picked up / on_dropped
 func on_picked_up() -> void:
 	sm.transition_to(State.CARRIED)
+
+
 func on_dropped() -> void:
 	sm.transition_to(State.NOT_MOVING)
 
@@ -83,9 +90,9 @@ func set_parent_width(new_parent_width: float) -> void:
 	parent_width = new_parent_width
 
 	ground_check_sample_points = [
-		- parent_width / 2.0,
+		-parent_width / 2.0,
 		0.0,
-		 parent_width / 2.0,
+		parent_width / 2.0,
 	]
 
 
@@ -100,14 +107,14 @@ func get_remaining_path_time() -> float:
 # PRIVATE
 ########################################################################################################################
 func _ready() -> void:
-	sm = StateMachine.new(self , State, State.NOT_MOVING)
+	sm = StateMachine.new(self, State, State.NOT_MOVING)
 
 	assert(parent != null)
 	assert(parent is GridObject2D)
 
 	# Initialize ground check sample points
 	set_parent_width(parent_width)
-	
+
 
 ########################################################################################################################
 # STATE MACHINE HANDLERS
@@ -117,7 +124,8 @@ func _physics_process(delta: float) -> void:
 
 	# For debugging:
 	# print_rich("MovementComponent of %s in state %s at pos %s" % [parent, Enum.to_str(State, sm.state), parent.grid_pos])
-	
+
+
 ###################################
 # Falling
 ###################################
@@ -157,6 +165,7 @@ func _physics_process_falling(delta: float) -> void:
 
 	_update_on_ground_check()
 
+
 ###################################
 # Following Path
 ###################################
@@ -174,6 +183,7 @@ func _enter_following_path(new_path: Path) -> void:
 	if _audio_player_positional == null:
 		_audio_player_positional = Audio.play_at_pos("dwarf_walk_1_looped", parent.global_position)
 
+
 func _exit_following_path() -> void:
 	if path:
 		path.delete()
@@ -183,8 +193,8 @@ func _exit_following_path() -> void:
 	if _audio_player_positional != null:
 		Audio.stop_player(_audio_player_positional)
 		_audio_player_positional = null
-	
-	
+
+
 func _physics_process_following_path(delta: float) -> void:
 	if _update_on_ground_check():
 		return
@@ -216,11 +226,12 @@ func _physics_process_following_path(delta: float) -> void:
 	if path.reached_end():
 		Signal_OnFinishedPath.emit()
 		sm.transition_to(State.NOT_MOVING)
-		
+
 ###################################
 # Being Carried
 ###################################
 # Nothing, this state basically disables the movement component and hands over movement to the carrier
+
 
 ###################################
 # Not Moving
@@ -231,6 +242,7 @@ func _physics_process_not_moving(delta: float) -> void:
 ########################################################################################################################
 # INTERNAL HELPERS
 ########################################################################################################################
+
 
 ## Check if we should start/stop falling. Returns true if state changed.
 ## Called in physics process of states: FALLING, NOT_MOVING, FOLLOWING_PATH
@@ -259,7 +271,7 @@ func _update_on_ground_check() -> bool:
 		if can_stand_in_curr_cell and is_on_floor:
 			# Snap position to floor
 			parent.global_position.y = y_cell_floor
-			
+
 			# Exit-falling state handles landing logic
 			sm.transition_to(State.NOT_MOVING)
 			return true
@@ -283,7 +295,7 @@ func _is_on_floor_downward_ray_cast_check() -> bool:
 
 		if sample_cell == null:
 			continue
-		
+
 		# y of floor at this x
 		var y_cell_floor_interpolated: float = sample_cell.get_floor_point_at_world_x(cell_sampling_pos.x).y
 		# Consider on floor if we are below or at the floor line (with some epsilon to avoid issues with floating point precision).
@@ -303,11 +315,13 @@ func _get_curr_move_mode() -> Enum.MoveMode:
 		# Walk as default, as opposed to climb. There is no Idle/Stand
 		return Enum.MoveMode.WALK
 
+
 func _get_can_use_ladders() -> bool:
 	if is_falling():
 		return movement_stats.can_use_ladders_falling
 	else:
 		return movement_stats.can_use_ladders
+
 
 func _is_climbing() -> bool:
 	var move_mode := _get_curr_move_mode()

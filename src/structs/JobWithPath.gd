@@ -1,9 +1,10 @@
 class_name JobWithPath
 extends RefCounted
 
-var job: Job = null
+var job: AbstractJob = null
 var path: Path = null
 
-func _init(job_: Job, path_: Path) -> void:
-    job = job_
-    path = path_
+
+func _init(job_: AbstractJob, path_: Path) -> void:
+	job = job_
+	path = path_

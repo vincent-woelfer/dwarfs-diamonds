@@ -5,11 +5,10 @@ var _astar: AStar2D = null
 
 var _cell_connections_to_update: CellPairQueue = CellPairQueue.new()
 
+
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################
-
-
 ## Update nav for this cell and all 8 neighbours
 func queue_update_cell(grid_pos: Vector2i) -> void:
 	# Queue for connection update with all neighbours. Adding twice is not a problem

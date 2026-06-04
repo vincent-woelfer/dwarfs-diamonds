@@ -9,6 +9,7 @@
 [ext_resource type="Script" uid="uid://bn60jsxabaehw" path="res://src/components/StorageComponent.gd" id="7_2lrks"]
 [ext_resource type="Script" uid="uid://bgr3cdguef030" path="res://src/components/TaskQueueComponent.gd" id="8_gwb0r"]
 [ext_resource type="Script" uid="uid://c6ev22w02fxwg" path="res://src/components/ActionPointComponent.gd" id="9_0mwxv"]
+[ext_resource type="Script" uid="uid://brt7dm6yyfpuq" path="res://src/debug_helper/DwarfDebugDraw.gd" id="10_nlqx6"]
 
 [node name="Dwarf" type="Node2D" unique_id=1095445124]
 script = ExtResource("1_0mwxv")
@@ -50,3 +51,7 @@ metadata/_custom_type_script = "uid://bgr3cdguef030"
 [node name="ActionPointComponent" type="Node2D" parent="." unique_id=1955297445]
 script = ExtResource("9_0mwxv")
 metadata/_custom_type_script = "uid://c6ev22w02fxwg"
+
+[node name="DwarfDebugDraw" type="Node2D" parent="." unique_id=1196468031]
+script = ExtResource("10_nlqx6")
+metadata/_custom_type_script = "uid://brt7dm6yyfpuq"

@@ -1,6 +1,5 @@
 class_name Path
 extends Node2D
-
 ## Construct once and reuse only for following. Dont assign new points.
 
 ########################################################################################################################
@@ -36,6 +35,7 @@ var _curr_pos: Vector2 = Vector2.INF
 # Width of the follower (for path calculations, e.g. offset from walls when climbing)
 var _follower_width: float = Global.CELL_SIZE * 0.3
 
+
 # Normal case is > 2 points. 0 is an exception
 func _init(grid_points_: Array[Vector2i]) -> void:
 	self._grid_points = grid_points_
@@ -43,12 +43,16 @@ func _init(grid_points_: Array[Vector2i]) -> void:
 	self._center_points = Util.grid_to_world_cell_center_array(_grid_points)
 	_calculate_floor_points_and_move_modes()
 
+	set_debug_draw_enabled(EventBus.dev_draw_dwarf_info)
+
+
 func delete() -> void:
 	queue_free()
 
 ########################################################################################################################
 # PUBLIC
 ########################################################################################################################
+
 
 ## Call when starting to follow path to start from closest point
 func start_following_from_pos(start_pos: Vector2, follower_width_: float = Global.CELL_SIZE * 0.3) -> void:
@@ -154,6 +158,7 @@ func set_debug_draw_enabled(enabled: bool) -> void:
 		debug_draw = enabled
 		_debug_draw_proxy_relative.queue_redraw()
 
+
 func set_debug_draw_color(color: Color) -> void:
 	if debug_color != color:
 		debug_color = color
@@ -162,6 +167,7 @@ func set_debug_draw_color(color: Color) -> void:
 ########################################################################################################################
 # INTERNAL API
 ########################################################################################################################
+
 
 ## Returns the current cell the following parent is in (by index)
 ## This is limited to the grid_cells of the path (relevant for diagonal movement)
@@ -209,6 +215,7 @@ func _update_next_indices(new_next_floor: int) -> void:
 
 	_debug_draw_proxy_relative.queue_redraw()
 
+
 ## Calculates floor-points based on _grid_points.
 ## Also fills _floor_to_grid_point_map.
 func _calculate_floor_points_and_move_modes() -> void:
@@ -229,13 +236,13 @@ func _calculate_floor_points_and_move_modes() -> void:
 	map.append(0)
 	# Dummy first point, use this to make sure dwarf does not fall if starting path while climbing
 	move_modes.append(Enum.MoveMode.WALK_NO_FALLING_SPECIAL)
-	
+
 	for i in range(_grid_points.size() - 1):
 		var from_idx := i
 		var to_idx := i + 1
 		var from: Cell = Global.level.get_cell(_grid_points[from_idx])
 		var to: Cell = Global.level.get_cell(_grid_points[to_idx])
-		
+
 		if Util.are_cardinal_neighbours(from.grid_pos, to.grid_pos):
 			if from.grid_pos.x == to.grid_pos.x:
 				# Vertical -> connect directly, only floor-center of to cell
@@ -260,12 +267,12 @@ func _calculate_floor_points_and_move_modes() -> void:
 					p.append(from.get_poly_point(Enum.PolyPoint.BOT_LEFT))
 					p.append(to.get_poly_point(Enum.PolyPoint.BOT_RIGHT))
 					p.append(to.get_poly_point(Enum.PolyPoint.BOT))
-				
+
 				# Mapping is the same in both cases
 				map.append(from_idx)
 				map.append_array([to_idx, to_idx])
 				move_modes.append_array([Enum.MoveMode.WALK, Enum.MoveMode.WALK, Enum.MoveMode.WALK])
-					
+
 		else:
 			# Diagonal -> we offset the wall-points inward a bit to avoid clipping into walls
 			var width: Vector2 = Vector2(_follower_width, 0.0)
@@ -292,7 +299,7 @@ func _calculate_floor_points_and_move_modes() -> void:
 					# on top of to-cell
 					p.append(to.get_poly_point(Enum.PolyPoint.BOT_RIGHT))
 					p.append(to.get_poly_point(Enum.PolyPoint.BOT))
-				
+
 				# Mapping is the same in both cases. 
 				# First 3: up the wall, last 2: on top of to-cell
 				map.append_array([from_idx, from_idx, from_idx])
@@ -320,7 +327,7 @@ func _calculate_floor_points_and_move_modes() -> void:
 					# on top of to-cell
 					p.append(to.get_poly_point(Enum.PolyPoint.BOT_RIGHT) - width)
 					p.append(to.get_poly_point(Enum.PolyPoint.BOT))
-				
+
 				# Mapping is the same in both cases.
 				# First 3: down the wall, last 2: on top of to-cell
 				map.append(from_idx)
@@ -344,6 +351,7 @@ func _get_length_grid_space(start_index: int = 0) -> float:
 		length += (_grid_points[i + 1] - _grid_points[i]).length()
 	return length
 
+
 func _get_time_for_path(start_pos: Vector2, start_index: int, movement_stats: MovementStats) -> float:
 	var time: float = 0.0
 	for i in range(start_index, _floor_points.size() - 1):
@@ -358,7 +366,7 @@ func _get_time_for_path(start_pos: Vector2, start_index: int, movement_stats: Mo
 ########################################################################################################################
 # DEBUG DRAWING
 ########################################################################################################################
-var _debug_draw_proxy_relative := DebugDrawProxy.new(self )
+var _debug_draw_proxy_relative := DebugDrawProxy.new(self)
 
 var debug_draw: bool = false:
 	set(value):
@@ -405,7 +413,7 @@ func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
 			completed_points[i] += debug_offset_follow_points
 		for i in range(remaining_points.size()):
 			remaining_points[i] += debug_offset_follow_points
-		
+
 	else:
 		completed_points = _center_points.slice(0, _next_center_idx + 1)
 		remaining_points = _center_points.slice(_next_center_idx)

@@ -11,6 +11,8 @@ extends GridObject2D
 @onready var task_queue: TaskQueueComponent = $TaskQueueComponent
 @onready var action_point_comp: ActionPointComponent = $ActionPointComponent
 
+@onready var _dwarf_debug_draw: DwarfDebugDraw = $DwarfDebugDraw
+
 # Static ID generator
 static var next_dwarf_id: int = 0
 var dwarf_id: int
@@ -18,7 +20,7 @@ var dwarf_color: Color
 
 var curr_job: AbstractJob = null
 var curr_path: Path = null
-var applied_for_job: bool = false
+var has_applied_for_job: bool = false
 
 var num_torches: int = 50
 var look_dir: Vector2 = Vector2.RIGHT
@@ -54,12 +56,6 @@ func _ready() -> void:
 	# Initial Position
 	global_position = Global.level.get_cell(grid_pos).get_center_floor_point()
 
-	# Dev Signals
-	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
-	EventBus.Signal_DevToogleDwarfDrawInfo.connect(_dev_toogle_dwarf_draw_info)
-	_dev_toogle_light()
-	_dev_toogle_dwarf_draw_info()
-
 	# SIGNALS
 	EventBus.Signal_NavUpdated.connect(_on_nav_updated)
 
@@ -74,6 +70,8 @@ func _ready() -> void:
 	# movement_comp.Signal_StateChanged.connect(_on_movement_state_changed)
 
 	action_point_comp.Signal_OnActionCompleted.connect(_on_action_completed)
+
+	self.Signal_OnNewCellEntered.connect(_on_new_cell_entered)
 
 
 ########################################################################################################################
@@ -307,10 +305,8 @@ func _on_action_completed(action_point: ActionPoint) -> void:
 	_finish_task_and_start_next(Task.Type.ACTION_POINT)
 
 
-## Triggered by MovementComponent (or manually after landing)
+## Triggered by GridObject2D
 func _on_new_cell_entered(new_cell: Cell) -> void:
-	_debug_draw_proxy_absolute.queue_redraw()
-
 	if new_cell == null:
 		return
 
@@ -369,10 +365,10 @@ func _on_job_archived() -> void:
 
 
 func _on_job_assigned(new_job: AbstractJob) -> void:
-	if not applied_for_job:
+	if not has_applied_for_job:
 		print_rich("%s was assigned a job %s without applying for it, ignoring!" % [self, new_job])
 		return
-	applied_for_job = false
+	has_applied_for_job = false
 
 	# If still falling -> simply ignore
 	if sm.state == State.FALLING:
@@ -395,21 +391,34 @@ func _on_job_assigned(new_job: AbstractJob) -> void:
 
 ## Triggered by NavMesh updates (via EventBus)
 func _on_nav_updated() -> void:
-	# If nav updated while following a path -> recalculate path for job or abort if not valid
-	if curr_path != null:
-		_validate_current_path()
+	# If nav updated while following a path -> recalculate path for job or abort if not valid	
+	_validate_current_path()
 
 
 ########################################################################################################################
 # OWN (UTILITY) FUNCTIONS
 ########################################################################################################################
+# Setter / Getter for path / job
+func _clear_curr_path() -> void:
+	if curr_path:
+		curr_path.delete()
+	curr_path = null
+
+
+func _set_curr_path(new_path: Path) -> void:
+	_clear_curr_path()
+	curr_path = new_path
+	if curr_path != null:
+		curr_path.set_debug_draw_color(dwarf_color)
+
+
 func _apply_for_job() -> void:
-	if applied_for_job:
+	if has_applied_for_job:
 		return
 
-	applied_for_job = Global.level.job_manager.apply_for_new_job(self)
+	has_applied_for_job = Global.level.job_manager.apply_for_new_job(self)
 
-	if not applied_for_job and sm.state == State.IDLE:
+	if not has_applied_for_job and sm.state == State.IDLE:
 		# Failed to apply, own tasks as fallback
 		_create_own_tasks()
 
@@ -428,9 +437,7 @@ func _abort_tasks_enter_idle() -> void:
 
 	# Clear curr job + path
 	curr_job = null
-	if curr_path:
-		curr_path.delete()
-	curr_path = null
+	_clear_curr_path()
 
 	# Determine if we can transition to idle
 	var transition_to_idle := sm.state != State.FALLING and sm.state != State.DYING
@@ -453,8 +460,6 @@ func _abort_tasks_enter_idle() -> void:
 
 
 func _create_own_tasks() -> void:
-	var tasks: Array[Task] = []
-
 	# Dispose Gemstone
 	if storage_comp.is_carrying_item_of_type(Enum.ItemType.GEMSTONE):
 		_create_action_point_tasks_for_type(ActionPoint.ApType.DROPOFF_GEMSTONE)
@@ -502,7 +507,10 @@ func _look_into_dir(dir: Vector2) -> void:
 
 ## Called when nav is updated while dwarf is following a path
 func _validate_current_path() -> void:
-	if curr_path != null and task_queue.has_current_task() and task_queue.curr_task.is_move_to_task():
+	if curr_path == null:
+		return
+
+	if task_queue.has_current_task() and task_queue.curr_task.is_move_to_task():
 		# print_rich("%s validating/updating current path to task %s" % [ self , task_queue.curr_task])
 
 		# Just start movement task again for now
@@ -596,10 +604,7 @@ func _perform_move_to_task(task: Task) -> void:
 
 	# Success
 	print_rich("%s started moving to target position %s for task %s" % [self, new_path._grid_points.back(), task])
-	if curr_path:
-		curr_path.delete()
-	curr_path = new_path
-	curr_path.set_debug_draw_color(dwarf_color)
+	_set_curr_path(new_path)
 
 	sm.transition_to(State.MOVING)
 
@@ -678,75 +683,10 @@ func _perform_stationary_task(task: Task) -> void:
 		_abort_tasks_enter_idle()
 		return
 
+
 ########################################################################################################################
-# DEBUG DRAWING
+# DEBUG
 ########################################################################################################################
-var _debug_draw_proxy_relative := DebugDrawProxy.new(self)
-var _debug_draw_proxy_absolute := DebugDrawProxy.new(self, false)
-
-const debug_state_colors := {
-	State.IDLE: Color.WHITE, # White
-	State.MOVING: Color(1.0, 1.0, 0.0), # Yellow
-	State.MINING: Color(1.0, 0.0, 0.0), # Red
-	State.BUILDING: Color(0.0, 1.0, 0.0), # GREEN
-	State.FALLING: Color(1.0, 0.0, 1.0), # Magenta
-	State.DYING: Color(0.0, 0.0, 0.0), # Black
-	State.ACTION: Color(0.2, 0.2, 1.0), # Blue
-}
-
-const debug_label_width := 1.0 * Global.CELL_SIZE
-const debug_label_offset := Vector2(0.0, -0.8) * Global.CELL_SIZE_VEC + Vector2(-debug_label_width / 2.0, 0.0)
-const debug_occupied_cell_alpha := 0.1
-
-var debug_font := ThemeDB.fallback_font
-var debug_font_size := 20
-
-
-func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
-	if not EventBus.dev_draw_dwarf_info:
-		return
-
-	# Status Text
-	var color_actual: Color = debug_state_colors.get(sm.state, Colors.FALLBACK_COLOR)
-	var text: String = Enum.to_str(Dwarf.State, sm.state)
-
-	ui_layer.draw_string(debug_font, debug_label_offset, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, color_actual)
-
-	# Add movement component state below, smaller
-	text = movement_comp.get_state_string()
-	var offset_second := debug_label_offset + Vector2(0.0, debug_font_size + 4.0)
-	var size_second: int = roundi(debug_font_size * 0.65)
-	ui_layer.draw_string(debug_font, offset_second, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, size_second, color_actual)
-
-
-func _debug_draw_in_ui_absolute(ui_layer: CanvasItem) -> void:
-	if not EventBus.dev_draw_dwarf_info:
-		return
-
-	# Draw Occupied Cell
-	var cell_to_draw: Cell = curr_cell
-
-	if cell_to_draw != null:
-		var offset: Vector2 = cell_to_draw.global_position
-		var cell_poly_points := cell_to_draw.visual.poly_points.duplicate()
-		for i in range(cell_poly_points.size()):
-			cell_poly_points[i] += offset
-
-		ui_layer.draw_colored_polygon(cell_poly_points, Colors.with_alpha(dwarf_color, debug_occupied_cell_alpha))
-
-
-func _dev_toogle_light() -> void:
-	light.enabled = EventBus.dev_light_on
-
-
-func _dev_toogle_dwarf_draw_info() -> void:
-	_debug_draw_proxy_absolute.queue_redraw()
-	_debug_draw_proxy_relative.queue_redraw()
-
-	if curr_path != null:
-		curr_path.set_debug_draw_enabled(EventBus.dev_draw_dwarf_info)
-
-
 func _to_string() -> String:
 	var print_color := Colors.to_print_color(dwarf_color)
 	return Util.color_string("Dwarf-%d (%s @%s)" % [dwarf_id, Enum.to_str(State, sm.state), grid_pos], print_color)
