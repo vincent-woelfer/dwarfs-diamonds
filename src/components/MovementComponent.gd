@@ -59,20 +59,13 @@ func assign_path(new_path: Path) -> bool:
 	if new_path == null or sm.state in [State.FALLING, State.CARRIED]:
 		return false
 
-	# Delete old path
-	if path:
-		path.delete()
-
+	_delete_path()
 	sm.transition_to(State.FOLLOWING_PATH, new_path)
 	return true
 
 
 func abort_path() -> void:
-	# Hide old path
-	if path:
-		path.delete()
-	path = null
-
+	_delete_path()
 	if sm.state == State.FOLLOWING_PATH:
 		sm.transition_to(State.NOT_MOVING)
 
@@ -180,7 +173,6 @@ func _enter_following_path(new_path: Path) -> void:
 		return
 
 	path = new_path
-
 	path.set_debug_draw_enabled(EventBus.dev_draw_dwarf_info)
 	path.set_debug_draw_color(_get_debug_path_color())
 	path.start_following_from_pos(parent.global_position, parent_width)
@@ -191,9 +183,7 @@ func _enter_following_path(new_path: Path) -> void:
 
 
 func _exit_following_path() -> void:
-	if path:
-		path.delete()
-	path = null
+	_delete_path()
 
 	# Stop audio
 	if _audio_player_positional != null:
@@ -249,6 +239,12 @@ func _physics_process_not_moving(delta: float) -> void:
 ########################################################################################################################
 # INTERNAL HELPERS
 ########################################################################################################################
+func _delete_path() -> void:
+	if path:
+		path.delete()
+	path = null
+
+
 ## Check if we should start/stop falling. Returns true if state changed.
 ## Called in physics process of states: FALLING, NOT_MOVING, FOLLOWING_PATH
 func _update_on_ground_check() -> bool:

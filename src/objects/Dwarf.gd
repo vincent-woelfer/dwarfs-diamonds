@@ -480,6 +480,7 @@ func _validate_current_path() -> void:
 		return
 
 	if task_queue.has_current_task() and task_queue.curr_task.is_move_to_task():
+		# TODO replan?
 		# print_rich("%s validating/updating current path to task %s" % [ self , task_queue.curr_task])
 
 		# Just start movement task again for now
