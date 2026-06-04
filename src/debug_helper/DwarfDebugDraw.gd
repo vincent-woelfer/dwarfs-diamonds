@@ -13,8 +13,8 @@ func _ready() -> void:
 	EventBus.Signal_DevToggleDwarfDrawInfo.connect(_dev_toggle_dwarf_draw_info)
 
 	# Init dev states according to global vars
-	call_deferred("_dev_toggle_light")
-	call_deferred("dev_toggle_dwarf_draw_info")
+	self._dev_toggle_light.call_deferred()
+	self._dev_toggle_dwarf_draw_info.call_deferred()
 
 	# Dwarf Signals
 	dwarf.Signal_OnNewCellEntered.connect(_on_new_cell_entered)
