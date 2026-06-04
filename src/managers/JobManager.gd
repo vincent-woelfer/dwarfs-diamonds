@@ -223,7 +223,7 @@ var debug_font := ThemeDB.fallback_font
 var debug_font_size := 14
 
 
-func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
+func debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
 	var num_already_drawn_per_cell: Dictionary[Vector2i, int] = { }
 
 	for job in _jobs:

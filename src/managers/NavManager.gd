@@ -257,7 +257,7 @@ var debug_arrow_width := 10.0
 var debug_point_offset := Vector2(0.0, 0.4) * Global.CELL_SIZE_VEC
 
 
-func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
+func debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
 	if not _astar:
 		return
 

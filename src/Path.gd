@@ -392,7 +392,7 @@ var debug_offset_follow_points := Vector2(0.0, -0.05) * Global.CELL_SIZE_VEC:
 		_debug_draw_proxy_relative.queue_redraw()
 
 
-func _debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
+func debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
 	if not debug_draw:
 		return
 

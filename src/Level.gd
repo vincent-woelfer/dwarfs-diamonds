@@ -81,8 +81,8 @@ func _ready() -> void:
 
 		# DWARF
 		spawn_dwarf(8)
-		spawn_dwarf(14)
-		spawn_dwarf(20)
+		# spawn_dwarf(14)
+		# spawn_dwarf(20)
 
 
 func spawn_dwarf(x: int) -> void:

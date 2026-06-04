@@ -4,8 +4,8 @@ extends Node2D
 var target: Node2D
 var follow_target: bool = true
 
-const method_draw_in_ui_relative := "_debug_draw_in_ui_relative"
-const method_draw_in_ui_absolute := "_debug_draw_in_ui_absolute"
+const method_draw_in_ui_relative := "debug_draw_in_ui_relative"
+const method_draw_in_ui_absolute := "debug_draw_in_ui_absolute"
 
 
 func _init(target_: Node2D, follow_target_: bool = true) -> void:
@@ -38,10 +38,13 @@ func _draw() -> void:
 
 	# Relative draw call
 	if follow_target:
+		print("1")
 		if target.has_method(method_draw_in_ui_relative):
+			print("2")
 			if self.visible:
+				print("3")
 				@warning_ignore("UNSAFE_METHOD_ACCESS")
-				target._debug_draw_in_ui_relative(self)
+				target.debug_draw_in_ui_relative(self)
 		else:
 			push_error("DebugDrawProxy: Target %s does not have method %s" % [target, method_draw_in_ui_relative])
 
@@ -50,6 +53,6 @@ func _draw() -> void:
 		if target.has_method(method_draw_in_ui_absolute):
 			if self.visible:
 				@warning_ignore("UNSAFE_METHOD_ACCESS")
-				target._debug_draw_in_ui_absolute(self)
+				target.debug_draw_in_ui_absolute(self)
 		else:
 			push_error("DebugDrawProxy: Target %s does not have method %s" % [target, method_draw_in_ui_absolute])
