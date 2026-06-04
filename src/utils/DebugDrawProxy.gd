@@ -38,11 +38,8 @@ func _draw() -> void:
 
 	# Relative draw call
 	if follow_target:
-		print("1")
 		if target.has_method(method_draw_in_ui_relative):
-			print("2")
 			if self.visible:
-				print("3")
 				@warning_ignore("UNSAFE_METHOD_ACCESS")
 				target.debug_draw_in_ui_relative(self)
 		else:

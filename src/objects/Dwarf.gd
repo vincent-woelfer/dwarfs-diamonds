@@ -11,7 +11,8 @@ extends GridObject2D
 @onready var task_queue: TaskQueueComponent = $TaskQueueComponent
 @onready var action_point_comp: ActionPointComponent = $ActionPointComponent
 
-@onready var _dwarf_debug_draw: DwarfDebugDraw = $DwarfDebugDraw
+# Exists (in editor scene) but we never reference it in code.
+#@onready var _dwarf_debug_draw: DwarfDebugDraw = $DwarfDebugDraw
 
 # Static ID generator
 static var next_dwarf_id: int = 0
@@ -70,7 +71,7 @@ func _ready() -> void:
 
 	action_point_comp.Signal_OnActionCompleted.connect(_on_action_completed)
 
-	self.Signal_OnNewCellEntered.connect(_on_new_cell_entered)
+	Signal_OnNewCellEntered.connect(_on_new_cell_entered)
 
 
 ########################################################################################################################

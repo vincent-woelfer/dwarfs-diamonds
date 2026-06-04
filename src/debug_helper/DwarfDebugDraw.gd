@@ -47,26 +47,23 @@ func _ready() -> void:
 	self._dev_toggle_dwarf_draw_info.call_deferred()
 
 	# Dwarf Signals
-	dwarf.Signal_OnNewCellEntered.connect(_on_new_cell_entered)
+	dwarf.sm.Signal_StateChanged.connect(_redraw.unbind(2))
 
 
-## Triggered by movement component
-func _on_new_cell_entered(new_cell: Cell) -> void:
+# ## Triggered by state change in parent state machine
+func _redraw() -> void:
 	_debug_draw_proxy_absolute.queue_redraw()
+	_debug_draw_proxy_relative.queue_redraw()
 
 
 ## Called by DebugDrawProxy
 func debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
-	print("4444")
 	if not EventBus.dev_draw_dwarf_info:
 		return
-
-	print("5555")
 
 	# Status Text
 	var color_actual: Color = debug_state_colors.get(dwarf.sm.state, Colors.FALLBACK_COLOR)
 	var text: String = Enum.to_str(Dwarf.State, dwarf.sm.state)
-	print_rich("DRAWING %s Dwarf State: %s" % [dwarf, text])
 
 	ui_layer.draw_string(debug_font, debug_label_offset, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, color_actual)
 
