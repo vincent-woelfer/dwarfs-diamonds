@@ -11,10 +11,6 @@ static func rand_color() -> Color:
 	return Color(randf_range(0.2, 0.8), randf_range(0.2, 0.8), randf_range(0.2, 0.8), 1.0)
 
 
-static func rand_rubble_color() -> Color:
-	return Color(randf_range(0.5, 1.0), randf_range(0.5, 1.0), randf_range(0.5, 1.0), 1.0)
-	
-
 ## Returns a lighter version of the color for printing in console
 static func to_print_color(color: Color) -> Color:
 	return color.lightened(0.35)

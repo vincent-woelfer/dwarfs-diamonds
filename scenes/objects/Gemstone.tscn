@@ -7,11 +7,11 @@
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_k2h34"]
 load_path = "res://.godot/imported/gemstone_1.png-7e4ea598f092dbb99e1cf0ebfe202fe8.ctex"
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_ty5o6"]
-size = Vector2(30, 26)
-
 [sub_resource type="CompressedTexture2D" id="CompressedTexture2D_aj0ih"]
 load_path = "res://.godot/imported/gradient_light_flares.png-3b95c20205bf3fddcaa6796d3ceae588.ctex"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ty5o6"]
+size = Vector2(30, 26)
 
 [node name="AbstractItem" unique_id=1896315996 instance=ExtResource("1_k2h34")]
 weight = 0.2
@@ -19,14 +19,14 @@ item_type = 1
 on_spawned_audio = ExtResource("2_ty5o6")
 on_landed_audio = ExtResource("3_268gt")
 
-[node name="Sprite" parent="." index="0" unique_id=758708384]
+[node name="Sprite" parent="VisualRoot" parent_id_path=PackedInt32Array(1274273017) index="0" unique_id=758708384]
 position = Vector2(0, -14)
 scale = Vector2(0.02, 0.02)
 texture = SubResource("CompressedTexture2D_k2h34")
 
-[node name="StackingShape" parent="." index="2" unique_id=1208221848]
-shape = SubResource("RectangleShape2D_ty5o6")
-
-[node name="PointLight" parent="." index="3" unique_id=1069997814]
+[node name="PointLight" parent="VisualRoot" parent_id_path=PackedInt32Array(1274273017) index="1" unique_id=1069997814]
 position = Vector2(0, -13)
 texture = SubResource("CompressedTexture2D_aj0ih")
+
+[node name="StackingShape" parent="." index="2" unique_id=1208221848]
+shape = SubResource("RectangleShape2D_ty5o6")

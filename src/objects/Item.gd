@@ -2,13 +2,14 @@ class_name Item
 extends GridObject2D
 
 # THIS IS A SCENE
-# Scene Components - Required
-@onready var sprite: Sprite2D = $Sprite
+# Scene Components - Components
 @onready var movement_comp: MovementComponent = $MovementComponent
 @onready var stacking_shape: CollisionShape2D = $StackingShape
 
-# Scene Components - Optional
-@onready var light: PointLight2D = $PointLight
+# Scene Components - Under Visual Root
+@onready var visual_root: Node2D = $VisualRoot
+@onready var sprite: Sprite2D = $VisualRoot/Sprite
+@onready var light: PointLight2D = $VisualRoot/PointLight
 
 # Used to set Item weight
 @export var weight: float = 1.0
@@ -61,7 +62,7 @@ func _ready() -> void:
 	if item_type == Enum.ItemType.GEMSTONE:
 		sprite.modulate = gem_color * 2.0
 	elif item_type == Enum.ItemType.RUBBLE:
-		sprite.modulate = Colors.rand_rubble_color()
+		pass # default white, maybe later add some variation here as well
 
 	# Light
 	if light != null:
@@ -78,7 +79,8 @@ func _ready() -> void:
 	######
 	_add_pickup_job()
 	Audio.play_at_pos_stream(on_spawned_audio, global_position)
-	# _spawn_animation()
+
+	_spawn_animation()
 
 
 func on_picked_up(new_storage: StorageComponent) -> void:
@@ -195,16 +197,10 @@ func get_print_name() -> String:
 
 
 func _spawn_animation() -> void:
-	var prev_modulate := modulate
-
-	# Start scaled to zero and bright white
-	scale = Vector2.ZERO
-	modulate = Color(8.0, 8.0, 8.0, 1.0) # HDR white flash
+	var original_modulate: Color = visual_root.modulate
+	visual_root.scale = Vector2.ZERO
+	visual_root.modulate = Color(8.0, 8.0, 8.0, 8.0)
 
 	var tween: Tween = create_tween().set_parallel(true)
-
-	# Plop: scale from 0 to 1 with slight overshoot
-	tween.tween_property(self, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-
-	# White flash: fade modulate back to normal color
-	tween.tween_property(self, "modulate", prev_modulate, 0.25).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "visual_root:scale", Vector2.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "visual_root:modulate", original_modulate, 0.4).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)

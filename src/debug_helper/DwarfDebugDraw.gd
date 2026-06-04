@@ -78,6 +78,9 @@ func _debug_draw_in_ui_absolute(ui_layer: CanvasItem) -> void:
 
 
 func _dev_toogle_light() -> void:
+	if dwarf.light == null:
+		return
+
 	dwarf.light.enabled = EventBus.dev_light_on
 
 

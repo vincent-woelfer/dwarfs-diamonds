@@ -26,6 +26,7 @@ var level_stats_manager: LevelStatsManager
 
 var sun_system: SunSystem
 
+
 ########################################################################################################################
 # READY
 ########################################################################################################################
@@ -102,6 +103,7 @@ func spawn_dwarf(x: int) -> void:
 
 	assert(false)
 
+
 func remove_dwarf(dwarf: Dwarf) -> void:
 	dwarfs.erase(dwarf)
 
@@ -113,6 +115,11 @@ func spawn_item(grid_pos: Vector2i, item_scene: PackedScene) -> void:
 
 	var item: Item = item_scene.instantiate()
 	var spawn_offset := Vector2(0, -Global.CELL_SIZE * 0.3) # Spawn above floor
+
+	# Random horizontal offset to avoid perfect stacking and make it look more natural
+	var max_horizontal_offset := Global.CELL_SIZE * 0.35
+	spawn_offset.x = randf_range(-max_horizontal_offset, max_horizontal_offset)
+
 	item.setup_item(grid_pos, spawn_offset)
 	add_child(item)
 
@@ -128,6 +135,7 @@ func preplace_torches() -> void:
 			# if not cell.is_solid and place_torch and should_contain_torch(grid_pos):
 			if not cell.is_solid and should_contain_torch(grid_pos):
 				cell.add_deco_element(DecoTorch.instantiate())
+
 
 ## Deterministic torch placement
 func should_contain_torch(grid_pos: Vector2i) -> bool:
@@ -165,6 +173,7 @@ func should_contain_torch(grid_pos: Vector2i) -> bool:
 
 	# return false
 
+
 ########################################################################################################################
 # Max Elevation / Sky
 ########################################################################################################################
@@ -174,8 +183,10 @@ func _get_max_elevation_at_x(x: int) -> int:
 		return 1 # 1 So at least one line of sky
 	return max_elevatation_at_x[x]
 
+
 func is_sky(grid_pos: Vector2i) -> bool:
 	return grid_pos.y < _get_max_elevation_at_x(grid_pos.x)
+
 
 ########################################################################################################################
 # Level Generation
@@ -197,7 +208,7 @@ func _generate_grid() -> void:
 	var texture: NoiseTexture2D = NoiseTexture2D.new()
 	texture.width = ceil(Global.LEVEL_WIDTH * noise_scale)
 	texture.height = ceil(Global.LEVEL_HEIGHT * noise_scale)
-	
+
 	var fast_noise_lite := FastNoiseLite.new()
 	fast_noise_lite.seed = Global.FIXED_MAP_SEED
 	texture.noise = fast_noise_lite
@@ -207,7 +218,7 @@ func _generate_grid() -> void:
 	_generate_max_elevation_profile(image, noise_scale)
 
 	var threshold_above_is_solid := 0.25
-	
+
 	for x in range(Global.LEVEL_WIDTH):
 		for y in range(Global.LEVEL_HEIGHT):
 			var type: Enum.CellType = [Enum.CellType.A, Enum.CellType.B, Enum.CellType.C].pick_random()
@@ -254,12 +265,12 @@ func _generate_max_elevation_profile(image: Image, noise_scale: float) -> void:
 		new_max_elevatation_at_x[x] = roundi((max_elevatation_at_x[x - 1] + max_elevatation_at_x[x] + max_elevatation_at_x[x + 1]) / 3.0)
 	max_elevatation_at_x = new_max_elevatation_at_x
 
-
 ########################################################################################################################
 # Light Calculation
 ########################################################################################################################
 # Queue of cells that need light depth update. Used to batch updates and avoid redundant calculations
 var _light_depth_update_queue: Array[Vector2i] = []
+
 
 func queue_update_cell_light_depth(grid_pos: Vector2i) -> void:
 	if not Util.is_grid_pos_valid(grid_pos):
@@ -289,7 +300,7 @@ func _update_all_light_depths() -> void:
 		for cell_pos in _light_depth_update_queue:
 			_incremental_light_depth_update_cell_to_free(cell_pos)
 	_light_depth_update_queue.clear()
-	
+
 	var duration := Time.get_ticks_msec() - start_time
 	if duration > 1:
 		HexLog.print("Level => Updated light depth map in: %d ms" % [duration], Colors.LIGHT_DEPTH_PRINT_COLOR)
@@ -327,6 +338,7 @@ func _full_light_depths_update() -> void:
 				cells[n.x][n.y].light_depth = new_depth
 				queue.append(n)
 
+
 ## Change one cell to free and update neighbouring cells. Faster than full recomputation
 func _incremental_light_depth_update_cell_to_free(pos: Vector2i) -> void:
 	assert(cells[pos.x][pos.y].is_solid == false)
@@ -348,12 +360,14 @@ func _incremental_light_depth_update_cell_to_free(pos: Vector2i) -> void:
 				cells[n.x][n.y].light_depth = new_depth
 				queue.append(n)
 
+
 ########################################################################################################################
 # PROCESS
 ########################################################################################################################
 func _process(delta: float) -> void:
 	if not _light_depth_update_queue.is_empty():
 		_update_all_light_depths()
+
 
 ########################################################################################################################
 # Helper functions

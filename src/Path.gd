@@ -43,8 +43,6 @@ func _init(grid_points_: Array[Vector2i]) -> void:
 	self._center_points = Util.grid_to_world_cell_center_array(_grid_points)
 	_calculate_floor_points_and_move_modes()
 
-	set_debug_draw_enabled(EventBus.dev_draw_dwarf_info)
-
 
 func delete() -> void:
 	queue_free()
