@@ -113,7 +113,6 @@ func _enter_moving() -> void:
 
 
 func _exit_moving() -> void:
-	# Stop movement
 	if movement_comp.sm.state == MovementComponent.State.FOLLOWING_PATH:
 		movement_comp.abort_path()
 
@@ -122,23 +121,17 @@ func _exit_moving() -> void:
 # MINING
 ###################################
 func _enter_mining(cell_to_mine: Cell) -> void:
-	if cell_to_mine == null:
-		print_rich("%s cannot enter mining state with null cell, aborting" % [self])
-		sm.transition_to(State.IDLE)
-		return
-
 	if not mining_comp.start_mining(cell_to_mine):
 		print_rich("%s failed to start mining %s, aborting" % [self, cell_to_mine])
 		sm.transition_to(State.IDLE)
 		return
 
 	# Look at mined cell
-	animated_sprite.play("swing_vertical")
 	_look_into_dir(cell_to_mine.grid_pos - grid_pos)
+	animated_sprite.play("swing_vertical")
 
 
 func _exit_mining() -> void:
-	# Abort mining
 	mining_comp.stop_mining_all_cells()
 
 
@@ -151,23 +144,18 @@ func _enter_building(building: Building) -> void:
 		sm.transition_to(State.IDLE)
 		return
 
-	var cell: Cell = Global.level.get_cell(building.grid_pos)
+	var cell_building: Cell = Global.level.get_cell(building.grid_pos)
 	var cell_from: Cell = self.curr_cell
 
-	if cell == null or cell_from == null:
-		print_rich("%s cannot enter building state with null cells, aborting" % [self])
-		sm.transition_to(State.IDLE)
-		return
-
 	# Check if success -> abort if not
-	if not construction_comp.start_building(cell, cell_from, building):
+	if not construction_comp.start_building(cell_building, cell_from, building):
 		print_rich("%s failed to start building %s, aborting" % [self, building])
 		sm.transition_to(State.IDLE)
 		return
 
 	# Look at cell where building is built
-	animated_sprite.play("swing_horizontal")
 	_look_into_dir(building.grid_pos - grid_pos)
+	animated_sprite.play("swing_horizontal")
 
 
 func _exit_building() -> void:
@@ -179,19 +167,14 @@ func _exit_building() -> void:
 # ACTION
 ###################################
 func _enter_action(action_point: ActionPoint) -> void:
-	if action_point == null:
-		print_rich("%s cannot enter interacting state with null action point, aborting" % [self])
-		sm.transition_to(State.IDLE)
-		return
-
 	if not action_point_comp.start_action(action_point):
 		print_rich("%s failed to start action for action point %s, aborting" % [self, action_point])
 		sm.transition_to(State.IDLE)
 		return
 
 	# Look at action point
-	animated_sprite.play("interact")
 	_look_into_dir(action_point.grid_pos - grid_pos)
+	animated_sprite.play("interact")
 
 
 func _exit_action() -> void:
@@ -203,8 +186,6 @@ func _exit_action() -> void:
 ###################################
 func _enter_falling() -> void:
 	animated_sprite.play("fall")
-
-	# Log
 	print_rich("%s started falling for %d cells" % [self, est_fall_height_cells])
 
 	# Audio only for actually falling multiple cells
@@ -220,16 +201,13 @@ func _enter_falling() -> void:
 ###################################
 func _enter_dying() -> void:
 	animated_sprite.play("die")
-
 	print_rich("%s has died!" % [self])
 
 	storage_comp.drop_all()
-
 	_abort_tasks_enter_idle()
 
 	# Play death sound
 	Audio.play_at_pos_with_pitch("dwarf_on_landing", global_position, 1.8)
-
 	Global.level.remove_dwarf(self)
 
 	# Hide player sprite + light
@@ -270,8 +248,7 @@ func _on_finished_path() -> void:
 
 ## Triggered by MiningComponent for any finished cell (doesnt necessarily means dwarf is no longer mining)
 func _on_mining_completed(mined_cell: Cell) -> void:
-	# General catch-all print
-	if not task_queue.has_current_task() or task_queue.curr_task.type != Task.Type.MINE or task_queue.curr_task.target_grid_pos != mined_cell.grid_pos:
+	if not _verify_curr_task(Task.Type.MINE, mined_cell.grid_pos):
 		print_rich("%s completed mining %s but doesnt match current task %s, ignoring!" % [self, mined_cell, task_queue.curr_task])
 		return
 
@@ -284,20 +261,19 @@ func _on_mining_completed(mined_cell: Cell) -> void:
 ## Triggered by ConstructionComponent
 func _on_construction_completed(building: Building) -> void:
 	# For buildings this is the normal case since this callback is triggered AFTER the building has completed itself and finished the task.
-	if not task_queue.has_current_task() or task_queue.curr_task.type != Task.Type.CONSTRUCT or task_queue.curr_task.building != building:
+	if not _verify_curr_task(Task.Type.CONSTRUCT, building):
 		print_rich("%s completed construction of %s but doesnt match current task %s, ignoring!" % [self, building, task_queue.curr_task])
 		return
 
 	# Finished building while in BUILDING state
 	print_rich("%s completed construction of %s" % [self, building])
-	# Job is archived by building itself
 	_finish_task_and_start_next(Task.Type.CONSTRUCT)
 
 
 ## Triggered by ActionPointComponent
 func _on_action_completed(action_point: ActionPoint) -> void:
 	# For action points this is the normal case since this callback is triggered AFTER the action point has completed itself and finished the task.
-	if not task_queue.has_current_task() or task_queue.curr_task.type != Task.Type.ACTION_POINT or task_queue.curr_task.action_point != action_point:
+	if not _verify_curr_task(Task.Type.ACTION_POINT, action_point):
 		print_rich("%s completed action for %s but doesnt match current task %s, ignoring!" % [self, action_point, task_queue.curr_task])
 		return
 
@@ -305,7 +281,7 @@ func _on_action_completed(action_point: ActionPoint) -> void:
 	_finish_task_and_start_next(Task.Type.ACTION_POINT)
 
 
-## Triggered by GridObject2D
+## Triggered by GridObject2D (and manually again when landing)
 func _on_new_cell_entered(new_cell: Cell) -> void:
 	if new_cell == null:
 		return
@@ -421,6 +397,12 @@ func _apply_for_job() -> void:
 	if not has_applied_for_job and sm.state == State.IDLE:
 		# Failed to apply, own tasks as fallback
 		_create_own_tasks()
+
+
+func _verify_curr_task(expected_type: Task.Type, expected_var: Variant) -> bool:
+	if not task_queue.has_current_task() or task_queue.curr_task.verify(expected_type, expected_var):
+		return false
+	return true
 
 
 func _abort_tasks_enter_idle() -> void:

@@ -96,6 +96,31 @@ func has_reached_move_to_position(dwarf: Dwarf) -> bool:
 	return false
 
 
+func verify(expeced_type: Type, expected_var: Variant) -> bool:
+	# Check type
+	if type != expeced_type:
+		return false
+
+	# Check context dependent variable
+	match type:
+		Type.MOVE_TO_JOB:
+			return job == expected_var
+		Type.MOVE_TO_CELL:
+			return target_grid_pos == expected_var
+		Type.MINE:
+			return target_grid_pos == expected_var
+		Type.CONSTRUCT:
+			return building == expected_var
+		Type.PICKUP:
+			return item == expected_var
+		Type.ACTION_POINT:
+			return action_point == expected_var
+		Type.PLACE_TORCH:
+			return target_grid_pos == expected_var
+
+	return true
+
+
 ########################################################################################################################
 # STATIC FACTORY METHODS
 ########################################################################################################################
