@@ -28,17 +28,19 @@ static var sounds: Dictionary[String, AudioStream] = {
 
 # Relative volume adjustments in dB for each sound, assuming 0.0 as default (no modification, original volume from track)
 static var sounds_volume_db: Dictionary[String, float] = {
-	"dwarf_on_landing": - 4.0,
-	"item_placing": + 8.0,
-	"ohoh_1": + 4.0,
-	"ohoh_2": + 4.0,
-	"ohoh_3": + 4.0,
-	"dispose_trash": + 8.0,
-	'gemstone_dropoff': + 8.0,
+	"dwarf_on_landing": -4.0,
+	"item_placing": +8.0,
+	"ohoh_1": +4.0,
+	"ohoh_2": +4.0,
+	"ohoh_3": +4.0,
+	"dispose_trash": +8.0,
+	"gemstone_drop": +8.0,
+	'gemstone_dropoff': +8.0,
 }
 
 # General volume adjustment in dB applied to all sounds
 static var general_sounds_volume_db: float = 5.0
+
 
 ########################################################################################################################
 # PUBLIC API - Utility
@@ -57,6 +59,7 @@ func get_audio_stream(audio_name: String) -> AudioStream:
 func play_at_pos_stream(audio_stream: AudioStream, pos: Vector2) -> AudioStreamPlayer2D:
 	return play_at_pos_with_pitch_stream(audio_stream, pos, 1.0)
 
+
 func play_at_pos_with_pitch_stream(audio_stream: AudioStream, pos: Vector2, pitch: float) -> AudioStreamPlayer2D:
 	if audio_stream == null:
 		return
@@ -70,8 +73,10 @@ func play_at_pos_with_pitch_stream(audio_stream: AudioStream, pos: Vector2, pitc
 
 	return player
 
+
 func play_at_pos(audio_name: String, pos: Vector2) -> AudioStreamPlayer2D:
 	return play_at_pos_with_pitch(audio_name, pos, 1.0)
+
 
 func play_at_pos_with_pitch(audio_name: String, pos: Vector2, pitch: float) -> AudioStreamPlayer2D:
 	var stream := get_audio_stream(audio_name)
@@ -87,11 +92,13 @@ func play_at_pos_with_pitch(audio_name: String, pos: Vector2, pitch: float) -> A
 
 	return player
 
+
 func stop_player(player: AudioStreamPlayer2D) -> void:
 	if player == null or player not in _player_pool:
 		return
 
 	player.stop()
+
 
 func update_player_position(player: AudioStreamPlayer2D, new_pos: Vector2) -> void:
 	if player == null or player not in _player_pool:
@@ -106,10 +113,11 @@ func update_player_position(player: AudioStreamPlayer2D, new_pos: Vector2) -> vo
 func play_global_stream(audio_stream: AudioStream) -> AudioStreamPlayer:
 	return play_global_with_pitch_stream(audio_stream, 1.0)
 
+
 func play_global_with_pitch_stream(audio_stream: AudioStream, pitch: float) -> AudioStreamPlayer:
 	if audio_stream == null:
 		return
-		
+
 	var player := _get_free_global_player()
 	player.stream = audio_stream
 	player.pitch_scale = pitch
@@ -117,8 +125,10 @@ func play_global_with_pitch_stream(audio_stream: AudioStream, pitch: float) -> A
 	player.play()
 	return player
 
+
 func play_global(audio_name: String) -> AudioStreamPlayer:
 	return play_global_with_pitch(audio_name, 1.0)
+
 
 func play_global_with_pitch(audio_name: String, pitch: float) -> AudioStreamPlayer:
 	var stream := get_audio_stream(audio_name)
@@ -132,12 +142,12 @@ func play_global_with_pitch(audio_name: String, pitch: float) -> AudioStreamPlay
 	player.play()
 	return player
 
+
 func stop_global_player(player: AudioStreamPlayer) -> void:
 	if player == null or player not in _global_player_pool:
 		return
 
 	player.stop()
-
 
 ########################################################################################################################
 # INTERNAL API
@@ -146,6 +156,7 @@ func stop_global_player(player: AudioStreamPlayer) -> void:
 var _player_pool: Array[AudioStreamPlayer2D] = []
 var _global_player_pool: Array[AudioStreamPlayer] = []
 var _default_number_of_players: int = 4
+
 
 func _ready() -> void:
 	# Pre-allocate a small pool
@@ -164,6 +175,7 @@ func _get_free_player() -> AudioStreamPlayer2D:
 			return p
 	return _create_new_player()
 
+
 func _get_free_global_player() -> AudioStreamPlayer:
 	for p in _global_player_pool:
 		if not p.playing:
@@ -176,6 +188,7 @@ func _create_new_player() -> AudioStreamPlayer2D:
 	add_child(p)
 	_player_pool.append(p)
 	return p
+
 
 func _create_new_global_player() -> AudioStreamPlayer:
 	var p := AudioStreamPlayer.new()
@@ -202,6 +215,6 @@ func _cleanup_pool(pool: Array) -> void:
 		if not p.playing:
 			pool.erase(p)
 			p.queue_free()
-			
+
 		if pool.size() <= _default_number_of_players:
 			break
