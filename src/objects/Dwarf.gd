@@ -253,7 +253,7 @@ func _enter_dying() -> void:
 ## Triggered by MovementComponent
 func _on_finished_path() -> void:
 	# General catch-all print
-	if !task_queue.has_current_task() or !task_queue.curr_task.is_move_to_task():
+	if not task_queue.has_current_task() or !task_queue.curr_task.is_move_to_task():
 		print_rich("%s finished path but doesnt match current task %s, ignoring!" % [self, task_queue.curr_task])
 		return
 
@@ -271,7 +271,7 @@ func _on_finished_path() -> void:
 ## Triggered by MiningComponent for any finished cell (doesnt necessarily means dwarf is no longer mining)
 func _on_mining_completed(mined_cell: Cell) -> void:
 	# General catch-all print
-	if !task_queue.has_current_task() or task_queue.curr_task.type != Task.Type.MINE or task_queue.curr_task.target_grid_pos != mined_cell.grid_pos:
+	if not task_queue.has_current_task() or task_queue.curr_task.type != Task.Type.MINE or task_queue.curr_task.target_grid_pos != mined_cell.grid_pos:
 		print_rich("%s completed mining %s but doesnt match current task %s, ignoring!" % [self, mined_cell, task_queue.curr_task])
 		return
 
@@ -284,7 +284,7 @@ func _on_mining_completed(mined_cell: Cell) -> void:
 ## Triggered by ConstructionComponent
 func _on_construction_completed(building: Building) -> void:
 	# For buildings this is the normal case since this callback is triggered AFTER the building has completed itself and finished the task.
-	if !task_queue.has_current_task() or task_queue.curr_task.type != Task.Type.CONSTRUCT or task_queue.curr_task.building != building:
+	if not task_queue.has_current_task() or task_queue.curr_task.type != Task.Type.CONSTRUCT or task_queue.curr_task.building != building:
 		print_rich("%s completed construction of %s but doesnt match current task %s, ignoring!" % [self, building, task_queue.curr_task])
 		return
 
@@ -297,7 +297,7 @@ func _on_construction_completed(building: Building) -> void:
 ## Triggered by ActionPointComponent
 func _on_action_completed(action_point: ActionPoint) -> void:
 	# For action points this is the normal case since this callback is triggered AFTER the action point has completed itself and finished the task.
-	if !task_queue.has_current_task() or task_queue.curr_task.type != Task.Type.ACTION_POINT or task_queue.curr_task.action_point != action_point:
+	if not task_queue.has_current_task() or task_queue.curr_task.type != Task.Type.ACTION_POINT or task_queue.curr_task.action_point != action_point:
 		print_rich("%s completed action for %s but doesnt match current task %s, ignoring!" % [self, action_point, task_queue.curr_task])
 		return
 

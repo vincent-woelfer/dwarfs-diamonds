@@ -2,7 +2,6 @@
 class_name MousePointer
 extends Node2D
 
-
 # Scene Components - Visual
 @onready var mouse_pointer_sprite: Sprite2D = $MousePointerSprite
 @onready var building_preview: BuildingPreview = $BuildingPreview
@@ -29,12 +28,12 @@ var curr_center_cell: Cell = null
 var prev_center_cell: Cell = null
 
 # State machine
-enum State {NEUTRAL, BUILDING_PLACEMENT, BUILDING_DESTROY}
+enum State { NEUTRAL, BUILDING_PLACEMENT, BUILDING_DESTROY }
 var sm: StateMachine
 
 
 func _ready() -> void:
-	sm = StateMachine.new(self , State, State.NEUTRAL)
+	sm = StateMachine.new(self, State, State.NEUTRAL)
 
 	self.z_index = Enum.ZIndex.UI_MOUSE_POINTER
 
@@ -59,6 +58,7 @@ func _enter_neutral() -> void:
 	_set_mouse_pointer_sprite(mouse_pointer_texture_normal)
 	mouse_pointer_sprite.visible = true
 
+
 func _exit_neutral() -> void:
 	mouse_pointer_sprite.visible = false
 
@@ -68,6 +68,7 @@ func _exit_neutral() -> void:
 
 	prev_selected_cells.clear()
 	curr_selected_cells.clear()
+
 
 func _physics_process_neutral(delta: float) -> void:
 	# Check for mode change first, if so return
@@ -79,6 +80,7 @@ func _physics_process_neutral(delta: float) -> void:
 	_update_selected_cells()
 	_actions_neutral()
 
+
 ###################################
 # Building Placement State
 ###################################
@@ -87,15 +89,17 @@ func _enter_building_placement(building_data: BuildingDataRes) -> void:
 
 	Global.level.building_placement_manager.set_highlighted_building_type(building_data.type)
 
+
 func _exit_building_placement() -> void:
 	building_preview.set_building_data(null)
 	Global.level.building_placement_manager.set_enabled(false)
+
 
 func _physics_process_building_placement(delta: float) -> void:
 	# Check for mode change first, if so return
 	if _actions_mode_change():
 		return
-	
+
 	# Actions
 	_follow_mouse_pointer()
 	_actions_building_placement()
@@ -108,17 +112,19 @@ func _enter_building_destroy() -> void:
 	_set_mouse_pointer_sprite(mouse_pointer_texture_building_destroy)
 	mouse_pointer_sprite.visible = true
 
+
 func _exit_building_destroy() -> void:
 	mouse_pointer_sprite.visible = false
 
 	# Deselect all buildings highlighted for destruction
 	_unhighlight_all_buildings()
 
+
 func _physics_process_building_destroy(delta: float) -> void:
 	# Check for mode change first, if so return
 	if _actions_mode_change():
 		return
-	
+
 	# Actions
 	_follow_mouse_pointer()
 	_highlight_buildings_under_mouse_for_destruction()
@@ -133,6 +139,7 @@ func _follow_mouse_pointer() -> void:
 
 	prev_center_cell = curr_center_cell
 	curr_center_cell = Global.level.sample_cell_at_world_pos(self.global_position)
+
 
 # TODO implement dynamic list of buildings, e.g. wheel to select or something. For now just hotkeys
 func _actions_mode_change() -> bool:
@@ -206,10 +213,10 @@ func _actions_building_destroy() -> void:
 			for building in curr_center_cell.get_buildings():
 				Actions.remove_building(building)
 
-
 ########################################################################################################################
 # INTERNAL METHODS
 ########################################################################################################################
+
 
 ## Called continously in building destroy mode
 func _highlight_buildings_under_mouse_for_destruction() -> void:
@@ -235,14 +242,15 @@ func _unhighlight_all_buildings() -> void:
 		for building in prev_center_cell.get_buildings():
 			building.set_modulate_external(Color.WHITE)
 
+
 ## Update selected cells based on mouse position and selection pattern
 func _update_selected_cells() -> void:
 	# Selected Cell
 	curr_selected_cells = _sample_cells_at_mouse_pos(self.position)
 
 	# Emit signal if central cell (index 0) changed. Can also be null or changed from null
-	var prev_central_cell := prev_selected_cells[0] if !prev_selected_cells.is_empty() else null
-	var curr_central_cell := curr_selected_cells[0] if !curr_selected_cells.is_empty() else null
+	var prev_central_cell := prev_selected_cells[0] if not prev_selected_cells.is_empty() else null
+	var curr_central_cell := curr_selected_cells[0] if not curr_selected_cells.is_empty() else null
 	if prev_central_cell != curr_central_cell:
 		EventBus.Signal_MouseHoveredCellChanged.emit(curr_central_cell)
 
@@ -260,7 +268,7 @@ func _update_selected_cells() -> void:
 	if Input.is_action_just_pressed("mouse_left"):
 		for cell in curr_selected_cells:
 			Actions.mark_cell_for_mining(cell, not cell.is_marked_for_mining)
-			
+
 	# Continuous press
 	elif Input.is_action_pressed("mouse_left"):
 		for cell in curr_selected_cells:

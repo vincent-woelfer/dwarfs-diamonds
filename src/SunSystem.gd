@@ -20,7 +20,7 @@ var time: float
 var day_duration_sec: float = 120.0
 var night_duration_sec: float = 70.0
 
-# Modifiers for day/night duration, changed by dev_toogle_sun_fast_forward
+# Modifiers for day/night duration, changed by dev_toggle_sun_fast_forward
 var day_duration_factor: float = 1.0
 var night_duration_factor: float = 1.0
 
@@ -47,10 +47,10 @@ func _ready() -> void:
 	time = 0.25
 
 	# Dev Signals
-	EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
-	EventBus.Signal_DevToogleSunFastForward.connect(_dev_toogle_sun_fast_forward)
-	_dev_toogle_light()
-	_dev_toogle_sun_fast_forward()
+	EventBus.Signal_DevToggleLight.connect(_dev_toggle_light)
+	EventBus.Signal_DevToggleSunFastForward.connect(_dev_toggle_sun_fast_forward)
+	_dev_toggle_light()
+	_dev_toggle_sun_fast_forward()
 
 
 func _process(delta: float) -> void:
@@ -103,7 +103,7 @@ func _process(delta: float) -> void:
 	RenderingServer.global_shader_parameter_set("sky_scroll_offset", sky_scroll_offset)
 
 
-func _dev_toogle_light() -> void:
+func _dev_toggle_light() -> void:
 	if EventBus.dev_light_on:
 		# WITH LIGHTING / DARKNESS		
 		# darkness.visible = true
@@ -114,7 +114,7 @@ func _dev_toogle_light() -> void:
 		sunlight.enabled = false
 
 
-func _dev_toogle_sun_fast_forward() -> void:
+func _dev_toggle_sun_fast_forward() -> void:
 	if EventBus.dev_sun_fast_forward:
 		day_duration_factor = 0.05
 		night_duration_factor = 0.05

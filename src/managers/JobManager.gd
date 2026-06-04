@@ -207,8 +207,8 @@ func _ready() -> void:
 	EventBus.Signal_NavUpdated.connect(_on_nav_updated)
 
 	# Dev Signals
-	EventBus.Signal_DevToogleJobsDraw.connect(_dev_toogle_jobs_draw)
-	_dev_toogle_jobs_draw()
+	EventBus.Signal_DevToggleJobsDraw.connect(_dev_toggle_jobs_draw)
+	_dev_toggle_jobs_draw()
 
 
 func _process(delta: float) -> void:
@@ -260,6 +260,6 @@ func _debug_get_offset(idx: int) -> Vector2:
 	return debug_offset_start + debug_offset_inc * idx
 
 
-func _dev_toogle_jobs_draw() -> void:
+func _dev_toggle_jobs_draw() -> void:
 	_debug_draw_proxy_relative.visible = EventBus.dev_draw_jobs
 	_debug_draw_proxy_relative.queue_redraw()

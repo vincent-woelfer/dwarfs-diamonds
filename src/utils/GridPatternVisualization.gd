@@ -122,8 +122,8 @@ func _ready() -> void:
 	needs_rescan = true
 
 	# Dev Signals
-	EventBus.Signal_DevToogleDrawBuildingPattern.connect(_update_is_visible)
-	EventBus.Signal_DevToogleDrawActionPoints.connect(_update_is_visible)
+	EventBus.Signal_DevToggleDrawBuildingPattern.connect(_update_is_visible)
+	EventBus.Signal_DevToggleDrawActionPoints.connect(_update_is_visible)
 	_update_is_visible()
 
 

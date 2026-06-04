@@ -27,31 +27,31 @@ signal Signal_TriggerVisualUpdateAllCells()
 # SIGNALS DIRECTLY FROM INPUT KEYS (default key as comment behind signal)
 ########################################################################################################################
 # F1
-signal Signal_DevToogleNavDraw()
+signal Signal_DevToggleNavDraw()
 var dev_draw_nav: bool = false
 
 # F2
-signal Signal_DevToogleJobsDraw()
+signal Signal_DevToggleJobsDraw()
 var dev_draw_jobs: bool = false
 
 # F3
-signal Signal_DevToogleLight()
+signal Signal_DevToggleLight()
 var dev_light_on: bool = false
 
 # F4
-signal Signal_DevToogleDrawBuildingPattern()
+signal Signal_DevToggleDrawBuildingPattern()
 var dev_draw_building_patterns: bool = false
 
 # F5
-signal Signal_DevToogleDrawActionPoints()
+signal Signal_DevToggleDrawActionPoints()
 var dev_draw_action_points: bool = false
 
 # F6
-signal Signal_DevToogleDwarfDrawInfo()
+signal Signal_DevToggleDwarfDrawInfo()
 var dev_draw_dwarf_info: bool = false
 
 # F12
-signal Signal_DevToogleSunFastForward()
+signal Signal_DevToggleSunFastForward()
 var dev_sun_fast_forward: bool = false
 
 signal Signal_DebugPathSetStartCell(pos: Vector2i)
@@ -65,34 +65,34 @@ func _input(event: InputEvent) -> void:
 		return
 
 	# F1
-	if event.is_action_pressed("dev_toogle_nav_draw"):
+	if event.is_action_pressed("dev_toggle_nav_draw"):
 		dev_draw_nav = not dev_draw_nav
-		Signal_DevToogleNavDraw.emit()
+		Signal_DevToggleNavDraw.emit()
 
 	# F2
-	if event.is_action_pressed("dev_toogle_jobs_draw"):
+	if event.is_action_pressed("dev_toggle_jobs_draw"):
 		dev_draw_jobs = not dev_draw_jobs
-		Signal_DevToogleJobsDraw.emit()
+		Signal_DevToggleJobsDraw.emit()
 
 	# F3
-	if event.is_action_pressed("dev_toogle_light"):
+	if event.is_action_pressed("dev_toggle_light"):
 		dev_light_on = not dev_light_on
-		Signal_DevToogleLight.emit()
+		Signal_DevToggleLight.emit()
 
 	# F4
-	if event.is_action_pressed("dev_toogle_building_draw"):
+	if event.is_action_pressed("dev_toggle_building_draw"):
 		dev_draw_building_patterns = not dev_draw_building_patterns
-		Signal_DevToogleDrawBuildingPattern.emit()
+		Signal_DevToggleDrawBuildingPattern.emit()
 
 	# F5
-	if event.is_action_pressed("dev_toogle_action_point_draw"):
+	if event.is_action_pressed("dev_toggle_action_point_draw"):
 		dev_draw_action_points = not dev_draw_action_points
-		Signal_DevToogleDrawActionPoints.emit()
+		Signal_DevToggleDrawActionPoints.emit()
 
 	# F6
-	if event.is_action_pressed("dev_toogle_dwarf_draw_info"):
+	if event.is_action_pressed("dev_toggle_dwarf_draw_info"):
 		dev_draw_dwarf_info = not dev_draw_dwarf_info
-		Signal_DevToogleDwarfDrawInfo.emit()
+		Signal_DevToggleDwarfDrawInfo.emit()
 	
 	# F11
 	if event.is_action_pressed("dev_dwarf_drop_all_items"):
@@ -100,9 +100,9 @@ func _input(event: InputEvent) -> void:
 			dwarf.storage_comp.drop_all()
 
 	# F12
-	if event.is_action_pressed("dev_toogle_sun_fast_forward"):
+	if event.is_action_pressed("dev_toggle_sun_fast_forward"):
 		dev_sun_fast_forward = not dev_sun_fast_forward
-		Signal_DevToogleSunFastForward.emit()
+		Signal_DevToggleSunFastForward.emit()
 
 
 ########################################################################################################################

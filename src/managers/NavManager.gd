@@ -75,8 +75,8 @@ func _ready() -> void:
 	self.process_priority = Enum.ProcessPriority.NAV
 
 	# Signals
-	EventBus.Signal_DevToogleNavDraw.connect(_dev_toogle_nav_draw)
-	_dev_toogle_nav_draw()
+	EventBus.Signal_DevToggleNavDraw.connect(_dev_toggle_nav_draw)
+	_dev_toggle_nav_draw()
 
 	_generate_nav_grid()
 
@@ -318,6 +318,6 @@ func _draw_arrow(ui_layer: CanvasItem, from_pos: Vector2, to_pos: Vector2, color
 	ui_layer.draw_colored_polygon([arrowtip_point, left_point, right_point], color)
 
 
-func _dev_toogle_nav_draw() -> void:
+func _dev_toggle_nav_draw() -> void:
 	_debug_draw_proxy_relative.visible = EventBus.dev_draw_nav
 	_debug_draw_proxy_relative.queue_redraw()

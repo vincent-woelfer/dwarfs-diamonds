@@ -31,8 +31,8 @@ func place_in_cell(cell: Cell) -> void:
 
 func _ready() -> void:
     # Dev Signals
-    EventBus.Signal_DevToogleLight.connect(_dev_toogle_light)
-    _dev_toogle_light()
+    EventBus.Signal_DevToggleLight.connect(_dev_toggle_light)
+    _dev_toggle_light()
 
     # Signals
     animated_sprite.frame_changed.connect(_on_new_frame)
@@ -74,5 +74,5 @@ func _on_new_frame() -> void:
     tween.tween_property(light, "energy", target_energy, time_for_one_frame / 2.0)
     
     
-func _dev_toogle_light() -> void:
+func _dev_toggle_light() -> void:
     light.enabled = EventBus.dev_light_on
