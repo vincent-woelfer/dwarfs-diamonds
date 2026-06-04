@@ -1,9 +1,12 @@
 class_name PickupJob
 extends AbstractJob
 
-###################################
-# FOR PICKUP JOBS
-###################################
+# Pickup Job is only for items on ground to be moved to storage eventually. 
+# Therefore, they are mostly low priority
+
+########################################################################################################################
+# VARIABLES
+########################################################################################################################
 var item: Item = null
 
 
@@ -39,28 +42,30 @@ func calculate_dwarf_capacity() -> int:
 
 
 func score_job_for_dwarf_with_path(dwarf: Dwarf, path: Path) -> ScoredJob:
-	var remaining_time := estimate_remaining_time()
 	var path_time := path.get_total_time(dwarf.movement_comp.movement_stats)
 
 	# Minimum score is 1.0, base score is path time.
 	var score: float = 1.0 + path_time
 
-	# Dont start jobs that will be finished before we arrive
-	if path_time > remaining_time:
-		return null
+	# Pickup Specific - Pickup is generall low priority, except:
+	# - for gemstones (or other low weight, high value items)
+	# - if we are already on the same cell (no path time)
 
-	# Penalize jobs which are already being worked on / are close to being finished
-	if assigned_dwarfs.size() > 0:
-		score += 10.0
+	# Same Cell:
+	if dwarf.grid_pos == center_cell.grid_pos:
+		if item.is_high_value_item():
+			# Highest priority for same cell high value items
+			score = 0.0
+		else:
+			# Still not highest score, we dont want to always pickup all items
+			pass
 
-	# Pickup Specific
-	# Dont prioritize rubble pickup jobs (unless same cell)
-	if dwarf.grid_pos != center_cell.grid_pos:
-		score += 2.0
-
-	# Prioritize gemstones
-	if item.item_type == Enum.ItemType.GEMSTONE:
-		score -= 2.0
+	# Different cell
+	else:
+		if item.is_high_value_item():
+			score *= 0.5
+		else:
+			score *= 2.0
 
 	return ScoredJob.new(self, path, score)
 

@@ -93,7 +93,7 @@ func estimate_remaining_time() -> float:
 
 		# Dwarf still walking to job
 		else:
-			if dwarf.curr_path:
+			if dwarf.sm.state == Dwarf.State.MOVING:
 				var walk_time: float = dwarf.movement_comp.get_remaining_path_time()
 				var build_time: float = dwarf.construction_comp.estimate_remaining_time_to_build(building)
 				remaining_time = minf(remaining_time, walk_time + build_time)

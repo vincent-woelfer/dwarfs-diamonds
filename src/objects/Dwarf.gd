@@ -19,7 +19,6 @@ var dwarf_id: int
 var dwarf_color: Color
 
 var curr_job: AbstractJob = null
-var curr_path: Path = null
 var has_applied_for_job: bool = false
 
 var num_torches: int = 50
@@ -374,20 +373,6 @@ func _on_nav_updated() -> void:
 ########################################################################################################################
 # OWN (UTILITY) FUNCTIONS
 ########################################################################################################################
-# Setter / Getter for path / job
-func _clear_curr_path() -> void:
-	if curr_path:
-		curr_path.delete()
-	curr_path = null
-
-
-func _set_curr_path(new_path: Path) -> void:
-	_clear_curr_path()
-	curr_path = new_path
-	if curr_path != null:
-		curr_path.set_debug_draw_color(dwarf_color)
-
-
 func _apply_for_job() -> void:
 	if has_applied_for_job:
 		return
@@ -399,8 +384,9 @@ func _apply_for_job() -> void:
 		_create_own_tasks()
 
 
+## Returns true if the current task matches the expected type and var, false otherwise
 func _verify_curr_task(expected_type: Task.Type, expected_var: Variant) -> bool:
-	if not task_queue.has_current_task() or task_queue.curr_task.verify(expected_type, expected_var):
+	if not task_queue.has_current_task() or not task_queue.curr_task.verify(expected_type, expected_var):
 		return false
 	return true
 
@@ -419,7 +405,7 @@ func _abort_tasks_enter_idle() -> void:
 
 	# Clear curr job + path
 	curr_job = null
-	_clear_curr_path()
+	movement_comp.abort_path()
 
 	# Determine if we can transition to idle
 	var transition_to_idle := sm.state != State.FALLING and sm.state != State.DYING
@@ -489,7 +475,7 @@ func _look_into_dir(dir: Vector2) -> void:
 
 ## Called when nav is updated while dwarf is following a path
 func _validate_current_path() -> void:
-	if curr_path == null:
+	if not movement_comp.has_path():
 		return
 
 	if task_queue.has_current_task() and task_queue.curr_task.is_move_to_task():
@@ -585,9 +571,7 @@ func _perform_move_to_task(task: Task) -> void:
 		return
 
 	# Success
-	print_rich("%s started moving to target position %s for task %s" % [self, new_path._grid_points.back(), task])
-	_set_curr_path(new_path)
-
+	# print_rich("%s started moving to target position %s for task %s" % [self, new_path._grid_points.back(), task])	
 	sm.transition_to(State.MOVING)
 
 

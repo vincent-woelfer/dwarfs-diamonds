@@ -32,9 +32,6 @@ const MIN_SKY_HEIGHT: int = 5
 # var FIXED_MAP_SEED: int = 57
 var FIXED_MAP_SEED: int = randi()
 
-# Group Names
-const GROUP_CARRYABLE_ITEMS: String = "carryable_items"
-
 # Relevant Game Objects
 @onready var camera: Camera
 @onready var level: Level
@@ -86,8 +83,8 @@ func _ready() -> void:
 		# Input.mouse_mode = Input.MOUSE_MODE_CONFINED
 
 	_load_global_references()
-	
-		
+
+
 # React to keyboard inputs to directly trigger events
 func _input(event: InputEvent) -> void:
 	if not Engine.is_editor_hint():
@@ -105,7 +102,7 @@ func _on_window_size_changed() -> void:
 
 		if post_process_canvas_layer:
 			post_process_canvas_layer.update_size(size)
-		
+
 		if stencil_viewport:
 			stencil_viewport.update_size(size)
 

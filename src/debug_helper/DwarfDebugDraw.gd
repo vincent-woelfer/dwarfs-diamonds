@@ -1,24 +1,11 @@
 class_name DwarfDebugDraw
 extends Node2D
 
+########################################################################################################################
+# Data
+########################################################################################################################
+## Parent dwarf reference
 var dwarf: Dwarf
-
-
-func _ready() -> void:
-	dwarf = get_parent() as Dwarf
-	assert(dwarf != null, "DwarfDebugDraw must be a child of a Dwarf node")
-
-	# Dev Signals
-	EventBus.Signal_DevToggleLight.connect(_dev_toggle_light)
-	EventBus.Signal_DevToggleDwarfDrawInfo.connect(_dev_toggle_dwarf_draw_info)
-
-	# Init dev states according to global vars
-	self._dev_toggle_light.call_deferred()
-	self._dev_toggle_dwarf_draw_info.call_deferred()
-
-	# Dwarf Signals
-	dwarf.Signal_OnNewCellEntered.connect(_on_new_cell_entered)
-
 
 var _debug_draw_proxy_relative := DebugDrawProxy.new(self, true)
 var _debug_draw_proxy_absolute := DebugDrawProxy.new(self, false)
@@ -39,6 +26,28 @@ const debug_occupied_cell_alpha := 0.1
 
 var debug_font := ThemeDB.fallback_font
 var debug_font_size := 20
+
+
+########################################################################################################################
+# Methods
+########################################################################################################################
+func _ready() -> void:
+	# A bit hacky but delay init to after dwarf (parent) is ready
+	await get_tree().process_frame
+
+	dwarf = get_parent() as Dwarf
+	assert(dwarf != null, "DwarfDebugDraw must be a child of a Dwarf node")
+
+	# Dev Signals
+	EventBus.Signal_DevToggleLight.connect(_dev_toggle_light)
+	EventBus.Signal_DevToggleDwarfDrawInfo.connect(_dev_toggle_dwarf_draw_info)
+
+	# Init dev states according to global vars
+	self._dev_toggle_light.call_deferred()
+	self._dev_toggle_dwarf_draw_info.call_deferred()
+
+	# Dwarf Signals
+	dwarf.Signal_OnNewCellEntered.connect(_on_new_cell_entered)
 
 
 ## Triggered by movement component
@@ -80,15 +89,13 @@ func _debug_draw_in_ui_absolute(ui_layer: CanvasItem) -> void:
 
 
 func _dev_toggle_light() -> void:
-	if dwarf.light == null:
-		return
-
-	dwarf.light.enabled = EventBus.dev_light_on
+	if dwarf.light != null:
+		dwarf.light.enabled = EventBus.dev_light_on
 
 
 func _dev_toggle_dwarf_draw_info() -> void:
 	_debug_draw_proxy_absolute.queue_redraw()
 	_debug_draw_proxy_relative.queue_redraw()
 
-	if dwarf.curr_path != null:
-		dwarf.curr_path.set_debug_draw_enabled(EventBus.dev_draw_dwarf_info)
+	if dwarf.movement_comp.has_path():
+		dwarf.movement_comp.path.set_debug_draw_enabled(EventBus.dev_draw_dwarf_info)

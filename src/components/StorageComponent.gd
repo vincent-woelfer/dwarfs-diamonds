@@ -236,7 +236,7 @@ func get_last_item() -> Item:
 func get_all_pickupable_items_in_range() -> Array[Item]:
 	var items: Array[Item] = []
 
-	for item: Item in Global.get_group(Global.GROUP_CARRYABLE_ITEMS):
+	for item: Item in Global.level.item_manager.get_all_on_ground():
 		if is_in_range(item) and can_pickup(item):
 			items.append(item)
 

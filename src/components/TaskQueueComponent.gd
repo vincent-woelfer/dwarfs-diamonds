@@ -75,8 +75,7 @@ func finish_current_task(expected_task_type: Task.Type) -> bool:
 	# Remove from queue
 	_task_queue.pop_front()
 
-	print_rich("%s finished task %s. %s" % [parent, curr_task, self])
-
+	print_rich("%s finished task %s" % [parent, curr_task])
 	curr_task = null
 
 	return true
@@ -90,7 +89,7 @@ func start_next_task() -> bool:
 		push_warning("Tried to start next task but task queue is empty!")
 		return false
 
-	print_rich("%s starting next task %s. %s" % [parent, _task_queue[0], self])
+	print_rich("%s starting next task %s" % [parent, _task_queue[0]])
 
 	curr_task = _task_queue[0]
 	return true

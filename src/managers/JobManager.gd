@@ -128,19 +128,6 @@ func aggregate_and_score_jobs_for_dwarf(dwarf: Dwarf) -> Array[ScoredJob]:
 	# Return job
 	return scored_jobs
 
-## For now simpliefied gather logic: 
-# 1) Gather list of all items in required
-# func _create_gather_job(dwarf: Dwarf, job: AbstractJob) -> Array[ScoredJob]:
-# var required_item_types: Array[Enum.ItemType] = job.required_items.get_all_item_types()
-
-# for item: Item in Global.get_group(Global.GROUP_CARRYABLE_ITEMS):
-# 	if is_in_range(item) and can_pickup(item):
-# 		items.append(item)
-
-# for item: Item in Global.get_group(Global.GROUP_CARRYABLE_ITEMS):
-# 	if is_in_range(item) and can_pickup(item):
-# 		items.append(item)
-
 
 ## Main job distribution function
 func _distribute_jobs_to_dwarfs() -> void:

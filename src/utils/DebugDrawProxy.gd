@@ -4,6 +4,10 @@ extends Node2D
 var target: Node2D
 var follow_target: bool = true
 
+const method_draw_in_ui_relative := "_debug_draw_in_ui_relative"
+const method_draw_in_ui_absolute := "_debug_draw_in_ui_absolute"
+
+
 func _init(target_: Node2D, follow_target_: bool = true) -> void:
 	target = target_
 	follow_target = follow_target_
@@ -12,7 +16,7 @@ func _init(target_: Node2D, follow_target_: bool = true) -> void:
 
 	# TODO maybe use screen space layer if not following target?
 	if not Engine.is_editor_hint():
-		Global.ui_canvas_layer_world_space.add_child(self )
+		Global.ui_canvas_layer_world_space.add_child(self)
 
 
 func _process(delta: float) -> void:
@@ -27,9 +31,6 @@ func _process(delta: float) -> void:
 		self.global_position = Vector2.ZERO
 
 
-const method_draw_in_ui_relative := "_debug_draw_in_ui_relative"
-const method_draw_in_ui_absolute := "_debug_draw_in_ui_absolute"
-
 func _draw() -> void:
 	if not target:
 		queue_free()
@@ -40,7 +41,7 @@ func _draw() -> void:
 		if target.has_method(method_draw_in_ui_relative):
 			if self.visible:
 				@warning_ignore("UNSAFE_METHOD_ACCESS")
-				target._debug_draw_in_ui_relative(self )
+				target._debug_draw_in_ui_relative(self)
 		else:
 			push_error("DebugDrawProxy: Target %s does not have method %s" % [target, method_draw_in_ui_relative])
 
@@ -49,6 +50,6 @@ func _draw() -> void:
 		if target.has_method(method_draw_in_ui_absolute):
 			if self.visible:
 				@warning_ignore("UNSAFE_METHOD_ACCESS")
-				target._debug_draw_in_ui_absolute(self )
+				target._debug_draw_in_ui_absolute(self)
 		else:
 			push_error("DebugDrawProxy: Target %s does not have method %s" % [target, method_draw_in_ui_absolute])

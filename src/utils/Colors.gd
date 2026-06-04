@@ -1,9 +1,6 @@
 @tool
 class_name Colors
 
-## Magenta, indicates error
-static var FALLBACK_COLOR: Color = Color(1.0, 0.0, 1.0)
-
 ########################################################################################################################
 # COLOR UTILITIES
 ########################################################################################################################
@@ -28,6 +25,7 @@ static func get_rand_dwarf_color(dwarf_id: int) -> Color:
 	var index := dwarf_id % dwarf_colors.size()
 	return dwarf_colors[index]
 
+
 static var dwarf_colors := [
 	Color8(140, 0, 140), # Purple
 	Color8(255, 215, 0), # Gold
@@ -40,6 +38,8 @@ static var dwarf_colors := [
 # BUILDING COLORS
 ########################################################################################################################
 static var building_id: int = 0
+
+
 static func get_rand_building_dev_color() -> Color:
 	# Deterministic based on building_id
 	var index := building_id % building_colors.size()
@@ -47,6 +47,7 @@ static func get_rand_building_dev_color() -> Color:
 	if Engine.is_editor_hint():
 		index = 0
 	return building_colors[index]
+
 
 static var building_colors := [
 	Color8(250, 0, 0), # Red
@@ -56,11 +57,13 @@ static var building_colors := [
 	Color8(140, 0, 140), # Purple
 ]
 
+
 ########################################################################################################################
 # CELL COLORS
 ########################################################################################################################
 static func get_cell_color(type: Enum.CellType) -> Color:
 	return CellTypeColor.get(type, FALLBACK_COLOR)
+
 
 static var CellTypeColor := {
 	Enum.CellType.A: Color8(81, 73, 106), # Deep violet-blue tone
@@ -79,6 +82,7 @@ static var grid_pattern_preview_colors: Array[Color] = [
 	Color8(0, 255, 255), # Cyan
 ]
 
+
 static func get_rand_grid_pattern_color(id: int) -> Color:
 	# Deterministic based on id
 	var index := id % grid_pattern_preview_colors.size()
@@ -91,12 +95,20 @@ static func get_rand_grid_pattern_color(id: int) -> Color:
 static func get_action_point_color(type: ActionPoint.ApType) -> Color:
 	return ActionPointColor.get(type, FALLBACK_COLOR)
 
+
 static var ActionPointColor := {
 	ActionPoint.ApType.DROPOFF_RUBBLE: Color.DARK_ORANGE,
 	ActionPoint.ApType.DROPOFF_GEMSTONE: Color.HOT_PINK,
 	ActionPoint.ApType.CONSTR_MAT_STOCKPILE: Color.RED,
 }
 
+########################################################################################################################
+# FALLBACK COLORS
+########################################################################################################################
+## Magenta, indicates error
+static var FALLBACK_COLOR: Color = Color(1.0, 0.0, 1.0)
+
+static var FALLBACK_PATH_COLOR: Color = Color(1.0, 0.0, 1.0)
 
 ########################################################################################################################
 # BUILDING COLORS
@@ -109,7 +121,6 @@ static var building_light_mask_unfinished: int = 0
 
 static var building_modulate_external_destroy: Color = Color(1.2, 0.0, 0.0, 1.0) # red
 
-
 ########################################################################################################################
 # JOB COLORS
 ########################################################################################################################
@@ -117,7 +128,6 @@ static var JOB_COLOR_ARCHIVED: Color = Color.SLATE_BLUE.lerp(Color.BLUE, 0.5)
 static var JOB_COLOR_BLOCKED: Color = Color.RED.lerp(Color.ORANGE_RED, 0.4)
 static var JOB_COLOR_READY: Color = Color.GREEN_YELLOW
 static var JOB_COLOR_DOING: Color = Color(0.0, 0.8, 0.0)
-
 
 ########################################################################################################################
 # GLOBAL PRINT COLORS
@@ -130,11 +140,9 @@ static var LIGHT_DEPTH_PRINT_COLOR: Color = to_print_color(Color.DARK_BLUE)
 static var TASK_PRINT_COLOR: Color = to_print_color(Color.DARK_CYAN)
 static var GENERIC_INFO_PRINT_COLOR: Color = to_print_color(Color.DARK_SALMON)
 
-
 ########################################################################################################################
 # GLOBAL LIGHT COLORS
 ########################################################################################################################
-
 ## Right at the border of the SOLID cell at a lit wall
 static var LIT_CELL_COLOR: Color = Color(0.1, 0.1, 0.1, 0.3)
 static var FADE_CELL_COLOR: Color = Color(0.1, 0.1, 0.1, 0.7)

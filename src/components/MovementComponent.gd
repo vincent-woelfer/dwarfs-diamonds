@@ -77,6 +77,10 @@ func abort_path() -> void:
 		sm.transition_to(State.NOT_MOVING)
 
 
+func has_path() -> bool:
+	return path != null
+
+
 # used by Item when picked up / on_dropped
 func on_picked_up() -> void:
 	sm.transition_to(State.CARRIED)
@@ -176,7 +180,9 @@ func _enter_following_path(new_path: Path) -> void:
 		return
 
 	path = new_path
+
 	path.set_debug_draw_enabled(EventBus.dev_draw_dwarf_info)
+	path.set_debug_draw_color(_get_debug_path_color())
 	path.start_following_from_pos(parent.global_position, parent_width)
 
 	# Start audio
@@ -239,11 +245,10 @@ func _physics_process_following_path(delta: float) -> void:
 func _physics_process_not_moving(delta: float) -> void:
 	_update_on_ground_check()
 
+
 ########################################################################################################################
 # INTERNAL HELPERS
 ########################################################################################################################
-
-
 ## Check if we should start/stop falling. Returns true if state changed.
 ## Called in physics process of states: FALLING, NOT_MOVING, FOLLOWING_PATH
 func _update_on_ground_check() -> bool:
@@ -327,3 +332,10 @@ func _is_climbing() -> bool:
 	var move_mode := _get_curr_move_mode()
 	var climbing_modes := [Enum.MoveMode.CLIMB_LADDER_UP, Enum.MoveMode.CLIMB_LADDER_DOWN, Enum.MoveMode.CLIMB_WALL_UP, Enum.MoveMode.CLIMB_WALL_DOWN, Enum.MoveMode.WALK_NO_FALLING_SPECIAL]
 	return move_mode in climbing_modes
+
+
+func _get_debug_path_color() -> Color:
+	if parent is Dwarf:
+		var dwarf: Dwarf = parent as Dwarf
+		return dwarf.dwarf_color
+	return Colors.FALLBACK_PATH_COLOR

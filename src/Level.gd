@@ -5,11 +5,6 @@ extends Node2D
 # SCENES
 var dwarf_scene: PackedScene = preload('res://scenes/Dwarf.tscn') as PackedScene
 
-# must be load (not preload) due to circular reference!!!
-var rubble_scene: PackedScene = load('res://scenes/objects/Rubble.tscn') as PackedScene
-var gemstone_scene: PackedScene = load('res://scenes/objects/Gemstone.tscn') as PackedScene
-var stone_scene: PackedScene = load('res://scenes/objects/Stone.tscn') as PackedScene
-
 # DATA
 var cells: Array[Array] = []
 
@@ -17,12 +12,13 @@ var cells: Array[Array] = []
 var max_elevatation_at_x: Array[int] = []
 var dwarfs: Array[Dwarf] = []
 
-# Managers
+# Managers - all spawned in _ready and owned by level
 var nav_manager: NavManager
 var job_manager: JobManager
 var building_manager: BuildingManager
 var building_placement_manager: BuildingPlacementManager
 var level_stats_manager: LevelStatsManager
+var item_manager: ItemManager
 
 var sun_system: SunSystem
 
@@ -48,6 +44,9 @@ func _ready() -> void:
 
 	building_placement_manager = BuildingPlacementManager.new()
 	add_child(building_placement_manager)
+
+	item_manager = ItemManager.new()
+	add_child(item_manager)
 
 	level_stats_manager = LevelStatsManager.new()
 	add_child(level_stats_manager)
@@ -106,22 +105,6 @@ func spawn_dwarf(x: int) -> void:
 
 func remove_dwarf(dwarf: Dwarf) -> void:
 	dwarfs.erase(dwarf)
-
-
-func spawn_item(grid_pos: Vector2i, item_scene: PackedScene) -> void:
-	var cell := get_cell(grid_pos)
-	if cell == null or not cell.is_passable():
-		return
-
-	var item: Item = item_scene.instantiate()
-	var spawn_offset := Vector2(0, -Global.CELL_SIZE * 0.3) # Spawn above floor
-
-	# Random horizontal offset to avoid perfect stacking and make it look more natural
-	var max_horizontal_offset := Global.CELL_SIZE * 0.35
-	spawn_offset.x = randf_range(-max_horizontal_offset, max_horizontal_offset)
-
-	item.setup_item(grid_pos, spawn_offset)
-	add_child(item)
 
 
 func preplace_torches() -> void:

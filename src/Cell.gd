@@ -7,7 +7,7 @@ var grid_pos: Vector2i
 var visual: CellVisuals
 
 var deco_elements: Array[DecoBase] = []
-var buildings: CellBuildingsContainer = CellBuildingsContainer.new(self )
+var buildings: CellBuildingsContainer = CellBuildingsContainer.new(self)
 var action_points: Array[ActionPoint] = []
 
 # 0  = air / not solid
@@ -24,6 +24,7 @@ var is_solid: bool
 # Has mineral = has a mineral vein. Only for visuals and drop logic
 var has_mineral: bool = false
 
+
 ########################################################################################################################
 # Derived State Flags
 ########################################################################################################################
@@ -31,6 +32,7 @@ var has_mineral: bool = false
 # Basically means "free air"
 func is_passable() -> bool:
 	return not is_solid and not buildings.is_blocked()
+
 
 ## Standable = solid ground or ladder. Can stand on it. Also requires/implies passable
 func is_standable(can_use_ladders: bool = true) -> bool:
@@ -42,10 +44,12 @@ func is_standable(can_use_ladders: bool = true) -> bool:
 	else:
 		return has_solid_ground_below()
 
+
 # Solid Ground = solid cell below. Required e.g. for construction
 func has_solid_ground_below() -> bool:
 	var n_bot := get_neighbour(Global.VEC_DOWN)
 	return n_bot != null and n_bot.is_solid_ground()
+
 
 func is_solid_ground() -> bool:
 	return is_solid or buildings.has_platform()
@@ -65,12 +69,13 @@ var mining_process: float = 0.0
 # multiplier for mining speed. Higher means harder to mine. For default miner (speed=1), equals seconds to mine.
 var mining_hardness: float = 1.0
 
-
 ########################################################################################################################
 # PUBLIC METHODS
 ########################################################################################################################
 
 var _queued_nav_update: bool = false
+
+
 ## Updates this cell and all 8 neighbours
 func queue_nav_update() -> void:
 	if _queued_nav_update:
@@ -100,7 +105,7 @@ func increase_mining_process(mining_speed_with_delta: float) -> void:
 
 	if mining_process >= 1.0:
 		# This in turn emits Signal_GlobalCellMiningCompleted which this and all other MiningComponents listen to
-		Actions.destroy_cell(self ) # calls destroy_cell()
+		Actions.destroy_cell(self) # calls destroy_cell()
 
 
 func estimate_remaining_time_to_mine(mining_speed: float) -> float:
@@ -118,19 +123,20 @@ func destroy_cell() -> void:
 	if Global.level.is_sky(grid_pos):
 		type = Enum.CellType.SKY
 		z_index = Enum.ZIndex.CELL_SKY
-	
+
 	Audio.play_at_pos("cell_on_destroy", global_position)
 
 	# Spawn Rubble / Gemstone
-	Global.level.spawn_item(grid_pos, Global.level.rubble_scene)
+	Global.level.item_manager.spawn_item_in_cell(grid_pos, Enum.ItemType.RUBBLE)
 	if has_mineral:
-		Global.level.spawn_item(grid_pos, Global.level.gemstone_scene)
+		Global.level.item_manager.spawn_item_in_cell(grid_pos, Enum.ItemType.GEMSTONE)
 
 	if randf() < 0.4:
-		Global.level.spawn_item(grid_pos, Global.level.stone_scene)
+		Global.level.item_manager.spawn_item_in_cell(grid_pos, Enum.ItemType.STONE)
 
 	visual.set_dirty()
 	queue_nav_update()
+
 
 ###################################
 # Building Management - Called by Global Actions add/remove building
@@ -141,15 +147,17 @@ func add_building(building: Building) -> void:
 	# also delete deco
 	for deco: DecoBase in deco_elements:
 		remove_deco_element(deco)
-		
+
 	visual.set_dirty()
 	queue_nav_update()
+
 
 func remove_building(building: Building) -> void:
 	if not buildings.remove(building):
 		return
 	visual.set_dirty()
 	queue_nav_update()
+
 
 ## Called by building when construction is completed
 func on_building_completed(building: Building) -> void:
@@ -160,6 +168,7 @@ func on_building_completed(building: Building) -> void:
 func get_buildings() -> Array[Building]:
 	return buildings.get_buildings()
 
+
 ###################################
 # Action Point Management (added/removed ONLY by BuildingManager)
 ###################################
@@ -168,8 +177,10 @@ func add_action_point(action_point: ActionPoint) -> void:
 		return
 	action_points.append(action_point)
 
+
 func remove_action_point(action_point: ActionPoint) -> void:
 	action_points.erase(action_point)
+
 
 func get_action_points_of_type(ap_type: ActionPoint.ApType) -> Array[ActionPoint]:
 	var result: Array[ActionPoint] = []
@@ -177,6 +188,7 @@ func get_action_points_of_type(ap_type: ActionPoint.ApType) -> Array[ActionPoint
 		if ap.type == ap_type and ap.is_active:
 			result.append(ap)
 	return result
+
 
 ###################################
 ## Returns true when state changed
@@ -199,10 +211,11 @@ func add_deco_element(new_deco: DecoBase) -> void:
 	if not deco_elements.is_empty():
 		return
 
-	new_deco.place_in_cell(self )
+	new_deco.place_in_cell(self)
 	deco_elements.append(new_deco)
 	add_child(new_deco)
 	visual.set_dirty()
+
 
 func remove_deco_element(deco: DecoBase) -> void:
 	if deco not in deco_elements:
@@ -212,9 +225,11 @@ func remove_deco_element(deco: DecoBase) -> void:
 	deco.queue_free()
 	visual.set_dirty()
 
+
 ## Returns a single poly point in world-space absolute
 func get_poly_point(point: Enum.PolyPoint) -> Vector2:
 	return visual.get_poly_point(point) + global_position
+
 
 ## Returns the center floor point in world-space absolute
 func get_center_floor_point() -> Vector2:
@@ -253,13 +268,13 @@ func _init(_grid_pos: Vector2i, _type: Enum.CellType, _is_solid: bool, _has_mine
 	self.type = _type
 	self.is_solid = _is_solid
 	self.has_mineral = _has_mineral
-	
+
 	self.is_marked_for_mining = false
 	self.is_highlighted = false
 	self.mining_process = 0.0
 
 	self.z_index = Enum.ZIndex.CELL_SKY if type == Enum.CellType.SKY else Enum.ZIndex.CELL_SOLID
-	
+
 	_update_mining_hardness()
 
 
@@ -267,7 +282,7 @@ func _ready() -> void:
 	# Required for chilren to be able to use these layers
 	self.visibility_layer = Util.LAYER_1 | Util.LAYER_2
 
-	visual = CellVisuals.new(self )
+	visual = CellVisuals.new(self)
 	add_child(visual)
 
 
@@ -279,10 +294,11 @@ func _update_mining_hardness() -> void:
 	else:
 		mining_hardness = 1.0
 
+
 func _to_string() -> String:
 	var print_color := Colors.to_print_color(Color.BROWN)
 	return Util.color_string("Cell(pos=%s, type=%s)" % [grid_pos, Enum.to_str(Enum.CellType, type)], print_color)
-	
+
 
 ########################################################################################################################
 # Utility
@@ -291,8 +307,10 @@ func get_neighbour(grid_offset: Vector2i) -> Cell:
 	assert(Util.are_neighbours(Vector2i(0, 0), grid_offset))
 	return Global.level.get_cell(grid_pos + grid_offset)
 
+
 func get_cell_relative(grid_offset: Vector2i) -> Cell:
 	return Global.level.get_cell(grid_pos + grid_offset)
+
 
 func get_nav_id() -> int:
 	return Util.hash(grid_pos)

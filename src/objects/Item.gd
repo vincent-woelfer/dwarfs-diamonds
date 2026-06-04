@@ -40,16 +40,13 @@ var light_energy_default: float = 0.25
 
 # Spawn offset y must be negative to be placed above floor
 func setup_item(grid_pos_: Vector2i, spawn_offset: Vector2 = Vector2.ZERO) -> void:
-	# Validation
 	assert(item_type in Enum.ItemType.values(), "Invalid item type %s" % [item_type])
 	setup_grid_object(grid_pos_)
-
 	global_position = Global.level.get_cell(grid_pos).get_center_floor_point() + spawn_offset
 
 
 func _ready() -> void:
 	self.z_index = Enum.ZIndex.GEMSTONE if item_type == Enum.ItemType.GEMSTONE else Enum.ZIndex.RUBBLE
-	add_to_group(Global.GROUP_CARRYABLE_ITEMS)
 
 	# Setup MovementComponent
 	movement_comp.movement_stats.can_use_ladders = false
@@ -157,8 +154,11 @@ func _add_pickup_job() -> void:
 func can_be_picked_up_right_now() -> bool:
 	if is_in_storage or movement_comp.is_falling():
 		return false
-
 	return true
+
+
+func is_high_value_item() -> bool:
+	return item_type == Enum.ItemType.GEMSTONE
 
 
 ## This always returns the in-inventory size!
