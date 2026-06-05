@@ -31,6 +31,7 @@ var margin_deg: float = 5.0
 var sky_scroll_speed: Vector2 = Vector2(0.04, 0.0)
 var sky_scroll_offset: Vector2 = Vector2.ZERO
 
+
 func _ready() -> void:
 	# Sunlight
 	sunlight = DirectionalLight2D.new()
@@ -95,12 +96,18 @@ func _process(delta: float) -> void:
 		var sunrise_energy: float = energy_curve.sample(0.0)
 		sunlight.energy = lerp(sunset_energy, sunrise_energy, night_time)
 
-
 	# Sky scroll offset
 	# Always use day_duration_factor for sky scrolling to keep it consistent
-	# sky_scroll_offset += sky_scroll_speed * (delta / day_duration_factor)
 	sky_scroll_offset += sky_scroll_speed * delta
 	RenderingServer.global_shader_parameter_set("sky_scroll_offset", sky_scroll_offset)
+
+	# TODO this is a bit hacky - improve later by setting actual color?
+	var sunlight_energy_for_sky: float = clamp(sunlight.energy, 0.25, 1.0)
+
+	if not EventBus.dev_light_on:
+		sunlight_energy_for_sky = 1.0
+
+	RenderingServer.global_shader_parameter_set("sky_sunlight_energy", sunlight_energy_for_sky)
 
 
 func _dev_toggle_light() -> void:

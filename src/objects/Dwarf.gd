@@ -257,6 +257,9 @@ func _on_mining_completed(mined_cell: Cell) -> void:
 		Actions.archive_job(task_queue.curr_task.created_by_job, true)
 	_finish_task_and_start_next(Task.Type.MINE)
 
+	if mined_cell.has_mineral:
+		Audio.play_at_pos("niklas_ja", _grid_pos)
+
 
 ## Triggered by ConstructionComponent
 func _on_construction_completed(building: Building) -> void:
@@ -268,6 +271,9 @@ func _on_construction_completed(building: Building) -> void:
 	# Finished building while in BUILDING state
 	print_rich("%s completed construction of %s" % [self, building])
 	_finish_task_and_start_next(Task.Type.CONSTRUCT)
+
+	if building.building_data.build_time >= Building.BIG_BUILDING_TIME_THRESHOLD:
+		Audio.play_at_pos("niklas_juhu", _grid_pos)
 
 
 ## Triggered by ActionPointComponent

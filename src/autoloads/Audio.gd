@@ -24,6 +24,8 @@ static var sounds: Dictionary[String, AudioStream] = {
 	"building_on_destroy": preload("res://assets/audio/destroy_1.mp3"),
 	"gemstone_drop": preload("res://assets/audio/gemstone_drop.wav"),
 	"gemstone_dropoff": preload("res://assets/audio/gemstone_dropoff.mp3"),
+	"niklas_ja": preload("res://assets/audio/niklas_ja.mp3"),
+	"niklas_juhu": preload("res://assets/audio/niklas_juhu.mp3"),
 }
 
 # Relative volume adjustments in dB for each sound, assuming 0.0 as default (no modification, original volume from track)
@@ -35,7 +37,9 @@ static var sounds_volume_db: Dictionary[String, float] = {
 	"ohoh_3": +4.0,
 	"dispose_trash": +8.0,
 	"gemstone_drop": +8.0,
-	'gemstone_dropoff': +8.0,
+	"gemstone_dropoff": +8.0,
+	"niklas_ja": +12.0,
+	"niklas_juhu": +12.0,
 }
 
 # General volume adjustment in dB applied to all sounds

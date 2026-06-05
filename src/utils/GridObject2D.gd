@@ -45,5 +45,9 @@ func update_grid_pos(new_grid_pos: Vector2i) -> void:
 
 func sample_grid_pos() -> Vector2:
 	var cell: Cell = Global.level.sample_cell_at_world_pos(global_position + _grid_pos_sample_offset)
-	assert(cell != null, "GridObject2D: Tried to sample grid at world position %s but is outside of world!" % [global_position + _grid_pos_sample_offset])
+	if cell == null:
+		push_error("GridObject2D: %s Tried to sample grid at world position %s but is outside of world! Deleting object!" % [self, global_position + _grid_pos_sample_offset])
+		# self.queue_free()
+		return Vector2.ZERO
+
 	return cell.grid_pos

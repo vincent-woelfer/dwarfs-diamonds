@@ -181,3 +181,7 @@ sky_scroll_offset={
 "type": "vec2",
 "value": Vector2(0, 0)
 }
+sky_sunlight_energy={
+"type": "float",
+"value": 1.0
+}
