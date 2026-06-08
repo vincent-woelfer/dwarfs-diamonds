@@ -18,7 +18,7 @@ var external_modulate: Color = Color.WHITE
 var build_job: BuildJob = null
 # TOTO var material_job
 
-# Action Points
+# Action Points - contains ALL APs, including construction material AP. Added to via BuildingManager only
 var action_points: Array[ActionPoint] = []
 
 # For material gathering for construction
@@ -307,9 +307,7 @@ func _setup_operation_action_points() -> void:
 		if ap.type in [ActionPoint.ApType.DROPOFF_RUBBLE, ActionPoint.ApType.DROPOFF_GEMSTONE]:
 			ap = ActionPoint.setup_dropoff_ap(ap_pos, storage, ap_res.type)
 
-		if ap != null:
-			action_points.append(ap)
-			Global.level.building_manager.register_action_points(self, [ap])
+		Global.level.building_manager.register_action_point(self, ap)
 
 
 ## Only call if building has required materials, otherwise it should be setup in _setup_operation_action_points
@@ -340,8 +338,7 @@ func _setup_construction_material_ap_and_storage() -> bool:
 	construction_material_ap = ActionPoint.setup_constr_mat_stockpile_ap(ap_pos, construction_material_storage)
 
 	# Register
-	action_points.append(construction_material_ap)
-	Global.level.building_manager.register_action_points(self, [construction_material_ap])
+	Global.level.building_manager.register_action_point(self, construction_material_ap)
 
 	# Listen for complete signal
 	construction_material_storage.Signal_OnFull.connect(

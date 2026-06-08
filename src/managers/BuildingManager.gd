@@ -62,6 +62,10 @@ func delete_building(building: Building) -> void:
 ########################################################################################################################
 # Action Points
 ########################################################################################################################
+func register_action_point(building: Building, ap: ActionPoint) -> void:
+	register_action_points(building, [ap])
+
+
 ## Called by Building to register its action points
 func register_action_points(building: Building, aps_to_add: Array[ActionPoint]) -> void:
 	if Engine.is_editor_hint():
@@ -72,12 +76,16 @@ func register_action_points(building: Building, aps_to_add: Array[ActionPoint]) 
 		return
 
 	for ap: ActionPoint in aps_to_add:
+		if ap == null:
+			continue
+
 		if ap in action_points:
 			push_error("BuildingManager: Trying to register AP that is already registered: %s" % ap)
 			continue
 
 		# Add to list, cell and building
 		action_points.append(ap)
+		building.action_points.append(ap)
 		Global.level.get_cell(ap.grid_pos).add_action_point(ap)
 		building.add_child(ap)
 
