@@ -20,8 +20,10 @@ var build_job: BuildJob = null
 
 # Action Points
 var action_points: Array[ActionPoint] = []
-var material_ap: ActionPoint = null
-var material_storage: StorageComponent = null
+
+# For material gathering for construction
+var construction_material_ap: ActionPoint = null
+var construction_material_storage: StorageComponent = null
 
 # For dev - only for logging
 var dev_color: Color
@@ -141,25 +143,17 @@ func _enter_waiting_for_material() -> void:
 	_set_modulate_internal(Colors.building_modulate_unfinished)
 
 	# Action points - Setup material AP
-	if not _setup_material_action_point():
+	if not _setup_construction_material_ap_and_storage():
 		push_error("Failed to setup material action point for building %s! Transitioning to IN_CONSTRUCTION anyway." % self)
 		sm.transition_to(State.IN_CONSTRUCTION)
 		return
 
 	# TODO add job
 
-# Was only for testing
-# func _physics_process_waiting_for_material(delta: float) -> void:
-# 	if material_storage != null:
-# 		var items: Array[Item] = []
-
-# 		if items.size() > 0:
-# 			material_storage.pickup_all_in_range(items)
-
 
 func _exit_waiting_for_material() -> void:
-	# Remove action points
-	Global.level.building_manager.unregister_action_points(self, [material_ap])
+	# Remove construction material AP (not storage yet)
+	Global.level.building_manager.unregister_action_points(self, [construction_material_ap])
 
 	# TODO remove job
 
@@ -185,10 +179,10 @@ func _exit_in_construction() -> void:
 	build_job = null
 
 	# Remove material storage
-	if material_storage != null:
-		material_storage.drop_all()
-		material_storage.queue_free()
-		material_storage = null
+	if construction_material_storage != null:
+		construction_material_storage.drop_all()
+		construction_material_storage.queue_free()
+		construction_material_storage = null
 
 
 ###################################
@@ -215,7 +209,7 @@ func _enter_operating() -> void:
 			cell.on_building_completed(self)
 			cell.queue_nav_update()
 
-	_setup_action_points([ActionPoint.ApType.DROPOFF_RUBBLE, ActionPoint.ApType.DROPOFF_GEMSTONE])
+	_setup_operation_action_points()
 
 
 ####################################
@@ -227,10 +221,10 @@ func _enter_in_teardown() -> void:
 		build_job = null
 
 	# Remove material storage
-	if material_storage != null:
-		material_storage.drop_all()
-		material_storage.queue_free()
-		material_storage = null
+	if construction_material_storage != null:
+		construction_material_storage.drop_all()
+		construction_material_storage.queue_free()
+		construction_material_storage = null
 
 	# Includes deleting action points
 	Global.level.building_manager.teardown_building(self)
@@ -257,11 +251,12 @@ func update_build_progress(building_speed_with_delta: float) -> void:
 
 	# Update visual (incl. material storage emptying)
 	visual_root.update_building_progress(build_progress)
-	if material_storage != null:
-		var total_count: int = building_data.required_materials.get_total_item_count()
+
+	if construction_material_storage != null:
+		var total_count: int = building_data.required_materials.get_item_count_total()
 		var should_be_left: int = clampi(roundi((1.0 - build_progress) * total_count), 0, total_count)
-		while material_storage.get_carried_total_count() > should_be_left:
-			material_storage.delete(material_storage.get_last_item())
+		while construction_material_storage.get_carried_total_count() > should_be_left:
+			construction_material_storage.delete(construction_material_storage.get_last_item())
 
 	if build_progress >= 1.0:
 		sm.transition_to(State.OPERATING)
@@ -290,26 +285,38 @@ func is_in_construction() -> bool:
 # PRIVATE
 ########################################################################################################################
 # Called internally when building is completed
-func _setup_action_points(types: Array[ActionPoint.ApType]) -> void:
+func _setup_operation_action_points() -> void:
+	var operation_ap_types: Array[ActionPoint.ApType] = [ActionPoint.ApType.DROPOFF_RUBBLE, ActionPoint.ApType.DROPOFF_GEMSTONE]
+
 	for ap_res: ActionPointRes in building_data.action_points:
-		if not ap_res.type in types:
+		if not ap_res.type in operation_ap_types:
 			continue
 
-		var pos: Vector2i = grid_pos + ap_res.grid_offset
-		var ap: ActionPoint = ActionPoint.setup_bare_ap(pos, ap_res.type)
+		# Storage (TODO for now just cereate, never delete)
+		var storage_pos_offset: Vector2 = ap_res.grid_offset * Global.CELL_SIZE
+		var storage: StorageComponent = StorageComponent.new().setup(StorageComponent.CapacityMode.COMBINED_WEIGHT_COUNT, StorageComponent.PlacementMode.STOCKPILE)
+		storage.position = storage_pos_offset
+		storage.capacity_combined_max_count = 30
+		storage.capacity_combined_max_weight = 200.0
+		add_child(storage)
+
+		# Action point
+		var ap_pos: Vector2i = grid_pos + ap_res.grid_offset
+		var ap: ActionPoint = null
 
 		if ap.type in [ActionPoint.ApType.DROPOFF_RUBBLE, ActionPoint.ApType.DROPOFF_GEMSTONE]:
-			ap.setup_dropoff_ap()
+			ap = ActionPoint.setup_dropoff_ap(ap_pos, storage, ap_res.type)
 
-		action_points.append(ap)
-		Global.level.building_manager.register_action_points(self, [ap])
+		if ap != null:
+			action_points.append(ap)
+			Global.level.building_manager.register_action_points(self, [ap])
 
 
-func _setup_material_action_point() -> bool:
-	# Only call if building has required materials, otherwise it should be setup in _setup_action_points
+## Only call if building has required materials, otherwise it should be setup in _setup_operation_action_points
+func _setup_construction_material_ap_and_storage() -> bool:
 	assert(not building_data.required_materials.is_empty())
-	assert(material_ap == null)
-	assert(material_storage == null)
+	assert(construction_material_ap == null)
+	assert(construction_material_storage == null)
 
 	# Find first (there should only be one) material AP in building data
 	var ap_res: ActionPointRes = null
@@ -321,18 +328,23 @@ func _setup_material_action_point() -> bool:
 		push_error("Building %s has required materials but no material AP defined in building data!" % self)
 		return false
 
-	var pos: Vector2i = grid_pos + ap_res.grid_offset
-	var ap: ActionPoint = ActionPoint.setup_bare_ap(pos, ActionPoint.ApType.CONSTR_MAT_STOCKPILE)
-	material_storage = StorageComponent.new()
-	material_ap = ap
-	add_child(material_storage)
-	ap.setup_constr_mat_stockpile_ap(material_storage, building_data.required_materials)
+	# Storage
+	var storage_pos_offset: Vector2 = ap_res.grid_offset * Global.CELL_SIZE
+	construction_material_storage = StorageComponent.new().setup(StorageComponent.CapacityMode.PER_ITEM_TYPE_COUNT, StorageComponent.PlacementMode.STOCKPILE)
+	construction_material_storage.position = storage_pos_offset
+	construction_material_storage.capacity_item_type_list = building_data.required_materials
+	add_child(construction_material_storage)
 
-	action_points.append(ap)
-	Global.level.building_manager.register_action_points(self, [ap])
+	# Action point
+	var ap_pos: Vector2i = grid_pos + ap_res.grid_offset
+	construction_material_ap = ActionPoint.setup_constr_mat_stockpile_ap(ap_pos, construction_material_storage)
+
+	# Register
+	action_points.append(construction_material_ap)
+	Global.level.building_manager.register_action_points(self, [construction_material_ap])
 
 	# Listen for complete signal
-	material_storage.Signal_OnAllItemTypesFull.connect(
+	construction_material_storage.Signal_OnFull.connect(
 		func() -> void:
 			if sm.state == State.WAITING_FOR_MATERIAL and _has_all_construction_materials():
 				sm.transition_to(State.IN_CONSTRUCTION)
@@ -352,10 +364,10 @@ func _check_solid_ground(destroyed_cell: Cell) -> void:
 
 func _has_all_construction_materials() -> bool:
 	assert(sm.state == State.WAITING_FOR_MATERIAL)
-	assert(material_ap != null)
+	assert(construction_material_ap != null)
 
 	# Gather combined materials from all action points
-	var combined_materials: ItemTypeList = material_ap.storage_comp.get_curr_item_type_list()
+	var combined_materials: ItemTypeList = construction_material_ap.storage_comp.get_curr_item_type_list()
 	# for ap in action_points:
 	# 	if ap.type == ActionPoint.ApType.CONSTR_MAT_STOCKPILE:
 	# 		var items: ItemTypeList = ap.storage_comp.get_curr_item_type_list()

@@ -5,6 +5,8 @@ extends Node2D
 var buildings: Array[Building] = []
 var action_points: Array[ActionPoint] = []
 
+# OWNS all buildings (as child)
+
 
 ########################################################################################################################
 # BUILDINGS
@@ -35,7 +37,7 @@ func teardown_building(building: Building) -> void:
 		push_error("BuildingManager: Trying to teardown building that is not in teardown state: %s" % building)
 		return
 
-	unregister_all_action_points(building)
+	_unregister_building_aps(building)
 	buildings.erase(building)
 
 
@@ -61,7 +63,7 @@ func delete_building(building: Building) -> void:
 # Action Points
 ########################################################################################################################
 ## Called by Building to register its action points
-func register_action_points(building: Building, aps: Array[ActionPoint]) -> void:
+func register_action_points(building: Building, aps_to_add: Array[ActionPoint]) -> void:
 	if Engine.is_editor_hint():
 		return
 
@@ -69,17 +71,14 @@ func register_action_points(building: Building, aps: Array[ActionPoint]) -> void
 		push_error("BuildingManager: Trying to add APs for building that is not registered: %s" % building)
 		return
 
-	for ap: ActionPoint in aps:
+	for ap: ActionPoint in aps_to_add:
 		if ap in action_points:
 			push_error("BuildingManager: Trying to register AP that is already registered: %s" % ap)
 			continue
 
+		# Add to list, cell and building
 		action_points.append(ap)
-
-		# Add to cell
 		Global.level.get_cell(ap.grid_pos).add_action_point(ap)
-
-		# Add to building
 		building.add_child(ap)
 
 
@@ -95,10 +94,6 @@ func unregister_action_points(building: Building, aps_to_remove: Array[ActionPoi
 			continue
 
 		_delete_ap(ap, building)
-
-
-func unregister_all_action_points(building: Building) -> void:
-	unregister_action_points(building, building.action_points.duplicate())
 
 
 ###################################
@@ -123,8 +118,6 @@ func get_all_action_points(type: ActionPoint.ApType) -> Array[ActionPoint]:
 		if cell == null or not Global.level.nav_manager.is_cell_enabled(ap.grid_pos):
 			continue
 
-		# Verify its available for interaction
-
 		# Finally add
 		filtered_aps.append(ap)
 
@@ -134,6 +127,10 @@ func get_all_action_points(type: ActionPoint.ApType) -> Array[ActionPoint]:
 ########################################################################################################################
 # Private Methods
 ########################################################################################################################
+func _unregister_building_aps(building: Building) -> void:
+	unregister_action_points(building, building.action_points.duplicate())
+
+
 func _delete_ap(ap: ActionPoint, building: Building) -> void:
 	assert(ap != null)
 
