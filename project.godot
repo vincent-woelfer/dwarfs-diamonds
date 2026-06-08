@@ -185,3 +185,7 @@ sky_sunlight_energy={
 "type": "float",
 "value": 1.0
 }
+sky_color={
+"type": "vec4",
+"value": Vector4(1, 1, 1, 1)
+}

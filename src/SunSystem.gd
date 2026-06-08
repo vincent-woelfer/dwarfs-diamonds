@@ -101,13 +101,20 @@ func _process(delta: float) -> void:
 	sky_scroll_offset += sky_scroll_speed * delta
 	RenderingServer.global_shader_parameter_set("sky_scroll_offset", sky_scroll_offset)
 
-	# TODO this is a bit hacky - improve later by setting actual color?
-	var sunlight_energy_for_sky: float = clamp(sunlight.energy, 0.25, 1.0)
+	# Currently unused
+	# RenderingServer.global_shader_parameter_set("sky_sunlight_energy", sunlight_energy_for_sky)
 
-	if not EventBus.dev_light_on:
-		sunlight_energy_for_sky = 1.0
+	# Set sky color
+	var sky_color: Color = sunlight.color
+	sky_color.a = 1.0 # Ensure alpha is 1 for sky color
 
-	RenderingServer.global_shader_parameter_set("sky_sunlight_energy", sunlight_energy_for_sky)
+	# Ensure night is not pitch black by applying a minimum brightness to the sky color
+	var min_brightness: float = 0.25
+	sky_color.r = max(sky_color.r, min_brightness)
+	sky_color.g = max(sky_color.g, min_brightness)
+	sky_color.b = max(sky_color.b, min_brightness)
+
+	RenderingServer.global_shader_parameter_set("sky_color", sky_color)
 
 
 func _dev_toggle_light() -> void:
