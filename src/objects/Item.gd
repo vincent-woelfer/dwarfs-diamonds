@@ -11,16 +11,16 @@ extends GridObject2D
 @onready var sprite: Sprite2D = $VisualRoot/Sprite
 @onready var light: PointLight2D = $VisualRoot/PointLight
 
-# Used to set Item weight
-@export var weight: float = 1.0
+# Item data
 @export var item_type: Enum.ItemType
+@export var weight: float = 1.0
 
 # Storage state
 var is_in_storage: bool = false
 var storage: StorageComponent = null
 
-# TODO reserved for pickup
-var is_reserved: bool = false
+# Reservation
+var reserved_by_job: AbstractJob = null
 
 # Pick-up animation state - used by StorageComponent / StorageComponent to move to position
 var transition_animation_finished: bool = false
@@ -38,6 +38,9 @@ var pickup_job: PickupJob = null
 var light_energy_default: float = 0.25
 
 
+########################################################################################################################
+# SETUP
+########################################################################################################################
 # Spawn offset y must be negative to be placed above floor
 func setup_item(grid_pos_: Vector2i, spawn_offset: Vector2 = Vector2.ZERO) -> void:
 	assert(item_type in Enum.ItemType.values(), "Invalid item type %s" % [item_type])
@@ -80,6 +83,53 @@ func _ready() -> void:
 	_spawn_animation()
 
 
+########################################################################################################################
+# PUBLIC API
+########################################################################################################################
+func can_be_picked_up_right_now() -> bool:
+	if is_in_storage or movement_comp.is_falling():
+		return false
+	return true
+
+
+func is_high_value_item() -> bool:
+	return item_type == Enum.ItemType.GEMSTONE
+
+
+## This always returns the in-inventory size!
+func get_stacking_size() -> Vector2:
+	return stacking_shape.shape.get_rect().size
+
+
+func get_print_name() -> String:
+	return Enum.to_str(Enum.ItemType, item_type).capitalize()
+
+
+########################################################################################################################
+# Reservation
+########################################################################################################################
+func is_reserved() -> bool:
+	return reserved_by_job != null
+
+
+func is_reserved_by_job(job: AbstractJob) -> bool:
+	return reserved_by_job == job
+
+
+func reserve_for(job: AbstractJob) -> bool:
+	if is_reserved():
+		return false
+	reserved_by_job = job
+	return true
+
+
+func clear_reservation(job: AbstractJob) -> void:
+	reserved_by_job = null
+
+
+########################################################################################################################
+# CALLBACKS - Called by other objects
+########################################################################################################################
 func on_picked_up(new_storage: StorageComponent) -> void:
 	is_in_storage = true
 	storage = new_storage
@@ -124,6 +174,33 @@ func on_transfered_to_other_storage(new_storage: StorageComponent) -> void:
 	transition_animation_start_time = Util.now()
 
 
+########################################################################################################################
+# INTERNAL CALLBACKS - by signals
+########################################################################################################################
+func _on_new_cell_entered(new_cell: Cell) -> void:
+	if new_cell == null or is_in_storage:
+		return
+
+	if pickup_job != null:
+		pickup_job.center_cell = new_cell
+		pickup_job.update_workable_from_poses()
+
+
+func _on_started_falling(est_fall_height_cells: int) -> void:
+	pass
+
+
+func _on_landed(fall_height_cells: int) -> void:
+	# Trigger on cell entered anew to update job status
+	_on_new_cell_entered(curr_cell)
+
+	if fall_height_cells >= 0:
+		Audio.play_at_pos_stream(on_landed_audio, global_position)
+
+
+########################################################################################################################
+# PRIVATE METHODS
+########################################################################################################################
 func _process(delta: float) -> void:
 	if not is_in_storage and light:
 		var light_rotation_speed_rad_per_sec := deg_to_rad(15)
@@ -151,49 +228,9 @@ func _add_pickup_job() -> void:
 	Global.level.job_manager.add_job(pickup_job)
 
 
-func can_be_picked_up_right_now() -> bool:
-	if is_in_storage or movement_comp.is_falling():
-		return false
-	return true
-
-
-func is_high_value_item() -> bool:
-	return item_type == Enum.ItemType.GEMSTONE
-
-
-## This always returns the in-inventory size!
-func get_stacking_size() -> Vector2:
-	return stacking_shape.shape.get_rect().size
-
-
-func _on_new_cell_entered(new_cell: Cell) -> void:
-	if new_cell == null or is_in_storage:
-		return
-
-	if pickup_job != null:
-		pickup_job.center_cell = new_cell
-		pickup_job.update_workable_from_poses()
-
-
-func _on_started_falling(est_fall_height_cells: int) -> void:
-	pass
-
-
-func _on_landed(fall_height_cells: int) -> void:
-	# Trigger on cell entered anew to update job status
-	_on_new_cell_entered(curr_cell)
-
-	if fall_height_cells >= 0:
-		Audio.play_at_pos_stream(on_landed_audio, global_position)
-
-
 func _to_string() -> String:
 	var color := Colors.to_print_color(sprite.modulate)
 	return Util.color_string("%s @%s" % [get_print_name(), self._grid_pos], color)
-
-
-func get_print_name() -> String:
-	return Enum.to_str(Enum.ItemType, item_type).capitalize()
 
 
 func _spawn_animation() -> void:

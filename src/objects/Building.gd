@@ -240,7 +240,7 @@ func _enter_in_teardown() -> void:
 
 
 ########################################################################################################################
-# Public API
+# Public API - Actions
 ########################################################################################################################
 func update_build_progress(building_speed_with_delta: float) -> void:
 	if sm.state != State.IN_CONSTRUCTION:
@@ -256,15 +256,10 @@ func update_build_progress(building_speed_with_delta: float) -> void:
 		var total_count: int = building_data.required_materials.get_item_count_total()
 		var should_be_left: int = clampi(roundi((1.0 - build_progress) * total_count), 0, total_count)
 		while construction_material_storage.get_carried_total_count() > should_be_left:
-			construction_material_storage.delete(construction_material_storage.get_last_item())
+			construction_material_storage.delete(construction_material_storage.get_last_added_item())
 
 	if build_progress >= 1.0:
 		sm.transition_to(State.OPERATING)
-
-
-func estimate_remaining_time_to_build(building_speed: float) -> float:
-	var remaining_process: float = 1.0 - build_progress
-	return remaining_process * (building_speed / building_data.build_time)
 
 
 # Called from Actions.remove_building which handles most logic (like calling building_manager.unregister_building() and removing from cells)
@@ -273,12 +268,33 @@ func destroy() -> void:
 		sm.transition_to(State.IN_TEARDOWN)
 
 
+########################################################################################################################
+# Public API - "Getters"
+########################################################################################################################
+func estimate_remaining_time_to_build(building_speed: float) -> float:
+	var remaining_process: float = 1.0 - build_progress
+	return remaining_process * (building_speed / building_data.build_time)
+
+
 func is_operating() -> bool:
 	return sm.state == State.OPERATING
 
 
 func is_in_construction() -> bool:
 	return sm.state == State.IN_CONSTRUCTION
+
+
+func is_waiting_for_material() -> bool:
+	return sm.state == State.WAITING_FOR_MATERIAL
+
+
+func get_missing_materials_for_construction() -> ItemTypeList:
+	if sm.state != State.WAITING_FOR_MATERIAL:
+		return null
+	if construction_material_storage == null:
+		return null
+
+	return construction_material_storage.get_missing_till_full_item_list()
 
 
 ########################################################################################################################

@@ -107,7 +107,7 @@ func unregister_action_points(building: Building, aps_to_remove: Array[ActionPoi
 ###################################
 # Fetching Data
 ###################################
-func get_all_action_points(type: ActionPoint.ApType) -> Array[ActionPoint]:
+func get_action_points(type: ActionPoint.ApType) -> Array[ActionPoint]:
 	if Engine.is_editor_hint():
 		return []
 
@@ -132,9 +132,16 @@ func get_all_action_points(type: ActionPoint.ApType) -> Array[ActionPoint]:
 	return filtered_aps
 
 
+
+
+
 ########################################################################################################################
 # Private Methods
 ########################################################################################################################
+# TODO
+# func _gather_all_missing_building_materials()
+
+
 func _unregister_building_aps(building: Building) -> void:
 	unregister_action_points(building, building.action_points.duplicate())
 

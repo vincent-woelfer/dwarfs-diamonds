@@ -231,7 +231,7 @@ func get_item_by_index(index: int) -> Item:
 	return _curr_carried_items[index]
 
 
-func get_last_item() -> Item:
+func get_last_added_item() -> Item:
 	return get_item_by_index(_curr_carried_items.size() - 1)
 
 
@@ -256,6 +256,21 @@ func is_carrying_item_of_type(item_type: Enum.ItemType) -> bool:
 
 func get_items_of_type(item_type: Enum.ItemType) -> Array[Item]:
 	return _curr_carried_items.filter(func(item: Item) -> bool: return item.item_type == item_type)
+
+
+## Only valid for CapacityMode.PER_ITEM_TYPE_COUNT, returns the missing item types and counts to be full
+func get_missing_till_full_item_list() -> ItemTypeList:
+	var missing: ItemTypeList = ItemTypeList.new()
+	assert(capacity_mode == CapacityMode.PER_ITEM_TYPE_COUNT)
+
+	if capacity_mode == CapacityMode.PER_ITEM_TYPE_COUNT:
+		for item_type: Enum.ItemType in capacity_item_type_list.get_keys():
+			var max_count: int = capacity_item_type_list.get_item_count_for_type(item_type)
+			var curr_count: int = _curr_item_type_list.get_item_count_for_type(item_type)
+			if curr_count < max_count:
+				missing.add(item_type, max_count - curr_count)
+
+	return missing
 
 
 ########################################################################################################################

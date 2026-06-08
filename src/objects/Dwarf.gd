@@ -445,7 +445,7 @@ func _create_own_tasks() -> void:
 
 
 func _create_action_point_tasks_for_type(ap_type: ActionPoint.ApType) -> void:
-	var aps: Array[ActionPoint] = Global.level.building_manager.get_all_action_points(ap_type)
+	var aps: Array[ActionPoint] = Global.level.building_manager.get_action_points(ap_type)
 
 	if aps.is_empty():
 		# HexLog.throttled(self , "%s found no AP of type %s, not creating action point task" % [ self , Enum.to_str(ActionPoint.ActionType, ap_type)], HexLog.AP_MISSING_INTERVALL)
