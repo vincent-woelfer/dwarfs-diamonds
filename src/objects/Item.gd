@@ -19,7 +19,7 @@ extends GridObject2D
 var is_in_storage: bool = false
 var storage: StorageComponent = null
 
-# Reservation
+# Reservation - is currently not checked on pickup, only for filtering viable items for jobs
 var reserved_by_job: AbstractJob = null
 
 # Pick-up animation state - used by StorageComponent / StorageComponent to move to position
@@ -117,10 +117,10 @@ func is_reserved_by_job(job: AbstractJob) -> bool:
 
 
 func reserve_for(job: AbstractJob) -> bool:
-	if is_reserved():
-		return false
-	reserved_by_job = job
-	return true
+	if reserved_by_job == null or reserved_by_job == job:
+		reserved_by_job = job
+		return true
+	return false
 
 
 func clear_reservation(job: AbstractJob) -> void:

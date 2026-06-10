@@ -120,7 +120,7 @@ func delete(item: Item) -> void:
 		return
 
 	_remove(item)
-	item.queue_free()
+	Global.level.item_manager.delete(item)
 
 
 ###################################
@@ -254,8 +254,19 @@ func is_carrying_item_of_type(item_type: Enum.ItemType) -> bool:
 	return false
 
 
-func get_items_of_type(item_type: Enum.ItemType) -> Array[Item]:
-	return _curr_carried_items.filter(func(item: Item) -> bool: return item.item_type == item_type)
+func get_items_of_type(item_type: Enum.ItemType, only_unreserved: bool = false) -> Array[Item]:
+	return _curr_carried_items.filter(
+		func(item: Item) -> bool:
+			# Match type
+			if item.item_type != item_type:
+				return false
+
+			# If requested, only include unreserved items
+			if only_unreserved and item.is_reserved():
+				return false
+			else:
+				return true
+	)
 
 
 ## Only valid for CapacityMode.PER_ITEM_TYPE_COUNT, returns the missing item types and counts to be full

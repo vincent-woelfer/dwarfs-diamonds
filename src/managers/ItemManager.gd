@@ -32,7 +32,14 @@ func spawn_item_in_cell(grid_pos: Vector2i, type: Enum.ItemType) -> void:
 
 # TODO spawn in storage
 
-# TODO delete
+
+func delete(item: Item) -> void:
+	if item in _items:
+		_items.erase(item)
+	else:
+		push_warning("Trying to delete item that is not registered in ItemManager: %s" % item)
+
+	item.queue_free()
 
 
 ########################################################################################################################
@@ -48,9 +55,13 @@ func get_all_on_ground() -> Array[Item]:
 			return not item.is_in_storage
 	)
 
-
 ########################################################################################################################
 # Private Methods
+########################################################################################################################
+
+
+########################################################################################################################
+# ITEM SCENES
 ########################################################################################################################
 func _get_item_scene(type: Enum.ItemType) -> PackedScene:
 	match type:
@@ -64,9 +75,6 @@ func _get_item_scene(type: Enum.ItemType) -> PackedScene:
 			assert(false, "Invalid item type %s" % [type])
 			return null
 
-########################################################################################################################
-# ITEM SCENES
-########################################################################################################################
 # must be load (not preload) due to circular reference!!!
 var rubble_scene: PackedScene = load('res://scenes/objects/Rubble.tscn') as PackedScene
 var gemstone_scene: PackedScene = load('res://scenes/objects/Gemstone.tscn') as PackedScene
