@@ -38,8 +38,8 @@ static var sounds_volume_db: Dictionary[String, float] = {
 	"dispose_trash": +8.0,
 	"gemstone_drop": +8.0,
 	"gemstone_dropoff": +8.0,
-	"niklas_ja": +12.0,
-	"niklas_juhu": +12.0,
+	"niklas_ja": +8.0,
+	"niklas_juhu": +8.0,
 }
 
 # General volume adjustment in dB applied to all sounds

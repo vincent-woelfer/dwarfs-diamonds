@@ -185,6 +185,8 @@ func _actions_neutral() -> void:
 				mining_comp.start_mining(cell)
 			else:
 				# Instant for testing
+				print("===================================================================")
+				Audio.play_at_pos("niklas_juhu", cell.grid_pos)
 				Actions.destroy_cell(cell)
 
 	######## DEBUG ########

@@ -248,6 +248,10 @@ func _on_finished_path() -> void:
 
 ## Triggered by MiningComponent for any finished cell (doesnt necessarily means dwarf is no longer mining)
 func _on_mining_completed(mined_cell: Cell) -> void:
+	if mined_cell.has_mineral:
+		print_rich("===================================")
+		Audio.play_at_pos("niklas_ja", _grid_pos)
+
 	if not _verify_curr_task(Task.Type.MINE, mined_cell.grid_pos):
 		print_rich("%s completed mining %s but doesnt match current task %s, ignoring!" % [self, mined_cell, task_queue.curr_task])
 		return
@@ -255,10 +259,7 @@ func _on_mining_completed(mined_cell: Cell) -> void:
 	print_rich("%s completed mining %s" % [self, mined_cell])
 	if task_queue.curr_task.finishes_job:
 		Actions.archive_job(task_queue.curr_task.created_by_job, true)
-	_finish_task_and_start_next(Task.Type.MINE)
-
-	if mined_cell.has_mineral:
-		Audio.play_at_pos("niklas_ja", _grid_pos)
+	_finish_task_and_start_next(Task.Type.MINE)	
 
 
 ## Triggered by ConstructionComponent
