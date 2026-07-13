@@ -36,7 +36,7 @@ var dev_draw_jobs: bool = false
 
 # F3
 signal Signal_DevToggleLight()
-var dev_light_on: bool = false
+var dev_light_on: bool = true
 
 # F4
 signal Signal_DevToggleDrawBuildingPattern()

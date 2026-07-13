@@ -320,7 +320,7 @@ func _setup_operation_action_points() -> void:
 		var ap_pos: Vector2i = grid_pos + ap_res.grid_offset
 		var ap: ActionPoint = null
 
-		if ap.type in [ActionPoint.ApType.DROPOFF_RUBBLE, ActionPoint.ApType.DROPOFF_GEMSTONE]:
+		if ap_res.type in [ActionPoint.ApType.DROPOFF_RUBBLE, ActionPoint.ApType.DROPOFF_GEMSTONE]:
 			ap = ActionPoint.setup_dropoff_ap(ap_pos, storage, ap_res.type)
 
 		Global.level.building_manager.register_action_point(self, ap)

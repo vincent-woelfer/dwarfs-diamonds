@@ -15,6 +15,7 @@ const torch_sizes: Array[float] = [1.0, 0.6, 0.8, 1.2]
 const animation_name: String = "idle"
 
 var default_light_energy: float
+var default_light_color: Color
 
 ########################################################################################################################
 # SETUP
@@ -39,6 +40,7 @@ func _ready() -> void:
 
     # Read defaults
     default_light_energy = light.energy
+    default_light_color = light.color
 
     # Randomize flip & speed
     animated_sprite.flip_h = (randf() < 0.5) as bool
@@ -69,9 +71,11 @@ func _on_new_frame() -> void:
     var anim_speed: float = sprite_sheet.get_animation_speed(animation_name) * abs(animated_sprite.get_playing_speed())
     var time_for_one_frame: float = frame_duration / anim_speed
 
-    # Tween to new energy in half the time. So 1/2 tween, 1/2 hold
-    var tween := create_tween()
-    tween.tween_property(light, "energy", target_energy, time_for_one_frame / 2.0)
+    # Not in engine
+    if not Engine.is_editor_hint():
+        # Tween to new energy in half the time. So 1/2 tween, 1/2 hold
+        var tween := create_tween()    
+        tween.tween_property(light, "energy", target_energy, time_for_one_frame / 2.0)
     
     
 func _dev_toggle_light() -> void:

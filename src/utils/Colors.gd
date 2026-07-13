@@ -147,6 +147,7 @@ static var GENERIC_INFO_PRINT_COLOR: Color = to_print_color(Color.DARK_SALMON)
 # GLOBAL LIGHT COLORS
 ########################################################################################################################
 ## Right at the border of the SOLID cell at a lit wall
-static var LIT_CELL_COLOR: Color = Color(0.1, 0.1, 0.1, 0.3)
-static var FADE_CELL_COLOR: Color = Color(0.1, 0.1, 0.1, 0.7)
-static var UNLIT_CELL_COLOR: Color = Color(0.05, 0.05, 0.05, 0.95)
+static var base: Color = Color(0.02, 0.0275, 0.05, 0.0)
+static var LIT_CELL_COLOR: Color = base + Color(0, 0, 0, 0.5)
+static var FADE_CELL_COLOR: Color = base + Color(0, 0, 0, 0.7)
+static var UNLIT_CELL_COLOR: Color = base + Color(0, 0, 0, 0.95)

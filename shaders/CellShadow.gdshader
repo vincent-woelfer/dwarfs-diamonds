@@ -10,7 +10,7 @@ uniform float total_penetration_distance : hint_range(0.0, 1.0) = 0.3;
 
 // Colors go from lit_color -> fade_color -> unlit_color.
 // fade_threshold [0,1] determines where the transition happens.
-// Colors are set in Godot Code in Colors
+// COLORS ARE DEFINED in Colors.gd
 uniform float fade_threshold : hint_range(0.0, 1.0) = 0.3;
 uniform vec4 lit_color : source_color;
 uniform vec4 fade_color : source_color;
@@ -20,7 +20,8 @@ uniform vec4 unlit_color : source_color;
 group_uniforms InstanceParameters;	
 // 0  = fully lit, dont write anything
 // 1  = apply fade based on neighbour_lit_bits
-// 2+ = fully dark
+// 2  = only for corners towards lit cells (because dist is only 4 neighbours), apply fade based on neighbour_lit_bits
+// 3+ = fully dark
 instance uniform uint light_depth;
 
 // Points in ORDER: 0 TL, 1 T, 2 TR, 3 R, 4 BR, 5 B, 6 BL, 7 L
@@ -90,7 +91,13 @@ void fragment() {
 
 		// interpolate between lit_color (t=0) -> face_color(t=threshold) unlit_color (t=1)
 		vec4 color;
-		if (color_progress_t < fade_threshold) {
+
+		// solid black border
+		if (color_progress_t <= 0.005) {
+			color = vec4(0.0, 0.0, 0.0, 0.6);
+		}
+
+		else if (color_progress_t < fade_threshold) {
 			color = mix(lit_color, fade_color, color_progress_t / fade_threshold);
 		} else {
 			color = mix(fade_color, unlit_color, (color_progress_t - fade_threshold) / (1.0 - fade_threshold));

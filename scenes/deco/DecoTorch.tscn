@@ -9,9 +9,8 @@ script = ExtResource("1_j5u86")
 
 [node name="PointLight2D" type="PointLight2D" parent="." unique_id=1970455508]
 position = Vector2(0, -64)
-enabled = false
-color = Color(0.9882353, 0.8039216, 0.43137255, 1)
-energy = 0.44877452
+color = Color(1, 0.7372549, 0.21960784, 1)
+energy = 0.7
 shadow_enabled = true
 shadow_filter_smooth = 64.0
 texture = ExtResource("2_bposk")
@@ -23,6 +22,6 @@ position = Vector2(0, -30)
 scale = Vector2(4, 4)
 sprite_frames = ExtResource("3_mylgo")
 animation = &"idle"
-frame_progress = 0.83017373
-speed_scale = 1.0413548
+frame_progress = 0.7885641
+speed_scale = 0.93373656
 flip_h = true
