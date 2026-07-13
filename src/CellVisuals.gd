@@ -120,7 +120,8 @@ func _ready() -> void:
 	# Set global colors
 	shadow_material.set_shader_parameter("lit_color", Colors.LIT_CELL_COLOR)
 	shadow_material.set_shader_parameter("fade_color", Colors.FADE_CELL_COLOR)
-	# Would need to include canvas modulate here because shader sets the final value excluding canvas modulate.
+	# Would need to include canvas modulate here (if its used) because shader sets
+	# the final value excluding withouth beeing affected by canvas modulate
 	shadow_material.set_shader_parameter("unlit_color", Colors.UNLIT_CELL_COLOR)
 
 	shadow_poly.material = shadow_material
@@ -180,10 +181,13 @@ func _update() -> void:
 	background_poly.light_mask = 0 if c.is_solid else 1
 	background_poly.color = Colors.get_cell_color(c.type)
 
-	# TODO change this for is solid AND especially change background texture (in cellGlobalTexture shader)
-	if c.is_solid:
-		background_poly.color *= Color(1.0, 1.0, 1.0, 1.0)
+	##########################
+	# is solid
+	##########################
+	# TODO
+	background_poly.set_instance_shader_parameter("is_solid", c.is_solid)
 
+	##########################
 	# background_poly.modulate = Color(1, 1, 1, 1) if not c.is_solid else Color(0.1, 0.1, 0.4, 1.0)
 
 	mineral_poly.visible = c.has_mineral and c.is_solid # and c.light_depth <= 1

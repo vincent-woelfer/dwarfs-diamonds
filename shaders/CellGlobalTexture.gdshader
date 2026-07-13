@@ -2,7 +2,9 @@ shader_type canvas_item;
 
 uniform sampler2D bg_texture_main : source_color, filter_nearest, repeat_enable;
 uniform sampler2D bg_texture_alt : source_color, filter_nearest, repeat_enable;
+
 uniform sampler2D bg_texture_solid : source_color, filter_nearest, repeat_enable;
+
 uniform sampler2D noise_tex : source_color, filter_nearest, repeat_enable;
 uniform sampler2D normal_map_tex : hint_normal, filter_nearest, repeat_enable;
 
@@ -11,6 +13,9 @@ const float tex_scale_noise = 0.001;
 
 instance uniform bool is_solid = false;
 
+
+// TODO blend texture between solid and not.
+
 varying vec2 world_pos;
 
 void vertex() {
@@ -18,6 +23,9 @@ void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 0.0, 1.0)).xy;
 }
 
+// Maps normalized progress from 0.0 to 1.0 using a symmetric ease-in-out curve:
+// the first half accelerates from zero, while the second half decelerates toward one.
+// A negative c controls the curve strength; larger magnitudes create a stronger easing effect.
 float ease_inout(float x, float c) {
 	if (x < 0.5) {
 		return pow(x * 2.0, -c) * 0.5;

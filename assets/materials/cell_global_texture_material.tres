@@ -1,9 +1,9 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://drnssi2sgr8v3"]
 
 [ext_resource type="Shader" uid="uid://b18fg7258hpby" path="res://shaders/CellGlobalTexture.gdshader" id="1_kedid"]
-[ext_resource type="Texture2D" uid="uid://cybh2itkdgt3d" path="res://assets/textures/stone_background_2.png" id="2_1owdi"]
-[ext_resource type="Texture2D" uid="uid://c1nasnuff5qk6" path="res://assets/textures/stone_background_1.jpg" id="3_4wph0"]
-[ext_resource type="Texture2D" uid="uid://dnbya7ooarjoy" path="res://assets/textures/stone_background_solid_1.png" id="4_4wph0"]
+[ext_resource type="Texture2D" uid="uid://cybh2itkdgt3d" path="res://assets/textures/cell_background/stone_background_2.png" id="2_4wph0"]
+[ext_resource type="Texture2D" uid="uid://c1nasnuff5qk6" path="res://assets/textures/cell_background/stone_background_1.jpg" id="3_3wi17"]
+[ext_resource type="Texture2D" uid="uid://dnbya7ooarjoy" path="res://assets/textures/cell_background/stone_background_solid_1.png" id="4_o8usf"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_4wph0"]
 noise_type = 0
@@ -18,7 +18,7 @@ seamless_blend_skirt = 0.2
 
 [resource]
 shader = ExtResource("1_kedid")
-shader_parameter/bg_texture_main = ExtResource("3_4wph0")
-shader_parameter/bg_texture_alt = ExtResource("2_1owdi")
-shader_parameter/bg_texture_solid = ExtResource("4_4wph0")
+shader_parameter/bg_texture_main = ExtResource("3_3wi17")
+shader_parameter/bg_texture_alt = ExtResource("2_4wph0")
+shader_parameter/bg_texture_solid = ExtResource("4_o8usf")
 shader_parameter/noise_tex = SubResource("NoiseTexture2D_3wi17")

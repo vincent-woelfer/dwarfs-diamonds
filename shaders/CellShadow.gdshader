@@ -18,7 +18,9 @@ uniform vec4 unlit_color : source_color;
 
 // ---------- instance uniforms ----------
 group_uniforms InstanceParameters;	
-// 0 = fully lit, dont write anything, 1 = apply fade based on neighbour_lit_bits, 2+ = fully dark
+// 0  = fully lit, dont write anything
+// 1  = apply fade based on neighbour_lit_bits
+// 2+ = fully dark
 instance uniform uint light_depth;
 
 // Points in ORDER: 0 TL, 1 T, 2 TR, 3 R, 4 BR, 5 B, 6 BL, 7 L

@@ -40,7 +40,7 @@ void fragment() {
     // Convert normalized color to 8-bit integer channels
     int stencil_r8 = int(round(stencil_color.r * 255.0));
     int stencil_g8 = int(round(stencil_color.g * 255.0));
-    int stencil_b8 = int(round(stencil_color.b * 255.0));
+    // int stencil_b8 = int(round(stencil_color.b * 255.0));
 
     // --- RED channel flags ---
     bool is_marked_for_mining       = (stencil_r8 & (1 << 0)) != 0;

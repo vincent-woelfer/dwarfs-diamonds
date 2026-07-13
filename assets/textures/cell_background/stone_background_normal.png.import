@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cybh2itkdgt3d"
-path="res://.godot/imported/stone_background_2.png-90050fc9174cf09b0fd96401363a0487.ctex"
+uid="uid://b75ixcvf2pvvj"
+path="res://.godot/imported/stone_background_normal.png-3b3494409edca2849730efa2f2babf95.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/textures/stone_background_2.png"
-dest_files=["res://.godot/imported/stone_background_2.png-90050fc9174cf09b0fd96401363a0487.ctex"]
+source_file="res://assets/textures/cell_background/stone_background_normal.png"
+dest_files=["res://.godot/imported/stone_background_normal.png-3b3494409edca2849730efa2f2babf95.ctex"]
 
 [params]
 
@@ -21,7 +21,7 @@ compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
 mipmaps/generate=false
 mipmaps/limit=-1
