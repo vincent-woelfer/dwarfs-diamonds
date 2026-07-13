@@ -5,6 +5,7 @@ render_mode unshaded;
 uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, repeat_disable;
 uniform sampler2D STENCIL_TEXTURE : source_color, repeat_disable, filter_nearest;
 
+// Zoom factor from camera, updated each frame by the camera script. Used to scale the stripe effect so it looks the same at any zoom level.
 uniform float zoom = 1.0; 
 
 // Parameters
@@ -20,6 +21,8 @@ const float angle = 0.7854; // radians
 const vec4 mining_color = vec4(0.4, 0.18, 0.75, 0.8);
 const vec4 highlight_color = vec4(1.0, 1.0, 0.0, 0.25);
 const vec4 placebable_highlight_color = vec4(0.0, 1.0, 0.0, 0.5);
+
+const vec4 background_color = vec4(0.1, 0.1, 0.1, 1.0);
 
 const float is_solid_max_darken_factor = 0.5;
 const float is_solid_flat_offset = 0.10;
@@ -51,9 +54,12 @@ void fragment() {
     int mining_process_bits = (stencil_g8 >> 0) & bitmask_3bits;
     float mining_process = float(mining_process_bits) / 7.0;
     
-
     // --- BLUE channel fields ---
     // used for debugging
+
+    // --- ALPHA channel fields ---
+    // Used for background detection -> fully alpha = background
+    bool is_background = stencil_color.a == 0.0;
 
     // Correct UV for aspect ratio for strip generation only
     float aspect = SCREEN_PIXEL_SIZE.x / SCREEN_PIXEL_SIZE.y;
@@ -101,10 +107,15 @@ void fragment() {
         COLOR = mix(COLOR, highlight_color, highlight_color.a);
     }
     
+    // Green placeable highlight (when placing buildings)
     if (has_placeable_highlight) {
         COLOR = mix(COLOR, placebable_highlight_color, placebable_highlight_color.a);
     }
 
+    // IS BACKGROUND -> simple color, ignore all other effects
+    if (is_background) {
+        COLOR = background_color;
+    }
 }
 
 

@@ -73,14 +73,17 @@ func _load_global_references() -> void:
 
 
 func _ready() -> void:
-	# Hook into window mouse_size changes
+	# IN-GAME
 	if not Engine.is_editor_hint():
+		# Hook into window size changes to update the post-process canvas layer and stencil viewport
 		get_viewport().size_changed.connect(_on_window_size_changed)
 
-	if not Engine.is_editor_hint():
-		pass
+		# Mouse Capture Mode
 		# Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		# Input.mouse_mode = Input.MOUSE_MODE_CONFINED
+
+		# Set clear color
+		# RenderingServer.set_default_clear_color(Colors.FALLBACK_COLOR)
 
 	_load_global_references()
 

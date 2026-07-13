@@ -103,12 +103,15 @@ static var ActionPointColor := {
 }
 
 ########################################################################################################################
-# FALLBACK COLORS
+# FALLBACK / SPECIAL COLORS
 ########################################################################################################################
 ## Magenta, indicates error
 static var FALLBACK_COLOR: Color = Color(1.0, 0.0, 1.0)
 
 static var FALLBACK_PATH_COLOR: Color = Color(1.0, 0.0, 1.0)
+
+static var BACKGROUND_CLEAR_COLOR: Color = Color.from_rgba8(1, 1, 1, 255)
+# (0.0, 0.0, 0.0, 1.0) # Black
 
 ########################################################################################################################
 # BUILDING COLORS

@@ -32,6 +32,7 @@ var uv_points: PackedVector2Array
 
 var dirty: bool
 
+
 # Methods
 func _init(_parent_cell: Cell) -> void:
 	self.process_priority = Enum.ProcessPriority.CELL_VISUAL
@@ -74,7 +75,7 @@ func _ready() -> void:
 
 	# with shader sky does not get dark at night
 	# if c.type == Enum.CellType.SKY:
-		# background_poly.material = unshaded_material
+	# background_poly.material = unshaded_material
 
 	add_child(background_poly)
 
@@ -127,7 +128,6 @@ func _ready() -> void:
 	for i in range(8):
 		shadow_poly.set_instance_shader_parameter("uvs_%d" % i, uv_points[i])
 
-
 	add_child(shadow_poly)
 
 	###################################
@@ -135,7 +135,9 @@ func _ready() -> void:
 	###################################
 	stencil_poly = Polygon2D.new()
 	stencil_poly.polygon = poly_points
-	stencil_poly.color = Color(0.0, 0.0, 0.0, 0.0) if Engine.is_editor_hint() else Color(0.0, 0.0, 0.0, 1.0)
+	# Fully transparent in editor, fully opaque in game (gets drawn to stencil buffer)
+	var stencil_color: Color = Color(0.0, 0.0, 0.0, 0.0) if Engine.is_editor_hint() else Color(0.0, 0.0, 0.0, 1.0)
+	stencil_poly.color = stencil_color
 	stencil_poly.visibility_layer = Util.LAYER_2
 	stencil_poly.material = unshaded_material
 	add_child(stencil_poly)
@@ -157,6 +159,7 @@ func _ready() -> void:
 	###################################
 	_update()
 
+
 func set_dirty() -> void:
 	dirty = true
 
@@ -165,7 +168,7 @@ func _process(delta: float) -> void:
 	if dirty:
 		dirty = false
 		_update()
-		
+
 		_update_light_depth_visuals()
 
 
@@ -272,6 +275,7 @@ func _compute_cell_polygon() -> PackedVector2Array:
 
 	# Clockwise, starting from top-left
 	return PackedVector2Array([top_left, top, top_right, right, bot_right, bot, bot_left, left])
+
 
 # Compute normalized UVs by simply scaling down polygon by SIDE_LENGTH
 func _compute_cell_uvs() -> PackedVector2Array:
