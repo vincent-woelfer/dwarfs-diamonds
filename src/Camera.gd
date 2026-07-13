@@ -15,6 +15,11 @@ var zoom_speed: float = 15.0
 var zoom_min: float = 0.7
 var zoom_max: float = 6.0 # for gameplay maybe 3 -> but for testing allow closer
 
+# Move towards mouse cursor when zooming in
+# strength: 0 -> zoom towards center, 1 -> zoom towards mouse position, 0.5 -> half way between mouse and center
+# 1 = cell under mouse cursor stays the same.
+var zoom_to_mouse_strength: float = 1.0
+
 # For panning and level bounds
 # The world size (as in)
 var level_size: Vector2 = Global.CELL_SIZE_VEC * Global.LEVEL_SIZE_VEC
@@ -33,28 +38,53 @@ func _ready() -> void:
 	_clamp_pos_to_level()
 
 
-func mouse_pos_world_space() -> Vector2:
-	# Mouse in local viewport space
+## In pixel space
+func get_mouse_pos_world_space() -> Vector2:
+	# Mouse in local viewport space - unit is pixels
 	var screen_mouse: Vector2 = get_viewport().get_mouse_position()
-	var centered := screen_mouse - get_viewport_rect().size * 0.5
-	return self.position + centered / zoom_curr
+	var mouse_screen_center_relative := screen_mouse - get_viewport_rect().size * 0.5
+	return self.position + mouse_screen_center_relative / zoom_curr
 
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mbe := event as InputEventMouseButton
 		# Zoom in/out with mouse wheel - make it feel linear by adjusting the zoom_target multiplicatively not additively
+		# ZOOM IN
 		if mbe.button_index == MOUSE_BUTTON_WHEEL_UP and mbe.pressed:
 			zoom_target *= (1.0 + zoom_step)
+		# ZOOM OUT
 		elif mbe.button_index == MOUSE_BUTTON_WHEEL_DOWN and mbe.pressed:
 			zoom_target *= (1.0 - zoom_step)
 
 		zoom_target = clamp(zoom_target, zoom_min, zoom_max)
+		_clamp_zoom_to_level_horizontally()
 
 
 func _process(delta: float) -> void:
-	var input_vector := Vector2.ZERO
+	###################################
+	# ZOOMING
+	###################################
+	var mouse_world_before_zoom: Vector2 = get_mouse_pos_world_space()
 
+	# Zoom towards target (which is updated in _input)
+	zoom_curr = Util.lerp_towards_f(zoom_curr, zoom_target, zoom_speed, delta)
+
+	var mouse_world_after_zoom: Vector2 = get_mouse_pos_world_space()
+	var mouse_world_drift: Vector2 = mouse_world_before_zoom - mouse_world_after_zoom
+
+	# ZOOM IN: Move towards mouse cursor
+	if zoom_target > zoom_curr:
+		position += mouse_world_drift * clampf(zoom_to_mouse_strength, 0.0, 1.0)
+
+	# ZOOM OUT: Move away from mouse cursor
+	if zoom_target < zoom_curr:
+		position += mouse_world_drift * clampf(zoom_to_mouse_strength, 0.0, 1.0)
+
+	###################################
+	# PANNING via WASD or arrow keys
+	###################################
+	var input_vector := Vector2.ZERO
 	if Input.is_action_pressed("ui_left") or Input.is_action_pressed("cam_move_left"):
 		input_vector.x -= 1.0
 	if Input.is_action_pressed("ui_right") or Input.is_action_pressed("cam_move_right"):
@@ -70,14 +100,11 @@ func _process(delta: float) -> void:
 		var pan_speed_adjusted_for_zoom := pan_speed / lerpf(zoom_curr, 1.0, 0.5)
 		position += input_vector.normalized() * pan_speed_adjusted_for_zoom * delta
 
-	# Zoom towards target (which is updated in _input)
-	zoom_curr = Util.lerp_towards_f(zoom_curr, zoom_target, zoom_speed, delta)
-
-	_clamp_zoom_to_level_horizontally()
-
 	_clamp_pos_to_level()
 
+	###################################
 	# Set root viewport and stencil viewport transform
+	###################################
 	var t := Transform2D()
 	t.x *= Vector2.ONE * zoom_curr
 	t.y *= Vector2.ONE * zoom_curr

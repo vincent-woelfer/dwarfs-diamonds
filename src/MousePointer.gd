@@ -10,7 +10,8 @@ extends Node2D
 @onready var mining_comp: MiningComponent = $MiningComponent
 
 # Mouse Pointer
-var mouse_pointer_size: Vector2 = Vector2(32, 32)
+var mouse_pointer_size: Vector2 = Vector2(64, 64)
+var mouse_pointer_texture_scale: Vector2 = Vector2.ONE
 
 var mouse_pointer_texture_normal: Texture2D = preload("res://assets/vector_graphics/MousePointerNormal.svg") as Texture2D
 var mouse_pointer_texture_building_destroy: Texture2D = preload("res://assets/vector_graphics/MousePointerBuildingDestroy.svg") as Texture2D
@@ -49,6 +50,13 @@ func _ready() -> void:
 ########################################################################################################################
 func _physics_process(delta: float) -> void:
 	sm.physics_process(delta)
+
+	# TODO lags behind and looks weird
+	# Scale mouse pointer sprite based on camera zoom. This does not affect building preview
+	mouse_pointer_sprite.scale = (Vector2.ONE / Global.camera.zoom_curr) * mouse_pointer_texture_scale
+
+	# No scaling (just scale for texture size)
+	# mouse_pointer_sprite.scale = mouse_pointer_texture_scale
 
 
 ###################################
@@ -135,7 +143,7 @@ func _physics_process_building_destroy(delta: float) -> void:
 # ACTIONS PER STATE
 ########################################################################################################################
 func _follow_mouse_pointer() -> void:
-	self.position = Global.camera.mouse_pos_world_space()
+	self.position = Global.camera.get_mouse_pos_world_space()
 
 	prev_center_cell = curr_center_cell
 	curr_center_cell = Global.level.sample_cell_at_world_pos(self.global_position)
@@ -303,4 +311,4 @@ func _sample_cells_at_mouse_pos(world_pos: Vector2) -> Array[Cell]:
 
 func _set_mouse_pointer_sprite(texture: Texture2D) -> void:
 	mouse_pointer_sprite.texture = texture
-	mouse_pointer_sprite.scale = mouse_pointer_size / texture.get_size()
+	mouse_pointer_texture_scale = mouse_pointer_size / texture.get_size()

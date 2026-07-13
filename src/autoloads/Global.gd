@@ -81,9 +81,7 @@ func _ready() -> void:
 		# Mouse Capture Mode
 		# Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		# Input.mouse_mode = Input.MOUSE_MODE_CONFINED
-
-		# Set clear color
-		# RenderingServer.set_default_clear_color(Colors.FALLBACK_COLOR)
+		Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
 
 	_load_global_references()
 
