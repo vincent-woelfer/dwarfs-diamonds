@@ -216,8 +216,9 @@ func _on_nav_updated() -> void:
 var _debug_draw_proxy_relative := DebugDrawProxy.new(self)
 
 # Multiple jobs per cell are placed from top to bottom with an offset
-var debug_offset_start := Vector2(-0.44, -0.35) * Global.CELL_SIZE_VEC
-var debug_offset_inc := Vector2(0.0, 0.12) * Global.CELL_SIZE_VEC
+const debug_label_width := 1.0 * Global.CELL_SIZE
+var debug_label_offset_start := Vector2(0.0, -0.35) * Global.CELL_SIZE_VEC + Vector2(-debug_label_width / 2.0, 0.0)
+var debug_label_offset_inc := Vector2(0.0, 0.12) * Global.CELL_SIZE_VEC
 
 var debug_font := ThemeDB.fallback_font
 var debug_font_size := 14
@@ -239,12 +240,12 @@ func debug_draw_in_ui_relative(ui_layer: CanvasItem) -> void:
 		var text: String = info[0] + " - " + info[1]
 		var color: Color = info[2]
 
-		ui_layer.draw_string(debug_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, debug_font_size, color)
+		ui_layer.draw_string(debug_font, pos, text, HORIZONTAL_ALIGNMENT_CENTER, debug_label_width, debug_font_size, color)
 
 
 ## Get offset for each text entry to avoid overlapping
 func _debug_get_offset(idx: int) -> Vector2:
-	return debug_offset_start + debug_offset_inc * idx
+	return debug_label_offset_start + debug_label_offset_inc * idx
 
 
 func _dev_toggle_jobs_draw() -> void:

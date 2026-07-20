@@ -16,6 +16,7 @@ func to_str(enum_dict: Dictionary, value: int) -> String:
 
 	return "Unknown"
 
+
 ## Given the Enum Class, return an array of all enum entries as string
 func to_string_array(enum_dict: Dictionary) -> Array[String]:
 	var names: Array[String] = []
@@ -28,7 +29,7 @@ enum CellType {
 	A,
 	B,
 	C,
-	SKY
+	SKY,
 }
 
 enum ProcessPriority {
@@ -39,7 +40,7 @@ enum ProcessPriority {
 	# Process accumulated signals
 	EVENT_BUS = 10,
 	# Last Phase: Visuals
-	CELL_VISUAL = 11
+	CELL_VISUAL = 11,
 }
 
 enum ZIndex {
@@ -50,10 +51,10 @@ enum ZIndex {
 	DWARFS = 200,
 	RUBBLE = 250,
 	GEMSTONE = 251,
+	VFX = 280,
 	GRID_PATTERN_VISUALIZATION = 300,
 	UI_MOUSE_POINTER = 1000,
 }
-
 
 # Index of poly points of cell
 enum PolyPoint {
@@ -86,7 +87,6 @@ enum BuildingType {
 	PLATFORM_BLOCKING,
 	PLATFORM_BRIDGE,
 }
-
 
 ########################################################################################################################
 # ENUM DEFINITIONS ITEM TYPES

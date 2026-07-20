@@ -65,8 +65,12 @@ static func randi_from_coords(pos: Vector2, min_inclusive: int, max_inclusive: i
 	return min_inclusive + roundi(r * (max_inclusive - min_inclusive))
 
 
+static func grid_to_world(grid_pos: Vector2i) -> Vector2:
+	return (grid_pos as Vector2) * Global.CELL_SIZE
+
+
 static func grid_to_world_cell_center(grid_pos: Vector2i) -> Vector2:
-	return (grid_pos as Vector2) + Global.CELL_OFFSET_CENTER
+	return grid_to_world(grid_pos) + Global.CELL_OFFSET_CENTER
 
 
 static func grid_to_world_cell_center_array(grid_poses: Array[Vector2i]) -> Array[Vector2]:
@@ -181,13 +185,25 @@ static func is_point_near_line_segment(p: Vector2, a: Vector2, b: Vector2) -> bo
 
 
 ########################################################################################################################
-# Physics stuff
+# Spawning / World stuff
 ########################################################################################################################
 static func get_scene_root() -> Node2D:
 	if Engine.is_editor_hint():
 		return EditorInterface.get_edited_scene_root() as Node2D
 	else:
 		return (Engine.get_main_loop() as SceneTree).current_scene as Node2D
+
+
+## If parent is null the instance will be added to the scene root, use global_pos.
+## If parent is not null the instance will be added to the parent, use local_pos.
+static func spawn(instance: Node2D, pos: Vector2, parent: Node2D = null) -> void:
+	if parent != null:
+		parent.add_child(instance)
+		instance.position = pos
+	else:
+		Util.get_scene_root().add_child(instance)
+		instance.global_position = pos
+	instance.reset_physics_interpolation()
 
 
 ########################################################################################################################

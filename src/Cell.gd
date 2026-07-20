@@ -124,7 +124,9 @@ func destroy_cell() -> void:
 		type = Enum.CellType.SKY
 		z_index = Enum.ZIndex.CELL_SKY
 
+	# Audio and VFX
 	Audio.play_at_pos("cell_on_destroy", global_position)
+	CellDestroyEffect.spawn_at_cell(grid_pos)
 
 	# Spawn Rubble / Gemstone
 	Global.level.item_manager.spawn_item_in_cell(grid_pos, Enum.ItemType.RUBBLE)
@@ -264,7 +266,7 @@ func _init(_grid_pos: Vector2i, _type: Enum.CellType, _is_solid: bool, _has_mine
 	self.process_priority = Enum.ProcessPriority.CELL
 
 	self.grid_pos = _grid_pos
-	self.position = Vector2(grid_pos) * Global.CELL_SIZE
+	self.position = Util.grid_to_world(grid_pos)
 	self.type = _type
 	self.is_solid = _is_solid
 	self.has_mineral = _has_mineral

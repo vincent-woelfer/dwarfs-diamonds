@@ -13,8 +13,12 @@ extends Node2D
 var mouse_pointer_size: Vector2 = Vector2(64, 64)
 var mouse_pointer_texture_scale: Vector2 = Vector2.ONE
 
-var mouse_pointer_texture_normal: Texture2D = preload("res://assets/vector_graphics/MousePointerNormal.svg") as Texture2D
-var mouse_pointer_texture_building_destroy: Texture2D = preload("res://assets/vector_graphics/MousePointerBuildingDestroy.svg") as Texture2D
+var mouse_pointer_texture_normal: Texture2D = preload(
+		"res://assets/vector_graphics/MousePointerNormal.svg"
+) as Texture2D
+var mouse_pointer_texture_building_destroy: Texture2D = preload(
+		"res://assets/vector_graphics/MousePointerBuildingDestroy.svg"
+) as Texture2D
 
 # Variables
 var selection_pattern: GridPatternRes
@@ -29,7 +33,11 @@ var curr_center_cell: Cell = null
 var prev_center_cell: Cell = null
 
 # State machine
-enum State { NEUTRAL, BUILDING_PLACEMENT, BUILDING_DESTROY }
+enum State {
+	NEUTRAL,
+	BUILDING_PLACEMENT,
+	BUILDING_DESTROY,
+}
 var sm: StateMachine
 
 
@@ -159,19 +167,29 @@ func _actions_mode_change() -> bool:
 	elif Input.is_action_just_pressed("mouse_place_building_ladder"):
 		sm.transition_to(State.BUILDING_PLACEMENT, Util.get_building_data(Enum.BuildingType.LADDER))
 		return true
-
 	elif Input.is_action_just_pressed("mouse_place_building_outpost"):
-		sm.transition_to(State.BUILDING_PLACEMENT, Util.get_building_data(Enum.BuildingType.OUTPOST))
+		sm.transition_to(
+				State.BUILDING_PLACEMENT,
+				Util.get_building_data(Enum.BuildingType.OUTPOST),
+		)
 		return true
-
 	elif Input.is_action_just_pressed("mouse_place_platform"):
 		if building_preview.building_data.type == Enum.BuildingType.PLATFORM_BRIDGE:
-			sm.transition_to(State.BUILDING_PLACEMENT, Util.get_building_data(Enum.BuildingType.PLATFORM_BLOCKING))
+			sm.transition_to(
+					State.BUILDING_PLACEMENT,
+					Util.get_building_data(Enum.BuildingType.PLATFORM_BLOCKING),
+			)
 		elif building_preview.building_data.type == Enum.BuildingType.PLATFORM_BLOCKING:
-			sm.transition_to(State.BUILDING_PLACEMENT, Util.get_building_data(Enum.BuildingType.PLATFORM_BRIDGE))
+			sm.transition_to(
+					State.BUILDING_PLACEMENT,
+					Util.get_building_data(Enum.BuildingType.PLATFORM_BRIDGE),
+			)
 		else:
 			# Default
-			sm.transition_to(State.BUILDING_PLACEMENT, Util.get_building_data(Enum.BuildingType.PLATFORM_BLOCKING))
+			sm.transition_to(
+					State.BUILDING_PLACEMENT,
+					Util.get_building_data(Enum.BuildingType.PLATFORM_BLOCKING),
+			)
 
 		return true
 
@@ -303,7 +321,7 @@ func _sample_cells_at_mouse_pos(world_pos: Vector2) -> Array[Cell]:
 		if offset == Vector2i.ZERO:
 			continue
 
-		cell = Global.level.sample_cell_at_world_pos(world_pos + (offset as Vector2) * Global.CELL_SIZE)
+		cell = Global.level.sample_cell_at_world_pos(world_pos + Util.grid_to_world(offset))
 		Util.array_append_unique_not_null(selected_cells, cell)
 
 	return selected_cells

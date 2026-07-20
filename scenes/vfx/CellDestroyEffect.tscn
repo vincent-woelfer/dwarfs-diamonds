@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://cuy5lin2yvpsx"]
+
+[ext_resource type="Script" uid="uid://dbkc7y01oyr3d" path="res://src/vfx/CellDestroyEffect.gd" id="1_i2twn"]
+[ext_resource type="Texture2D" uid="uid://bwnv72u07uher" path="res://assets/textures/dust_sprites.png" id="2_ir6x8"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_ia88j"]
+lifetime_randomness = 0.2
+particle_flag_disable_z = true
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 4.0
+initial_velocity_max = 14.0
+gravity = Vector3(0, 40, 0)
+damping_min = 4.0
+damping_max = 8.0
+scale_min = 0.8
+scale_max = 1.4
+
+[node name="CellDestroyEffect" type="Node2D" unique_id=239161647]
+z_index = 100
+script = ExtResource("1_i2twn")
+
+[node name="Particles" type="GPUParticles2D" parent="." unique_id=1634390634]
+emitting = false
+amount = 24
+texture = ExtResource("2_ir6x8")
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_ia88j")
